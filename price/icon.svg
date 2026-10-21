@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="省钱比价">
+  <rect width="512" height="512" fill="#1c1c1f"/>
+  <g fill="#f4f5f7">
+    <rect x="246" y="168" width="20" height="156" rx="10"/>
+    <rect x="178" y="308" width="156" height="22" rx="11"/>
+    <rect x="96" y="156" width="320" height="22" rx="11"/>
+    <path d="M132 178 L108 268 Q160 304 212 268 L188 178 Z"/>
+    <path d="M324 178 L300 268 Q352 304 404 268 L380 178 Z"/>
+  </g>
+</svg>

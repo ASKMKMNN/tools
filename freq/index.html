@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="周期与频率互相换算" />
+    <meta name="theme-color" content="#0b0e14" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="周期频率" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>周期 ⇄ 频率 换算器</title>
+    <style>
+        /* ===== 全局深色重置 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #0b0e14;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            color: #e8edf5;
+        }
+
+        .card {
+            background: #141a24;
+            border-radius: 28px;
+            padding: 40px 36px 44px;
+            max-width: 580px;
+            width: 100%;
+            box-shadow: 0 20px 48px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            border: 1px solid #28303d;
+            transition: border-color 0.2s;
+        }
+
+        .card:hover {
+            border-color: #3a4557;
+        }
+
+        /* ===== 标题 + 方向切换 ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            background: linear-gradient(135deg, #c0d0f0, #8ab4ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mode-toggle {
+            display: flex;
+            background: #1f2836;
+            border-radius: 100px;
+            padding: 4px;
+            border: 1px solid #2d3848;
+            position: relative;
+        }
+
+        .mode-toggle button {
+            background: transparent;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 100px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #8896ab;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            z-index: 1;
+            font-family: inherit;
+        }
+
+        .mode-toggle button.active {
+            color: #fff;
+            background: #2f3d52;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .mode-toggle button:first-child.active {
+            background: #2f3d52;
+        }
+        .mode-toggle button:last-child.active {
+            background: #2f3d52;
+        }
+
+        .mode-toggle button:not(.active):hover {
+            color: #c8d6ea;
+        }
+
+        /* ===== 输入区域 ===== */
+        .input-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .input-group label {
+            font-size: 15px;
+            font-weight: 500;
+            color: #b0c0d8;
+            min-width: 56px;
+        }
+
+        .input-group .field-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #0f1520;
+            border-radius: 14px;
+            border: 1px solid #28303d;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            overflow: hidden;
+            min-width: 180px;
+        }
+
+        .input-group .field-wrap:focus-within {
+            border-color: #5b7fc7;
+            box-shadow: 0 0 0 3px rgba(75, 120, 220, 0.2);
+        }
+
+        .input-group .field-wrap input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 14px 16px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #eef4fc;
+            outline: none;
+            min-width: 0;
+            font-family: inherit;
+            letter-spacing: 0.2px;
+        }
+
+        .input-group .field-wrap input::placeholder {
+            color: #4a5a72;
+            font-weight: 400;
+            font-size: 16px;
+        }
+
+        .input-group .field-wrap select {
+            background: transparent;
+            border: none;
+            padding: 14px 12px 14px 4px;
+            font-size: 15px;
+            font-weight: 500;
+            color: #b8cae0;
+            outline: none;
+            cursor: pointer;
+            font-family: inherit;
+            min-width: 68px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%238896ab' stroke-width='1.8' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 32px;
+        }
+
+        .input-group .field-wrap select option {
+            background: #1a2332;
+            color: #e8edf5;
+        }
+
+        /* ===== 结果展示 ===== */
+        .result-box {
+            margin-top: 28px;
+            background: #0f1520;
+            border-radius: 18px;
+            padding: 22px 24px;
+            border: 1px solid #28303d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            transition: border-color 0.2s;
+        }
+
+        .result-box .label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #7a8aa3;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .result-box .value {
+            font-size: 30px;
+            font-weight: 600;
+            color: #eef4fc;
+            letter-spacing: -0.5px;
+            word-break: break-all;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .result-box .value .unit {
+            font-size: 20px;
+            font-weight: 500;
+            color: #8aa3c9;
+            margin-left: 6px;
+        }
+
+        .result-box .value .empty-placeholder {
+            color: #4a5a72;
+            font-weight: 400;
+            font-size: 18px;
+        }
+
+        /* ===== 辅助信息 ===== */
+        .hint {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #5d6f89;
+            text-align: center;
+            letter-spacing: 0.2px;
+            border-top: 1px solid #1f2836;
+            padding-top: 16px;
+        }
+
+        .hint kbd {
+            background: #1f2836;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #b0c0d8;
+            border: 1px solid #2d3848;
+            font-family: inherit;
+        }
+
+        /* ===== 反向计算时调换提示 ===== */
+        .swap-hint {
+            display: inline-block;
+            font-size: 13px;
+            color: #6a8fc0;
+            background: #1a2538;
+            padding: 4px 14px;
+            border-radius: 100px;
+            margin-top: 6px;
+            border: 1px solid #2d3f5a;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 500px) {
+            .card {
+                padding: 28px 18px 32px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .header h1 {
+                text-align: center;
+                font-size: 20px;
+            }
+            .mode-toggle {
+                align-self: center;
+                width: 100%;
+                max-width: 280px;
+            }
+            .mode-toggle button {
+                flex: 1;
+                text-align: center;
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+            .input-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+            .input-group label {
+                font-size: 14px;
+                min-width: auto;
+            }
+            .input-group .field-wrap input {
+                font-size: 16px;
+                padding: 12px 14px;
+            }
+            .result-box .value {
+                font-size: 24px;
+            }
+            .result-box .value .unit {
+                font-size: 17px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .card {
+                padding: 20px 12px 24px;
+            }
+            .input-group .field-wrap {
+                flex-wrap: wrap;
+            }
+            .input-group .field-wrap select {
+                flex: 1 1 100%;
+                padding: 10px 32px 10px 12px;
+                background-position: right 12px center;
+            }
+            .input-group .field-wrap input {
+                flex: 1 1 100%;
+                padding: 10px 12px;
+            }
+        }
+
+        /* ===== 移除 number 箭头 ===== */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+        /* ===== 选中高亮 ===== */
+        ::selection {
+            background: #2f4a7a;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card" role="main" aria-label="周期与频率换算工具">
+
+        <!-- 头部 -->
+        <div class="header">
+            <h1>⚡ 周期 · 频率</h1>
+            <div class="mode-toggle" role="group" aria-label="计算模式切换">
+                <button id="modePeriodToFreq" class="active" data-mode="period">周期 → 频率</button>
+                <button id="modeFreqToPeriod" data-mode="freq">频率 → 周期</button>
+            </div>
+        </div>
+
+        <!-- 输入区域 -->
+        <div class="input-group">
+            <label id="inputLabel" for="valueInput">周期</label>
+            <div class="field-wrap">
+                <input
+                type="number"
+                id="valueInput"
+                placeholder="输入数值"
+                step="any"
+                min="0"
+                autofocus
+                aria-describedby="resultDisplay"
+                />
+                <select id="unitSelect" aria-label="单位选择">
+                    <option value="s">秒 (s)</option>
+                    <option value="ms" selected>毫秒 (ms)</option>
+                    <option value="us">微秒 (µs)</option>
+                    <option value="ns">纳秒 (ns)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 结果 -->
+        <div class="result-box" id="resultBox">
+            <span class="label" id="resultLabel">频率</span>
+            <span class="value" id="resultDisplay">
+                <span class="empty-placeholder">等待输入…</span>
+            </span>
+        </div>
+
+        <!-- 辅助提示 -->
+        <div class="hint" id="hintArea">
+            <span id="formulaHint">T = 1 / f &nbsp;·&nbsp; 输入周期自动换算</span>
+            <span class="swap-hint" id="swapHint" style="display:none;">↻ 反向模式已开启</span>
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ---- DOM 引用 ----
+            const valueInput = document.getElementById('valueInput');
+            const unitSelect = document.getElementById('unitSelect');
+            const resultDisplay = document.getElementById('resultDisplay');
+            const resultLabel = document.getElementById('resultLabel');
+            const inputLabel = document.getElementById('inputLabel');
+            const hintArea = document.getElementById('formulaHint');
+            const swapHint = document.getElementById('swapHint');
+
+            const modePeriodBtn = document.getElementById('modePeriodToFreq');
+            const modeFreqBtn = document.getElementById('modeFreqToPeriod');
+
+            // ---- 状态 ----
+            let currentMode = 'period'; // 'period' | 'freq'
+
+            // ---- 单位换算因子 (转为秒) ----
+            const UNIT_FACTORS = {
+                's': 1,
+                'ms': 1e-3,
+                'us': 1e-6,
+                'ns': 1e-9,
+            };
+
+            // ---- 频率单位显示 ----
+            function formatFrequency(hertz) {
+                if (!isFinite(hertz) || hertz < 0) return { value: '—', unit: '' };
+                if (hertz === 0) return { value: '0', unit: 'Hz' };
+                const abs = Math.abs(hertz);
+                if (abs >= 1e9) return { value: (hertz / 1e9).toPrecision(6), unit: 'GHz' };
+                if (abs >= 1e6) return { value: (hertz / 1e6).toPrecision(6), unit: 'MHz' };
+                if (abs >= 1e3) return { value: (hertz / 1e3).toPrecision(6), unit: 'kHz' };
+                return { value: hertz.toPrecision(6), unit: 'Hz' };
+            }
+
+            // ---- 周期单位显示 (自动选择最合适的单位) ----
+            function formatPeriod(seconds) {
+                if (!isFinite(seconds) || seconds < 0) return { value: '—', unit: '' };
+                if (seconds === 0) return { value: '0', unit: 's' };
+                const abs = Math.abs(seconds);
+                if (abs >= 1) return { value: seconds.toPrecision(6), unit: 's' };
+                if (abs >= 1e-3) return { value: (seconds / 1e-3).toPrecision(6), unit: 'ms' };
+                if (abs >= 1e-6) return { value: (seconds / 1e-6).toPrecision(6), unit: 'µs' };
+                if (abs >= 1e-9) return { value: (seconds / 1e-9).toPrecision(6), unit: 'ns' };
+                return { value: (seconds / 1e-12).toPrecision(6), unit: 'ps' };
+            }
+
+            // ---- 核心计算 & 更新 UI ----
+            function update() {
+                const rawValue = valueInput.value.trim();
+                if (rawValue === '') {
+                    resultDisplay.innerHTML = `<span class="empty-placeholder">等待输入…</span>`;
+                    return;
+                }
+
+                const num = parseFloat(rawValue);
+                if (isNaN(num) || num < 0) {
+                    resultDisplay.innerHTML = `<span class="empty-placeholder">⚠️ 请输入有效正数</span>`;
+                    return;
+                }
+
+                const unit = unitSelect.value;
+                const factor = UNIT_FACTORS[unit] || 1;
+
+                if (currentMode === 'period') {
+                    // ---- 周期 → 频率 ----
+                    const periodSeconds = num * factor;
+                    if (periodSeconds === 0) {
+                        resultDisplay.innerHTML = `<span class="empty-placeholder">∞ (周期为0)</span>`;
+                        return;
+                    }
+                    const freqHz = 1 / periodSeconds;
+                    const { value, unit: freqUnit } = formatFrequency(freqHz);
+                    resultDisplay.innerHTML = `${value} <span class="unit">${freqUnit}</span>`;
+                } else {
+                    // ---- 频率 → 周期 ----
+                    const freqHz = num * factor;
+                    if (freqHz === 0) {
+                        resultDisplay.innerHTML = `<span class="empty-placeholder">∞ (频率为0)</span>`;
+                        return;
+                    }
+                    const periodSeconds = 1 / freqHz;
+                    const { value, unit: periodUnit } = formatPeriod(periodSeconds);
+                    resultDisplay.innerHTML = `${value} <span class="unit">${periodUnit}</span>`;
+                }
+            }
+
+            // ---- 切换模式 ----
+            function setMode(mode) {
+                if (mode === currentMode) return;
+                currentMode = mode;
+
+                // 更新按钮状态
+                modePeriodBtn.classList.toggle('active', mode === 'period');
+                modeFreqBtn.classList.toggle('active', mode === 'freq');
+
+                // 更新标签 & 提示
+                if (mode === 'period') {
+                    inputLabel.textContent = '周期';
+                    resultLabel.textContent = '频率';
+                    hintArea.textContent = 'T = 1 / f  ·  输入周期，自动计算频率';
+                    swapHint.style.display = 'none';
+                    // 更新单位下拉选项 (周期单位)
+                    unitSelect.innerHTML = `
+                        <option value="s">秒 (s)</option>
+                        <option value="ms" selected>毫秒 (ms)</option>
+                        <option value="us">微秒 (µs)</option>
+                        <option value="ns">纳秒 (ns)</option>
+                    `;
+                } else {
+                    inputLabel.textContent = '频率';
+                    resultLabel.textContent = '周期';
+                    hintArea.textContent = 'f = 1 / T  ·  输入频率，自动计算周期';
+                    swapHint.style.display = 'inline-block';
+                    // 更新单位下拉选项 (频率单位)
+                    unitSelect.innerHTML = `
+                        <option value="Hz">Hz</option>
+                        <option value="kHz" selected>kHz</option>
+                        <option value="MHz">MHz</option>
+                        <option value="GHz">GHz</option>
+                    `;
+                }
+
+                // 清空输入 & 结果
+                valueInput.value = '';
+                resultDisplay.innerHTML = `<span class="empty-placeholder">等待输入…</span>`;
+                valueInput.focus();
+            }
+
+            // ---- 事件绑定 ----
+            valueInput.addEventListener('input', update);
+            unitSelect.addEventListener('change', update);
+
+            modePeriodBtn.addEventListener('click', function() {
+                setMode('period');
+            });
+            modeFreqBtn.addEventListener('click', function() {
+                setMode('freq');
+            });
+
+            // ---- 键盘快捷键: 方向切换 (Ctrl+Shift+P / Ctrl+Shift+F) ----
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && (e.key === 'p' || e.key === 'P')) {
+                    e.preventDefault();
+                    setMode('period');
+                } else if (e.ctrlKey && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+                    e.preventDefault();
+                    setMode('freq');
+                }
+                // 回车重新计算 (其实已经实时了, 但为了习惯)
+                if (e.key === 'Enter' && e.target === valueInput) {
+                    update();
+                }
+            });
+
+            // ---- 初始状态: 周期→频率, 默认ms ----
+            setMode('period');
+            // 设置默认示例值 500 (us) -> 但默认单位是ms, 我们放一个示例: 1ms
+            valueInput.value = '1';
+            unitSelect.value = 'ms';
+            update();
+
+            // 点击输入框全选
+            valueInput.addEventListener('focus', function() {
+                this.select();
+            });
+
+            console.log('🔁 周期/频率换算器已启动  |  Ctrl+Shift+P → 周期模式  |  Ctrl+Shift+F → 频率模式');
+        })();
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js', { scope: './' });
+        }
+    </script>
+</body>
+
+</html>

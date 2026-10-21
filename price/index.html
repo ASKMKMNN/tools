@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="省钱比价">
+    <meta name="description" content="比较两个选项的单价，看哪个更划算">
+    <meta name="theme-color" content="#f5f6f8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#141416" media="(prefers-color-scheme: dark)">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <title>省钱比价</title>
+    <style>
+        /* 新质感设计变量：全面回归高级灰色调 */
+        :root {
+            --primary-color: #111111; /* 核心高亮改为纯粹的深铬黑 */
+            --bg-color: #f5f6f8;      /* 柔和的浅灰底色 */
+            --card-bg: #ffffff;
+            --text-main: #222222;
+            --text-muted: #8a8a93;
+            --border-color: rgba(0, 0, 0, 0.06);
+            --input-bg: #f9fafb;
+            
+            /* 新质感：更有分量感的拟物阴影 */
+            --convex-shadow: 0 10px 30px rgba(0, 0, 0, 0.04), 0 1px 8px rgba(0, 0, 0, 0.02);
+            --input-concave-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.04);
+            --active-glow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+            --cheaper-glow: 0 12px 35px rgba(0, 0, 0, 0.08);
+            
+            --tip-bg: #eef0f3;         /* 灰调提示框 */
+            --instruction-bg: #f9fafb;
+            --card-cheaper-bg: #ffffff;
+            --hr-color: rgba(0, 0, 0, 0.05);
+        }
+
+        [data-theme="dark"] {
+            --primary-color: #ffffff; /* 暗黑模式下高亮为纯白 */
+            --bg-color: #141416;      /* 极深的石墨灰底色 */
+            --card-bg: #1e1e22;       /* 钛金灰卡片 */
+            --text-main: #e4e4e7;
+            --text-muted: #71717a;
+            --border-color: rgba(255, 255, 255, 0.04);
+            --input-bg: #151518;
+            
+            --convex-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 1px 8px rgba(0, 0, 0, 0.2);
+            --input-concave-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+            --active-glow: 0 0 0 3px rgba(255, 255, 255, 0.08);
+            --cheaper-glow: 0 12px 35px rgba(255, 255, 255, 0.03);
+            
+            --tip-bg: #27272a;
+            --instruction-bg: #18181b;
+            --card-cheaper-bg: #222226;
+            --hr-color: rgba(255, 255, 255, 0.04);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+            transition: background-color 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), 
+                        border-color 0.3s ease, 
+                        box-shadow 0.3s ease,
+                        color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        /* 顶部工具栏 */
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+
+        .theme-toggle-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--convex-shadow);
+        }
+
+        /* 头部样式 */
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* 提示卡片：采用质感灰调 */
+        .saving-tip {
+            background-color: var(--tip-bg);
+            color: var(--text-main);
+            padding: 14px;
+            border-radius: 18px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--convex-shadow);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 卡片物理质感 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1.5px solid var(--border-color);
+            box-shadow: var(--convex-shadow);
+            position: relative;
+        }
+
+        /* 更划算选项：更沉稳的黑灰/纯白厚度线，配合阴影下沉感 */
+        .card.cheaper {
+            border-color: var(--primary-color);
+            background-color: var(--card-cheaper-bg);
+            box-shadow: var(--cheaper-glow), var(--convex-shadow);
+        }
+
+        .card h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* 标签也改为质感中性色 */
+        .card.cheaper h2::after {
+            content: "更划算";
+            font-size: 11px;
+            background: var(--text-main);
+            color: var(--card-bg);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+            opacity: 0.9;
+        }
+
+        /* 输入框内阴影 */
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 500;
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+            box-shadow: var(--input-concave-shadow);
+        }
+
+        .input-group input:focus {
+            border-color: var(--text-main);
+            box-shadow: var(--input-concave-shadow), var(--active-glow);
+            background-color: var(--card-bg);
+        }
+
+        .input-group .hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 6px;
+            padding-left: 2px;
+        }
+
+        /* 单价展示区域 */
+        .result-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 18px;
+            border-top: 1px solid var(--hr-color);
+            margin-top: 12px;
+        }
+
+        .result-line .label {
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .result-line .price {
+            font-size: 22px;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* 说明区域 */
+        .instructions {
+            background-color: var(--instruction-bg);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--convex-shadow);
+        }
+
+        .instructions ul {
+            list-style: none;
+        }
+
+        .instructions li {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 2;
+            position: relative;
+            padding-left: 16px;
+        }
+
+        .instructions li::before {
+            content: "•";
+            position: absolute;
+            left: 2px;
+            color: var(--text-main);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="toolbar">
+        <button id="themeToggle" class="theme-toggle-btn">
+            <span id="themeIcon">🌓</span> <span id="themeText">自动模式</span>
+        </button>
+    </div>
+
+    <div class="header">
+        <h1>省钱比价</h1>
+        <p>一比到底 · 精明消费</p>
+    </div>
+
+    <div id="savingTip" class="saving-tip"></div>
+
+    <!-- 选项 A -->
+    <div id="cardA" class="card">
+        <h2>选项A</h2>
+        <div class="input-group">
+            <label>总价 (元)</label>
+            <input type="text" id="priceA" placeholder="例如：340+340 或 680">
+            <div class="hint">支持算式，如 340+340</div>
+        </div>
+        <div class="input-group">
+            <label>数量 (g/ml/个)</label>
+            <input type="text" id="countA" placeholder="例如：100 或 50*2">
+            <div class="hint">支持算式，如 50+50 或 100*2</div>
+        </div>
+        <div class="result-line">
+            <span class="label">折合单价</span>
+            <span class="price" id="unitPriceA">¥0.0000</span>
+        </div>
+    </div>
+
+    <!-- 选项 B -->
+    <div id="cardB" class="card">
+        <h2>选项B</h2>
+        <div class="input-group">
+            <label>总价 (元)</label>
+            <input type="text" id="priceB" placeholder="例如：340+340 或 680">
+            <div class="hint">支持算式，如 340+340</div>
+        </div>
+        <div class="input-group">
+            <label>数量 (g/ml/个)</label>
+            <input type="text" id="countB" placeholder="例如：100 或 50*2">
+            <div class="hint">支持算式，如 50+50 或 100*2</div>
+        </div>
+        <div class="result-line">
+            <span class="label">折合单价</span>
+            <span class="price" id="unitPriceB">¥0.0000</span>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <ul>
+            <li>输入两个选项的总价和数量（支持实时算式解析）</li>
+            <li>系统自动计算单价（总价 ÷ 数量）并通过物理微浮雕高亮</li>
+            <li>顶部将自动解算相同权重大致可帮您节省的金额</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    let currentTheme = localStorage.getItem('user-theme') || 'auto';
+
+    function applyTheme() {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (currentTheme === 'dark' || (currentTheme === 'auto' && systemPrefersDark)) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        } else {
+            document.documentElement.removeAttribute('data-theme');
+        }
+        if (currentTheme === 'auto') { themeIcon.innerText = '🌓'; themeText.innerText = '自动模式'; }
+        else if (currentTheme === 'dark') { themeIcon.innerText = '🌙'; themeText.innerText = '深色模式'; }
+        else { themeIcon.innerText = '☀️'; themeText.innerText = '浅色模式'; }
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+        if (currentTheme === 'auto') currentTheme = 'light';
+        else if (currentTheme === 'light') currentTheme = 'dark';
+        else currentTheme = 'auto';
+        localStorage.setItem('user-theme', currentTheme);
+        applyTheme();
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (currentTheme === 'auto') applyTheme();
+    });
+    applyTheme();
+
+    function safeEval(str) {
+        if (!str) return null;
+        let sanitized = str.replace(/[^0-9.+\-*/()]/g, '');
+        if (!sanitized) return null;
+        try {
+            let result = new Function(`return (${sanitized})`)();
+            return (typeof result === 'number' && !isNaN(result) && isFinite(result)) ? result : null;
+        } catch (e) { return null; }
+    }
+
+    function calculate() {
+        const priceAInput = document.getElementById('priceA').value.trim();
+        const countAInput = document.getElementById('countA').value.trim();
+        const priceBInput = document.getElementById('priceB').value.trim();
+        const countBInput = document.getElementById('countB').value.trim();
+
+        const valPriceA = safeEval(priceAInput);
+        const valCountA = safeEval(countAInput);
+        const valPriceB = safeEval(priceBInput);
+        const valCountB = safeEval(countBInput);
+
+        let unitPriceA = 0, unitPriceB = 0;
+
+        if (valPriceA !== null && valCountA > 0) {
+            unitPriceA = valPriceA / valCountA;
+            document.getElementById('unitPriceA').innerText = `¥${unitPriceA.toFixed(4)}`;
+        } else { document.getElementById('unitPriceA').innerText = '¥0.0000'; }
+
+        if (valPriceB !== null && valCountB > 0) {
+            unitPriceB = valPriceB / valCountB;
+            document.getElementById('unitPriceB').innerText = `¥${unitPriceB.toFixed(4)}`;
+        } else { document.getElementById('unitPriceB').innerText = '¥0.0000'; }
+
+        const cardA = document.getElementById('cardA');
+        const cardB = document.getElementById('cardB');
+        const savingTip = document.getElementById('savingTip');
+        cardA.classList.remove('cheaper');
+        cardB.classList.remove('cheaper');
+        savingTip.style.display = 'none';
+
+        if (unitPriceA > 0 && unitPriceB > 0) {
+            if (unitPriceA < unitPriceB) {
+                cardA.classList.add('cheaper');
+                let saved = (unitPriceB - unitPriceA) * valCountA;
+                savingTip.innerHTML = `⚖️ 默认 <strong>选项A</strong> 更划算！买相同数量可省约 <strong>¥${saved.toFixed(2)}</strong> 元`;
+                savingTip.style.display = 'block';
+            } else if (unitPriceB < unitPriceA) {
+                cardB.classList.add('cheaper');
+                let saved = (unitPriceA - unitPriceB) * valCountB;
+                savingTip.innerHTML = `⚖️ 默认 <strong>选项B</strong> 更划算！买相同数量可省约 <strong>¥${saved.toFixed(2)}</strong> 元`;
+                savingTip.style.display = 'block';
+            } else {
+                savingTip.innerText = `⚖️ 两个选项性价比完全一样`;
+                savingTip.style.display = 'block';
+            }
+        }
+    }
+
+    ['priceA', 'countA', 'priceB', 'countB'].forEach(id => {
+        document.getElementById(id).addEventListener('input', calculate);
+    });
+</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js', { scope: './' });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="周期频率">
+  <rect width="512" height="512" fill="#0b0e14"/>
+  <path d="M78 268 C132 268 132 146 190 146 C248 146 248 390 322 390 C396 390 396 268 434 268" fill="none" stroke="#8ab4ff" stroke-width="36" stroke-linecap="round"/>
+  <path d="M132 404 H380" fill="none" stroke="#5b7fc7" stroke-width="16" stroke-linecap="round"/>
+  <path d="M132 388 V420 M380 388 V420" fill="none" stroke="#5b7fc7" stroke-width="16" stroke-linecap="round"/>
+</svg>
