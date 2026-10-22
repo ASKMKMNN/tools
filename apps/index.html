@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+<title>好用 App 清单</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="App清单" />
+<style>
+  :root {
+    --bg: #f1f5f9;
+    --bg2: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --line: #94a3b8;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --ok: #16a34a;
+    --weak: #22c55e;
+    --bad: #dc2626;
+    --scenario: #a855f7;
+    --shadow: 0 1px 2px rgba(15,23,42,.06);
+    --radius: 10px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --card-root: #1e293b;
+    --card-root-text: #f8fafc;
+    --card-cat: #eff6ff;
+    --card-cat-border: #93c5fd;
+    --gap-h: 28px;
+    --gap-v: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #121212;
+      --bg2: #1a1a1a;
+      --text: #e8e8e8;
+      --muted: #9a9a9a;
+      --border: #2a2a2a;
+      --line: #555555;
+      --accent: #60a5fa;
+      --accent-soft: #243040;
+      --shadow: 0 1px 2px rgba(0,0,0,.45);
+      --card-root: #2a2a2a;
+      --card-root-text: #f0f0f0;
+      --card-cat: #222222;
+      --card-cat-border: #3a3a3a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #121212;
+    --bg2: #1a1a1a;
+    --text: #e8e8e8;
+    --muted: #9a9a9a;
+    --border: #2a2a2a;
+    --line: #555555;
+    --accent: #60a5fa;
+    --accent-soft: #243040;
+    --shadow: 0 1px 2px rgba(0,0,0,.45);
+    --card-root: #2a2a2a;
+    --card-root-text: #f0f0f0;
+    --card-cat: #222222;
+    --card-cat-border: #3a3a3a;
+  }
+  :root[data-theme="light"] {
+    --bg: #f1f5f9;
+    --bg2: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --line: #94a3b8;
+    --accent: #2563eb;
+    --accent-soft: #dbeafe;
+    --card-root: #1e293b;
+    --card-root-text: #f8fafc;
+    --card-cat: #eff6ff;
+    --card-cat-border: #93c5fd;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.35;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* —— Compact app bar —— */
+  header.appbar {
+    flex: 0 0 auto;
+    z-index: 30;
+    background: color-mix(in srgb, var(--bg) 92%, transparent);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 5px 10px 4px;
+  }
+  .title-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 4px;
+  }
+  h1 {
+    font-size: .95rem; margin: 0; font-weight: 700; letter-spacing: .02em;
+    flex: 0 0 auto; white-space: nowrap;
+  }
+  .search {
+    flex: 0 1 160px;
+    min-width: 96px;
+    max-width: 160px;
+    padding: 5px 10px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    color: var(--text);
+    font-size: .82rem;
+    outline: none;
+  }
+  .search:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+  .title-actions { display: flex; gap: 4px; align-items: center; margin-left: auto; flex: 0 0 auto; }
+  a.tool-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
+  }
+  a.tool-btn:hover { text-decoration: none; }
+  .icon-btn, .tool-btn {
+    border: 1px solid var(--border); background: var(--bg2);
+    color: var(--text); border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: .78rem; white-space: nowrap;
+    min-height: 28px; padding: 0 8px;
+  }
+  .icon-btn { width: 28px; height: 28px; padding: 0; font-size: .9rem; }
+
+  .filters {
+    display: flex; gap: 4px; overflow-x: auto; padding: 1px 0 3px;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    align-items: center;
+  }
+  .filters::-webkit-scrollbar { display: none; }
+  .chip {
+    flex: 0 0 auto; border: 1px solid var(--border); background: var(--bg2);
+    color: var(--muted); border-radius: 999px; padding: 3px 9px;
+    font-size: .74rem; cursor: pointer; white-space: nowrap;
+    user-select: none; line-height: 1.4;
+  }
+  .chip.active {
+    background: var(--accent-soft); color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    font-weight: 600;
+  }
+  .chip.plat.active {
+    background: color-mix(in srgb, var(--ok) 18%, var(--bg2));
+    color: var(--ok);
+    border-color: color-mix(in srgb, var(--ok) 45%, var(--border));
+  }
+  .chip-sep {
+    flex: 0 0 auto;
+    width: 1px; height: 14px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+  .bar2 {
+    display: flex; align-items: center; gap: 6px;
+    flex-wrap: nowrap; min-width: 0;
+  }
+  .bar2 .filters { flex: 1 1 auto; min-width: 0; margin: 0; padding: 0; }
+  .toolbar {
+    display: flex; gap: 4px; flex-wrap: nowrap; align-items: center;
+    flex: 0 0 auto;
+  }
+  .meta {
+    font-size: .66rem; color: var(--muted);
+    flex: 0 0 auto; white-space: nowrap;
+  }
+  .legend {
+    display: none;
+    font-size: .72rem; color: var(--muted);
+    margin-top: 4px; gap: 8px 14px; flex-wrap: wrap;
+    padding: 4px 2px 2px;
+  }
+  .legend.open { display: flex; }
+  .legend div { display: flex; align-items: center; gap: 4px; }
+  .legend .sym { width: 1.1em; text-align: center; flex: 0 0 auto; }
+  .sym-ok { color: var(--ok); font-weight: 700; }
+  .sym-weak { color: var(--weak); font-weight: 700; }
+  .sym-bad { color: var(--bad); }
+  .sym-scenario { color: var(--scenario); }
+
+  /* Map viewport */
+  .map-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--line) 40%, transparent) 1px, transparent 0)
+      0 0 / 16px 16px;
+  }
+  .map-viewport {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    cursor: grab;
+  }
+  .map-viewport.dragging { cursor: grabbing; }
+  .map-canvas {
+    transform-origin: 0 0;
+    padding: 48px 64px 96px;
+    width: max-content;
+    min-width: 100%;
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .zoom-fab {
+    position: absolute;
+    right: 10px;
+    bottom: calc(12px + var(--safe-bottom));
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 25;
+  }
+  .zoom-fab button {
+    width: 36px; height: 36px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--bg2);
+    color: var(--text); font-size: 1.05rem; font-weight: 600;
+    box-shadow: var(--shadow); cursor: pointer;
+  }
+
+  /* —— Bidirectional mindmap —— */
+  .mm-root {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+  .mm-links {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .mm-links path {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mm-hub {
+    display: flex;
+    align-items: center;
+    flex: 0 0 auto;
+    position: relative;
+    z-index: 3;
+    margin: 0 calc(var(--gap-h) * 0.35);
+  }
+  .mm-side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    gap: var(--gap-v);
+    z-index: 2;
+  }
+  .mm-side-left {
+    align-items: flex-end;
+    padding-right: var(--gap-h);
+  }
+  .mm-side-right {
+    align-items: flex-start;
+    padding-left: var(--gap-h);
+  }
+
+  .mm-branch {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    position: relative;
+  }
+  .mm-branch.dir-left { flex-direction: row-reverse; }
+
+  .mm-node {
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding: 6px 0;
+    flex: 0 0 auto;
+  }
+
+  .mm-kids {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    gap: var(--gap-v);
+  }
+  .mm-branch.dir-right .mm-kids { padding-left: var(--gap-h); }
+  .mm-branch.dir-left .mm-kids { padding-right: var(--gap-h); align-items: flex-end; }
+  .mm-kids > .mm-branch { position: relative; }
+
+  .card {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    max-width: 200px;
+    min-width: 64px;
+    padding: 4px 7px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg2);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    user-select: none;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+    position: relative;
+    z-index: 2;
+  }
+  .card:active { transform: scale(.98); }
+  .card.root-card {
+    background: var(--card-root);
+    color: var(--card-root-text);
+    border-color: transparent;
+    font-weight: 700;
+    max-width: 118px;
+    min-width: 96px;
+    justify-content: center;
+    padding: 10px 12px;
+  }
+  .card.cat-card {
+    background: var(--card-cat);
+    border-color: var(--card-cat-border);
+    font-weight: 700;
+  }
+  .card.hit-card {
+    outline: 2px solid #eab308;
+    outline-offset: 1px;
+  }
+  .card.scenario-card {
+    border-style: dashed;
+    border-color: color-mix(in srgb, var(--scenario) 45%, var(--border));
+  }
+  .twist {
+    width: 12px; flex: 0 0 auto; color: var(--muted);
+    font-size: .6rem; line-height: 1.4; margin-top: 2px;
+    transition: transform .12s ease;
+  }
+  .twist.open { transform: rotate(90deg); }
+  .mm-branch.dir-left .twist.open { transform: rotate(-90deg); }
+  .twist.empty { opacity: 0; width: 0; margin: 0; overflow: hidden; }
+  .card.root-card .twist { display: none; }
+  .sym {
+    width: 1.1em; flex: 0 0 auto; text-align: center;
+    font-size: .9rem; line-height: 1.3; margin-top: 1px;
+  }
+  .body { flex: 1; min-width: 0; }
+  .name {
+    font-size: .85rem; font-weight: 600; word-break: break-word;
+  }
+  .card.root-card .name { font-size: .9rem; text-align: center; }
+  .card.cat-card .name { font-size: .86rem; }
+  .plats {
+    display: flex; flex-wrap: wrap; gap: 2px; margin-top: 2px;
+  }
+  .plat {
+    font-size: .62rem; color: var(--accent); background: var(--accent-soft);
+    border-radius: 4px; padding: 0 4px; line-height: 1.45;
+  }
+  .card.root-card .plat { color: #bfdbfe; background: rgba(255,255,255,.12); }
+  .note {
+    margin-top: 3px; font-size: .7rem; color: var(--muted);
+    background: color-mix(in srgb, var(--muted) 10%, transparent);
+    border-radius: 5px; padding: 3px 5px; display: none;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .note.show { display: block; }
+  .card.root-card .note { color: #cbd5e1; background: rgba(255,255,255,.08); }
+  .badge-count {
+    font-size: .62rem; color: var(--muted); font-weight: 500;
+    margin-left: 2px;
+  }
+  .hit { background: color-mix(in srgb, #eab308 35%, transparent); border-radius: 3px; padding: 0 2px; }
+  .empty {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: .95rem; pointer-events: none;
+  }
+  .empty[hidden] { display: none !important; }
+
+  @media (max-width: 640px) {
+    .search { max-width: 140px; }
+    h1 { font-size: .88rem; }
+    .card { max-width: 170px; }
+  }
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div class="title-row">
+    <h1>好用 App 清单</h1>
+    <input class="search" id="q" type="search" placeholder="搜索…" enterkeyhint="search" autocomplete="off" />
+    <div class="title-actions">
+      <a class="tool-btn" id="editBtn" href="https://github.com/ASKMKMNN/tools/edit/main/apps/data.json" target="_blank" rel="noopener noreferrer" title="登录 GitHub 后可在线改数据">编辑</a>
+      <button class="tool-btn" id="legendBtn" type="button" title="图例">图例</button>
+      <button class="icon-btn" id="themeBtn" type="button" title="切换深浅色" aria-label="切换深浅色">◐</button>
+    </div>
+  </div>
+  <div class="bar2">
+    <div class="filters" id="allFilters" aria-label="状态与平台筛选"></div>
+    <div class="toolbar">
+      <button class="tool-btn" id="expandAll" type="button">展开</button>
+      <button class="tool-btn" id="collapseAll" type="button">折叠</button>
+      <button class="tool-btn" id="fitBtn" type="button">适应</button>
+    </div>
+    <span class="meta"><span id="statsLine"></span> · <span id="resultLine"></span></span>
+  </div>
+  <div class="legend" id="legend"></div>
+</header>
+
+<div class="map-shell">
+  <div class="map-viewport" id="viewport">
+    <div class="map-canvas" id="canvas">
+      <div class="mm-root" id="tree"></div>
+    </div>
+  </div>
+  <div class="empty" id="empty" hidden>没有匹配的项目</div>
+  <div class="zoom-fab">
+    <button type="button" id="zoomIn" title="放大">+</button>
+    <button type="button" id="zoomOut" title="缩小">−</button>
+    <button type="button" id="zoomReset" title="100%">1:1</button>
+  </div>
+</div>
+
+<script>
+window.__APP_CATALOG__ = null;
+const STATUS = {
+  scenario: { emoji: '⚙️', cls: 'sym-scenario' },
+  ok: { emoji: '✔', cls: 'sym-ok' },
+  weak: { emoji: '▲', cls: 'sym-weak' },
+  bad: { emoji: '❌', cls: 'sym-bad' },
+};
+const FILTERS = [
+  { id: 'all', label: '全部' },
+  { id: 'ok', label: '✔ 可用' },
+  { id: 'weak', label: '▲ 有短板' },
+  { id: 'bad', label: '❌ 踩过坑' },
+  { id: 'scenario', label: '⚙️ 场景' },
+];
+const PLAT_ORDER = ['安卓', 'iOS', 'Mac', 'Win', '全平台', '网页'];
+
+let DATA = window.__APP_CATALOG__;
+let filter = 'all';
+let platSet = new Set();
+let query = '';
+const openSet = new Set();
+const closedSet = new Set();
+const detailSet = new Set();
+let bootstrapped = false;
+let zoom = 1;
+let forceMode = null;
+
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function highlight(text, q) {
+  const t = String(text ?? '');
+  if (!q) return esc(t);
+  const i = t.toLowerCase().indexOf(q.toLowerCase());
+  if (i < 0) return esc(t);
+  return esc(t.slice(0, i)) + '<span class="hit">' + esc(t.slice(i, i + q.length)) + '</span>' + esc(t.slice(i + q.length));
+}
+function collectPlatforms(node, set) {
+  for (const p of node.platforms || []) set.add(p);
+  for (const c of node.children || []) collectPlatforms(c, set);
+}
+function platformList() {
+  const set = new Set();
+  if (DATA && DATA.tree) collectPlatforms(DATA.tree, set);
+  const ordered = PLAT_ORDER.filter(p => set.has(p));
+  for (const p of [...set].sort()) if (!ordered.includes(p)) ordered.push(p);
+  return ordered;
+}
+function textHit(node, q) {
+  if (!q) return true;
+  const t = ((node.title || '') + ' ' + (node.note || '')).toLowerCase();
+  return t.includes(q.toLowerCase());
+}
+function platformHit(node) {
+  if (!platSet.size) return true;
+  const ps = node.platforms || [];
+  if (!ps.length) return false;
+  if (ps.includes('全平台')) return true;
+  return ps.some(p => platSet.has(p));
+}
+function selfHit(node) {
+  if (filter !== 'all' && node.status !== filter) return false;
+  if (!textHit(node, query)) return false;
+  if (!platformHit(node)) return false;
+  return true;
+}
+function nodeMatches(node) {
+  if (selfHit(node)) return true;
+  return (node.children || []).some(nodeMatches);
+}
+function countHits(nodes) {
+  let n = 0;
+  for (const node of nodes || []) {
+    if (!nodeMatches(node)) continue;
+    if (selfHit(node) && (node.status || (platSet.size && (node.platforms || []).length))) n++;
+    else if (selfHit(node) && query) n++;
+    n += countHits(node.children);
+  }
+  return n;
+}
+function filteringActive() {
+  return !!(query || filter !== 'all' || platSet.size);
+}
+function isOpen(node, depth) {
+  if (forceMode === 'expand') return true;
+  if (forceMode === 'collapse') return depth < 1;
+  if (closedSet.has(node.id)) return false;
+  if (openSet.has(node.id)) return true;
+  if (filteringActive()) {
+    return (node.children || []).some(c => nodeMatches(c));
+  }
+  return depth < 2;
+}
+function subtreeWeight(node) {
+  let n = 1;
+  for (const c of node.children || []) {
+    if (!nodeMatches(c)) continue;
+    n += subtreeWeight(c);
+  }
+  return n;
+}
+function splitSides(cats) {
+  if (!cats.length) return { left: [], right: [] };
+  const items = cats.map(c => ({ c, w: subtreeWeight(c) })).sort((a, b) => b.w - a.w);
+  const left = [], right = [];
+  let lw = 0, rw = 0;
+  for (const it of items) {
+    if (lw <= rw) { left.push(it.c); lw += it.w; }
+    else { right.push(it.c); rw += it.w; }
+  }
+  const order = new Map(cats.map((c, i) => [c.id, i]));
+  left.sort((a, b) => order.get(a.id) - order.get(b.id));
+  right.sort((a, b) => order.get(a.id) - order.get(b.id));
+  return { left, right };
+}
+
+function renderNode(node, depth, fromParent, dir) {
+  if (depth > 0 && !nodeMatches(node)) return '';
+  const kids = (node.children || []).filter(c => nodeMatches(c));
+  const hasKids = kids.length > 0;
+  const open = hasKids && isOpen(node, depth);
+  const showDetail = detailSet.has(node.id);
+  const st = node.status && STATUS[node.status];
+  const isSelf = selfHit(node) && filteringActive();
+  const sym = st
+    ? `<span class="sym ${st.cls}">${st.emoji}</span>`
+    : (depth > 0 ? `<span class="sym"></span>` : '');
+  const plats = (node.platforms || []).map(p => `<span class="plat">${esc(p)}</span>`).join('');
+  const noteHtml = node.note
+    ? `<div class="note ${showDetail || (query && textHit(node, query)) ? 'show' : ''}">${highlight(node.note, query)}</div>`
+    : '';
+  const twist = hasKids
+    ? `<span class="twist ${open ? 'open' : ''}">▶</span>`
+    : `<span class="twist empty"></span>`;
+  const countBadge = hasKids && !open
+    ? `<span class="badge-count">(${kids.length})</span>`
+    : '';
+  const cardCls = [
+    'card',
+    depth === 1 ? 'cat-card' : '',
+    node.status === 'scenario' ? 'scenario-card' : '',
+    isSelf ? 'hit-card' : '',
+  ].filter(Boolean).join(' ');
+
+  const kidsHtml = hasKids && open
+    ? `<div class="mm-kids">${kids.map(c => renderNode(c, depth + 1, true, dir)).join('')}</div>`
+    : '';
+
+  return `<div class="mm-branch dir-${dir} ${fromParent ? 'from-parent' : ''}" data-id="${esc(node.id)}">
+    <div class="mm-node ${hasKids && open ? 'has-kids' : ''}">
+      <button type="button" class="${cardCls}" data-action="toggle" data-id="${esc(node.id)}">
+        ${twist}
+        ${sym}
+        <div class="body">
+          <div class="name">${highlight(node.title, query)}${countBadge}</div>
+          ${plats ? `<div class="plats">${plats}</div>` : ''}
+          ${noteHtml}
+        </div>
+      </button>
+    </div>
+    ${kidsHtml}
+  </div>`;
+}
+
+function renderRootCard(root) {
+  const noteHtml = root.note
+    ? `<div class="note ${detailSet.has(root.id) ? 'show' : ''}">${esc(root.note)}</div>`
+    : '';
+  return `<button type="button" class="card root-card" data-action="toggle" data-id="${esc(root.id)}">
+    <div class="body">
+      <div class="name">${esc(root.title)}</div>
+      ${noteHtml}
+    </div>
+  </button>`;
+}
+
+
+
+function offsetIn(el, ancestor) {
+  const er = el.getBoundingClientRect();
+  const ar = ancestor.getBoundingClientRect();
+  const z = zoom || 1;
+  return {
+    x: (er.left - ar.left) / z,
+    y: (er.top - ar.top) / z,
+    w: er.width / z,
+    h: er.height / z,
+  };
+}
+function curvePath(x1, y1, x2, y2) {
+  const dx = Math.max(36, Math.abs(x2 - x1) * 0.55);
+  const c1x = x1 + (x2 >= x1 ? dx : -dx);
+  const c2x = x2 + (x2 >= x1 ? -dx : dx);
+  return 'M ' + x1.toFixed(1) + ' ' + y1.toFixed(1) +
+    ' C ' + c1x.toFixed(1) + ' ' + y1.toFixed(1) + ', ' +
+    c2x.toFixed(1) + ' ' + y2.toFixed(1) + ', ' +
+    x2.toFixed(1) + ' ' + y2.toFixed(1);
+}
+function drawLinks() {
+  const rootEl = document.getElementById('tree');
+  if (!rootEl) return;
+  let svg = rootEl.querySelector('svg.mm-links');
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', 'mm-links');
+    svg.setAttribute('aria-hidden', 'true');
+    rootEl.insertBefore(svg, rootEl.firstChild);
+  }
+  const rw = Math.max(rootEl.offsetWidth, 1);
+  const rh = Math.max(rootEl.offsetHeight, 1);
+  svg.setAttribute('width', String(rw));
+  svg.setAttribute('height', String(rh));
+  svg.setAttribute('viewBox', '0 0 ' + rw + ' ' + rh);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+  const append = (d) => {
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', d);
+    svg.appendChild(p);
+  };
+
+  const hubCard = rootEl.querySelector('.mm-hub .root-card');
+  if (hubCard) {
+    const hub = offsetIn(hubCard, rootEl);
+    const hxL = hub.x;
+    const hxR = hub.x + hub.w;
+    const hy = hub.y + hub.h / 2;
+    rootEl.querySelectorAll('.mm-side-left > .mm-branch > .mm-node > .card').forEach(card => {
+      const c = offsetIn(card, rootEl);
+      append(curvePath(hxL, hy, c.x + c.w, c.y + c.h / 2));
+    });
+    rootEl.querySelectorAll('.mm-side-right > .mm-branch > .mm-node > .card').forEach(card => {
+      const c = offsetIn(card, rootEl);
+      append(curvePath(hxR, hy, c.x, c.y + c.h / 2));
+    });
+  }
+
+  rootEl.querySelectorAll('.mm-branch').forEach(branch => {
+    const kids = branch.querySelector(':scope > .mm-kids');
+    if (!kids) return;
+    const parentCard = branch.querySelector(':scope > .mm-node > .card');
+    if (!parentCard) return;
+    const p = offsetIn(parentCard, rootEl);
+    const dirLeft = branch.classList.contains('dir-left');
+    const px = dirLeft ? p.x : p.x + p.w;
+    const py = p.y + p.h / 2;
+    kids.querySelectorAll(':scope > .mm-branch > .mm-node > .card').forEach(card => {
+      const c = offsetIn(card, rootEl);
+      const cx = dirLeft ? c.x + c.w : c.x;
+      const cy = c.y + c.h / 2;
+      append(curvePath(px, py, cx, cy));
+    });
+  });
+}
+
+function applyZoom() {
+  document.getElementById('canvas').style.transform = `scale(${zoom})`;
+}
+
+function hubOffset() {
+  const canvas = document.getElementById('canvas');
+  const hub = document.querySelector('.mm-hub');
+  if (!hub) return { x: 0, y: 0 };
+  let x = 0, y = 0, el = hub;
+  while (el && el !== canvas) {
+    x += el.offsetLeft;
+    y += el.offsetTop;
+    el = el.offsetParent;
+  }
+  x += hub.offsetWidth / 2;
+  y += hub.offsetHeight / 2;
+  return { x, y };
+}
+
+function centerOnHub() {
+  const vp = document.getElementById('viewport');
+  const { x, y } = hubOffset();
+  vp.scrollLeft = Math.max(0, x * zoom - vp.clientWidth / 2);
+  vp.scrollTop = Math.max(0, y * zoom - vp.clientHeight / 2);
+}
+
+function fitToScreen() {
+  const vp = document.getElementById('viewport');
+  const tree = document.getElementById('tree');
+  zoom = 1;
+  applyZoom();
+  const pad = 32;
+  const tw = tree.scrollWidth || tree.offsetWidth;
+  const th = tree.scrollHeight || tree.offsetHeight;
+  const vw = vp.clientWidth - pad;
+  const vh = vp.clientHeight - pad;
+  if (tw <= 0 || th <= 0) return;
+  zoom = Math.max(0.35, Math.min(1, Math.min(vw / tw, vh / th) * 0.96));
+  applyZoom();
+  requestAnimationFrame(() => { drawLinks(); centerOnHub(); });
+}
+
+function render() {
+  forceMode = null;
+  const root = DATA.tree;
+  const cats = (root.children || []).filter(c => nodeMatches(c));
+  const { left, right } = splitSides(cats);
+  const leftHtml = left.map(c => renderNode(c, 1, false, 'left')).join('');
+  const rightHtml = right.map(c => renderNode(c, 1, false, 'right')).join('');
+
+  document.getElementById('tree').innerHTML = `
+    <svg class="mm-links" aria-hidden="true"></svg>
+    <div class="mm-side mm-side-left">${leftHtml}</div>
+    <div class="mm-hub">
+      ${renderRootCard(root)}
+    </div>
+    <div class="mm-side mm-side-right">${rightHtml}</div>
+  `;
+  requestAnimationFrame(drawLinks);
+
+  const has = nodeMatches(root);
+  document.getElementById('empty').hidden = has;
+  const st = DATA.stats || {};
+  document.getElementById('statsLine').textContent =
+    `共 ${st.apps || 0} 个 · ${st.scenario || 0} 场景`;
+  const vis = countHits(root.children || []);
+  const bits = [];
+  if (query) bits.push(`「${query}」`);
+  if (filter !== 'all') bits.push(FILTERS.find(f => f.id === filter)?.label || filter);
+  if (platSet.size) bits.push([...platSet].join('+'));
+  document.getElementById('resultLine').textContent =
+    bits.length ? `筛选命中约 ${vis}` : `${Math.round(zoom * 100)}%`;
+}
+
+function renderChrome() {
+  const legend = DATA.legend || {};
+  const order = ['scenario', 'ok', 'weak', 'bad'];
+  document.getElementById('legend').innerHTML = order.map(k => {
+    const L = legend[k] || {};
+    const cls = STATUS[k].cls;
+    return `<div><span class="sym ${cls}">${esc(L.emoji || STATUS[k].emoji)}</span><span>${esc(L.label || k)}</span></div>`;
+  }).join('');
+
+  const statusChips = FILTERS.map(f =>
+    `<button type="button" class="chip ${filter === f.id ? 'active' : ''}" data-filter="${f.id}">${f.label}</button>`
+  ).join('');
+  const plats = platformList();
+  const platChips = plats.map(p =>
+    `<button type="button" class="chip plat ${platSet.has(p) ? 'active' : ''}" data-plat="${esc(p)}">${esc(p)}</button>`
+  ).join('') + (platSet.size
+    ? `<button type="button" class="chip" data-plat-clear="1">清除</button>` : '');
+
+  document.getElementById('allFilters').innerHTML =
+    statusChips + `<span class="chip-sep" aria-hidden="true"></span>` + platChips;
+}
+
+function setOpenDeep(node, open) {
+  if ((node.children || []).length) {
+    if (open) { openSet.add(node.id); closedSet.delete(node.id); }
+    else { closedSet.add(node.id); openSet.delete(node.id); }
+  }
+  for (const c of node.children || []) setOpenDeep(c, open);
+}
+
+function findNode(n, id) {
+  if (n.id === id) return n;
+  for (const c of n.children || []) {
+    const r = findNode(c, id);
+    if (r) return r;
+  }
+  return null;
+}
+
+function bind() {
+  document.getElementById('allFilters').addEventListener('click', e => {
+    const clear = e.target.closest('[data-plat-clear]');
+    if (clear) {
+      platSet.clear();
+      openSet.clear(); closedSet.clear();
+      renderChrome(); render();
+      return;
+    }
+    const fbtn = e.target.closest('[data-filter]');
+    if (fbtn) {
+      filter = fbtn.dataset.filter;
+      openSet.clear(); closedSet.clear();
+      renderChrome(); render();
+      return;
+    }
+    const pbtn = e.target.closest('[data-plat]');
+    if (pbtn) {
+      const p = pbtn.dataset.plat;
+      if (platSet.has(p)) platSet.delete(p); else platSet.add(p);
+      openSet.clear(); closedSet.clear();
+      renderChrome(); render();
+    }
+  });
+
+  let t = null;
+  document.getElementById('q').addEventListener('input', e => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      query = e.target.value.trim();
+      openSet.clear(); closedSet.clear();
+      render();
+    }, 120);
+  });
+
+  document.getElementById('tree').addEventListener('click', e => {
+    const card = e.target.closest('.card');
+    if (!card) return;
+    e.preventDefault();
+    const id = card.dataset.id;
+    const node = findNode(DATA.tree, id);
+    if (!node) return;
+
+    if (id === 'root') {
+      if (detailSet.has(id)) detailSet.delete(id); else detailSet.add(id);
+      render();
+      return;
+    }
+
+    if ((node.children || []).length) {
+      const branch = card.closest('.mm-branch');
+      const kidsShown = branch && !!branch.querySelector(':scope > .mm-kids');
+      if (kidsShown) {
+        closedSet.add(id);
+        openSet.delete(id);
+      } else {
+        openSet.add(id);
+        closedSet.delete(id);
+      }
+    }
+    if (detailSet.has(id)) detailSet.delete(id); else detailSet.add(id);
+    render();
+  });
+
+  document.getElementById('expandAll').addEventListener('click', () => {
+    openSet.clear(); closedSet.clear();
+    setOpenDeep(DATA.tree, true);
+    render();
+  });
+  document.getElementById('collapseAll').addEventListener('click', () => {
+    openSet.clear(); closedSet.clear();
+    setOpenDeep(DATA.tree, false);
+    closedSet.delete('root');
+    openSet.add('root');
+    for (const c of DATA.tree.children || []) {
+      closedSet.add(c.id);
+      openSet.delete(c.id);
+    }
+    render();
+  });
+  document.getElementById('fitBtn').addEventListener('click', fitToScreen);
+  document.getElementById('zoomIn').addEventListener('click', () => {
+    zoom = Math.min(2, zoom + 0.1);
+    applyZoom();
+    if (!filteringActive()) document.getElementById('resultLine').textContent = `${Math.round(zoom * 100)}%`;
+  });
+  document.getElementById('zoomOut').addEventListener('click', () => {
+    zoom = Math.max(0.3, zoom - 0.1);
+    applyZoom();
+    if (!filteringActive()) document.getElementById('resultLine').textContent = `${Math.round(zoom * 100)}%`;
+  });
+  document.getElementById('zoomReset').addEventListener('click', () => {
+    zoom = 1;
+    applyZoom();
+    centerOnHub();
+    if (!filteringActive()) document.getElementById('resultLine').textContent = `100%`;
+  });
+  document.getElementById('legendBtn').addEventListener('click', () => {
+    document.getElementById('legend').classList.toggle('open');
+  });
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : cur === 'light' ? '' : 'dark';
+    if (next) document.documentElement.setAttribute('data-theme', next);
+    else document.documentElement.removeAttribute('data-theme');
+    try { localStorage.setItem('app-catalog-theme', next); } catch (_) {}
+  });
+  try {
+    const saved = localStorage.getItem('app-catalog-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  } catch (_) {}
+
+  const vp = document.getElementById('viewport');
+  let dragging = false, sx = 0, sy = 0, sl = 0, st0 = 0;
+  vp.addEventListener('pointerdown', e => {
+    if (e.target.closest('.card') || e.target.closest('button')) return;
+    dragging = true;
+    vp.classList.add('dragging');
+    sx = e.clientX; sy = e.clientY;
+    sl = vp.scrollLeft; st0 = vp.scrollTop;
+    vp.setPointerCapture(e.pointerId);
+  });
+  vp.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    vp.scrollLeft = sl - (e.clientX - sx);
+    vp.scrollTop = st0 - (e.clientY - sy);
+  });
+  vp.addEventListener('pointerup', () => { dragging = false; vp.classList.remove('dragging'); });
+  vp.addEventListener('pointercancel', () => { dragging = false; vp.classList.remove('dragging'); });
+
+  let pinch = null;
+  vp.addEventListener('touchstart', e => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinch = { dist: Math.hypot(dx, dy), zoom };
+    }
+  }, { passive: true });
+  vp.addEventListener('touchmove', e => {
+    if (!pinch || e.touches.length !== 2) return;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const dist = Math.hypot(dx, dy);
+    zoom = Math.max(0.3, Math.min(2, pinch.zoom * (dist / pinch.dist)));
+    applyZoom();
+  }, { passive: true });
+  vp.addEventListener('touchend', () => { pinch = null; }, { passive: true });
+}
+
+async function boot() {
+  if (!DATA) {
+    try {
+      const res = await fetch('data.json', { cache: 'no-store' });
+      DATA = await res.json();
+    } catch (err) {
+      document.getElementById('empty').hidden = false;
+      document.getElementById('empty').textContent = '无法加载 data.json';
+      return;
+    }
+  }
+  renderChrome();
+  render();
+  if (!bootstrapped) {
+    bind();
+    window.addEventListener('resize', () => { drawLinks(); });
+    bootstrapped = true;
+  }
+  requestAnimationFrame(() => setTimeout(fitToScreen, 40));
+}
+boot();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js', { scope: './' });
+}
+</script>
+</body>
+</html>
