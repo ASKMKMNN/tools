@@ -184,6 +184,10 @@
 
         .month-btn.is-empty { color: var(--muted); }
 
+        .month-btn.has-peak {
+            border-color: var(--text);
+        }
+
         .month-btn[aria-pressed="true"],
         .month-btn.is-peak {
             background: var(--text);
@@ -193,6 +197,7 @@
 
         .month-btn:hover { border-color: rgba(127, 127, 127, 0.35); }
 
+        .month-btn.has-peak:hover,
         .month-btn[aria-pressed="true"]:hover,
         .month-btn.is-peak:hover { border-color: var(--text); }
 
@@ -436,6 +441,7 @@
             .jump:hover,
             .chip:hover { border-color: var(--line); }
 
+            .month-btn.has-peak:hover,
             .month-btn[aria-pressed="true"]:hover,
             .month-btn.is-peak:hover,
             .fruit-row.peak:hover,
@@ -651,9 +657,10 @@
                 const label = MONTHS[index]
                     + (index === current ? "，本月" : "")
                     + (fruits.length ? "，" + names : "，没有记录");
+                const hasPeak = fruits.some((fruit) => fruit.peak);
                 const button = el("button", {
                     type: "button",
-                    class: "month-btn" + (fruits.length ? "" : " is-empty"),
+                    class: "month-btn" + (fruits.length ? "" : " is-empty") + (hasPeak ? " has-peak" : ""),
                     "aria-pressed": index === state.monthIndex ? "true" : "false",
                     "aria-label": label,
                 });
@@ -662,8 +669,7 @@
                 if (!fruits.length) {
                     marks.textContent = "空";
                 } else {
-                    const icons = fruits.map((fruit) => shortMark(splitFruit(fruit.name))).join("");
-                    marks.textContent = icons + (fruits.some((fruit) => fruit.peak) ? "✨" : "");
+                    marks.textContent = fruits.map((fruit) => shortMark(splitFruit(fruit.name))).join("");
                 }
                 button.append(marks);
                 button.append(el("span", { class: "now", "aria-hidden": "true" }, [index === current ? "本月" : ""]));
