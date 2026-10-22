@@ -21,13 +21,13 @@
     }
   },
   "stats": {
-    "scenario": 53,
-    "ok": 118,
-    "weak": 32,
-    "bad": 20,
-    "none": 46,
-    "total_nodes": 269,
-    "apps": 170
+    "scenario": 37,
+    "ok": 114,
+    "weak": 30,
+    "bad": 19,
+    "none": 42,
+    "total_nodes": 242,
+    "apps": 163
   },
   "tree": {
     "id": "root",
@@ -161,31 +161,6 @@
                 "platforms": [],
                 "note": "",
                 "children": [
-                  {
-                    "id": "n12",
-                    "title": "浏览器嗅探插件",
-                    "status": null,
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n10",
-                        "title": "猫抓",
-                        "status": "weak",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      },
-                      {
-                        "id": "n11",
-                        "title": "FetchV",
-                        "status": "weak",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      }
-                    ]
-                  },
                   {
                     "id": "n13",
                     "title": "Seal",
@@ -342,85 +317,6 @@
             "note": "",
             "children": [
               {
-                "id": "n33",
-                "title": "Edge",
-                "status": "ok",
-                "platforms": [
-                  "安卓"
-                ],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n29",
-                    "title": "自动翻页",
-                    "status": "scenario",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n28",
-                        "title": "插件",
-                        "status": null,
-                        "platforms": [],
-                        "note": "",
-                        "children": [
-                          {
-                            "id": "n27",
-                            "title": "篡改猴",
-                            "status": "ok",
-                            "platforms": [],
-                            "note": "",
-                            "children": [
-                              {
-                                "id": "n25",
-                                "title": "自动无缝翻页",
-                                "status": "ok",
-                                "platforms": [],
-                                "note": "",
-                                "children": []
-                              },
-                              {
-                                "id": "n26",
-                                "title": "东方永页机",
-                                "status": "weak",
-                                "platforms": [],
-                                "note": "",
-                                "children": []
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "id": "n32",
-                    "title": "Picture Reader",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n30",
-                        "title": "打包下载",
-                        "status": "scenario",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      },
-                      {
-                        "id": "n31",
-                        "title": "全屏预览",
-                        "status": "scenario",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
                 "id": "n35",
                 "title": "Alook",
                 "status": "ok",
@@ -467,16 +363,6 @@
                   "安卓"
                 ],
                 "note": "免费图床",
-                "children": []
-              },
-              {
-                "id": "n244",
-                "title": "Search By Image",
-                "status": "weak",
-                "platforms": [
-                  "安卓"
-                ],
-                "note": "",
                 "children": []
               }
             ]
@@ -983,6 +869,226 @@
         "note": "",
         "children": [
           {
+            "id": "n288",
+            "title": "浏览器插件",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n77",
+                "title": "uBlock Origin",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n82",
+                "title": "沉浸式翻译",
+                "status": "ok",
+                "platforms": [
+                  "全平台"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n105",
+                "title": "Picture Reader",
+                "status": "ok",
+                "platforms": [],
+                "note": "打包下载；全屏预览",
+                "children": []
+              },
+              {
+                "id": "n80",
+                "title": "篡改猴",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n79",
+                    "title": "自动无缝翻页",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n26",
+                    "title": "东方永页机",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n94",
+                "title": "我仍然不在乎cookies",
+                "status": "ok",
+                "platforms": [],
+                "note": "部分网站无效",
+                "children": []
+              },
+              {
+                "id": "n112",
+                "title": "图片助手(ImageAssistant) 批量图片下载器",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n87",
+                "title": "better bookmarks",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n89",
+                "title": "ArchDaily New Tab",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n100",
+                "title": "Mate Translate",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n102",
+                "title": "PiP",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n103",
+                "title": "Picture-in-Picture Extension (by Google)",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n108",
+                "title": "crxMouse Chrome™ 手势",
+                "status": "bad",
+                "platforms": [],
+                "note": "仅 Edge；Edge集成",
+                "children": []
+              },
+              {
+                "id": "n110",
+                "title": "眼不见心不烦（新浪微博）",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n111",
+                "title": "Video Downloader",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n11",
+                "title": "FetchV",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n114",
+                "title": "猫抓",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n115",
+                "title": "AIX智能下载器(图片/视频/音乐/文档)",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n98",
+                "title": "简悦 - SimpRead",
+                "status": "bad",
+                "platforms": [],
+                "note": "仅 Edge",
+                "children": []
+              },
+              {
+                "id": "n84",
+                "title": "Bitwarden",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Firefox",
+                "children": []
+              },
+              {
+                "id": "n91",
+                "title": "Dark Reader",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Firefox",
+                "children": []
+              },
+              {
+                "id": "n97",
+                "title": "Just Read",
+                "status": "bad",
+                "platforms": [],
+                "note": "仅 Firefox",
+                "children": []
+              },
+              {
+                "id": "n244",
+                "title": "Search by Image",
+                "status": "weak",
+                "platforms": [],
+                "note": "仅 Firefox",
+                "children": []
+              },
+              {
+                "id": "n289",
+                "title": "FetchIt",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Firefox",
+                "children": []
+              },
+              {
+                "id": "n290",
+                "title": "智能视频和音频下载器",
+                "status": "ok",
+                "platforms": [],
+                "note": "仅 Firefox",
+                "children": []
+              }
+            ]
+          },
+          {
             "id": "n119",
             "title": "Edge",
             "status": "ok",
@@ -991,164 +1097,6 @@
             ],
             "note": "",
             "children": [
-              {
-                "id": "n86",
-                "title": "插件1",
-                "status": null,
-                "platforms": [
-                  "全平台"
-                ],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n78",
-                    "title": "广告拦截",
-                    "status": "scenario",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n77",
-                        "title": "ublock origin",
-                        "status": "ok",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      }
-                    ]
-                  },
-                  {
-                    "id": "n81",
-                    "title": "脚本",
-                    "status": "scenario",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n80",
-                        "title": "篡改猴",
-                        "status": "ok",
-                        "platforms": [],
-                        "note": "",
-                        "children": [
-                          {
-                            "id": "n79",
-                            "title": "自动无缝翻页",
-                            "status": "ok",
-                            "platforms": [],
-                            "note": "",
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "id": "n83",
-                    "title": "翻译",
-                    "status": "scenario",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n82",
-                        "title": "沉浸式翻译",
-                        "status": "ok",
-                        "platforms": [
-                          "全平台"
-                        ],
-                        "note": "",
-                        "children": []
-                      }
-                    ]
-                  },
-                  {
-                    "id": "n85",
-                    "title": "密码管理",
-                    "status": "scenario",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n84",
-                        "title": "Bitwarden",
-                        "status": "ok",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "n88",
-                "title": "书签管理",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n87",
-                    "title": "better bookmarks",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n90",
-                "title": "首页管理",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n89",
-                    "title": "ArchDaily New Tab",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n92",
-                "title": "深色模式",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n91",
-                    "title": "Dark Reader",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n95",
-                "title": "cookies管理",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n94",
-                    "title": "I don't care about cookies",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "部分网站无效",
-                    "children": []
-                  }
-                ]
-              },
               {
                 "id": "n99",
                 "title": "阅读模式",
@@ -1163,191 +1111,6 @@
                     "platforms": [],
                     "note": "",
                     "children": []
-                  },
-                  {
-                    "id": "n97",
-                    "title": "Just Read",
-                    "status": "bad",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n98",
-                    "title": "简悦 - SimpRead",
-                    "status": "bad",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n101",
-                "title": "划词翻译",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n100",
-                    "title": "Mate Translate",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n104",
-                "title": "小窗播放",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n102",
-                    "title": "PiP",
-                    "status": "weak",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n103",
-                    "title": "Picture-in-Picture Extension (by Google)",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n106",
-                "title": "看图模式",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n105",
-                    "title": "Picture Reader",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  }
-                ]
-              },
-              {
-                "id": "n109",
-                "title": "浏览器手势",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n108",
-                    "title": "crxMouse Chrome™ 手势",
-                    "status": "bad",
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n107",
-                        "title": "Edge集成",
-                        "status": "ok",
-                        "platforms": [],
-                        "note": "",
-                        "children": []
-                      }
-                    ]
-                  }
-                ]
-              },
-              {
-                "id": "n110",
-                "title": "眼不见心不烦（新浪微博）",
-                "status": "ok",
-                "platforms": [],
-                "note": "",
-                "children": []
-              },
-              {
-                "id": "n118",
-                "title": "嗅探/下载",
-                "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": [
-                  {
-                    "id": "n111",
-                    "title": "Video Downloader",
-                    "status": "weak",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n112",
-                    "title": "图片助手(ImageAssistant) 批量图片下载器",
-                    "status": "weak",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n113",
-                    "title": "FetchV - M3U8/HLS视频下载器",
-                    "status": "weak",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n114",
-                    "title": "猫抓",
-                    "status": "weak",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n115",
-                    "title": "AIX智能下载器(图片/视频/音乐/文档)",
-                    "status": "weak",
-                    "platforms": [],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n117",
-                    "title": "视频",
-                    "status": null,
-                    "platforms": [],
-                    "note": "",
-                    "children": [
-                      {
-                        "id": "n116",
-                        "title": "Seal",
-                        "status": "bad",
-                        "platforms": [],
-                        "note": "不明原因不可用；同功能改用 SuperX",
-                        "children": []
-                      },
-                      {
-                        "id": "n233",
-                        "title": "SuperX",
-                        "status": "ok",
-                        "platforms": [
-                          "安卓"
-                        ],
-                        "note": "同功能替代 Seal，目前在用",
-                        "children": []
-                      }
-                    ]
                   }
                 ]
               }
@@ -1366,14 +1129,6 @@
                 "id": "n120",
                 "title": "书签同步",
                 "status": "scenario",
-                "platforms": [],
-                "note": "",
-                "children": []
-              },
-              {
-                "id": "n121",
-                "title": "插件1",
-                "status": null,
                 "platforms": [],
                 "note": "",
                 "children": []
