@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="大连水果月历">
+  <rect width="512" height="512" fill="#1c1c1f"/>
+  <rect x="176" y="86" width="28" height="68" rx="14" fill="#f4f5f7"/>
+  <rect x="308" y="86" width="28" height="68" rx="14" fill="#f4f5f7"/>
+  <rect x="96" y="128" width="320" height="292" rx="48" fill="#f4f5f7"/>
+  <path d="M148 196h216" fill="none" stroke="#1c1c1f" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="198" cy="332" r="52" fill="#1c1c1f"/>
+  <circle cx="314" cy="332" r="52" fill="#1c1c1f"/>
+  <path d="M198 282c8-36 34-52 58-64" fill="none" stroke="#1c1c1f" stroke-width="14" stroke-linecap="round"/>
+  <path d="M314 282c-8-36-34-52-58-64" fill="none" stroke="#1c1c1f" stroke-width="14" stroke-linecap="round"/>
+  <ellipse cx="332" cy="236" rx="42" ry="16" transform="rotate(-28 332 236)" fill="#1c1c1f"/>
+</svg>

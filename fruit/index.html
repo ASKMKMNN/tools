@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="按月份查看大连当季水果，并查找樱桃等水果哪几个月是高峰。" />
+    <meta name="theme-color" content="#f4f5f7" id="themeColor" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="大连水果月历" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <title>大连水果月历</title>
+    <script>
+        try {
+            var savedTheme = localStorage.getItem("fruit-theme");
+            var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            var themeIsDark = savedTheme === "dark" || (savedTheme !== "light" && prefersDark);
+            if (savedTheme === "dark" || savedTheme === "light") {
+                document.documentElement.setAttribute("data-theme", savedTheme);
+            }
+            if (themeIsDark) document.getElementById("themeColor").setAttribute("content", "#141416");
+        } catch (e) {}
+    </script>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f5f7;
+            --text: #1c1c1f;
+            --muted: #71717a;
+            --card: #ffffff;
+            --line: rgba(0, 0, 0, 0.06);
+            --soft: #eef0f3;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        }
+
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #141416;
+            --text: #f4f5f7;
+            --muted: #a1a1aa;
+            --card: #1e1e22;
+            --line: rgba(255, 255, 255, 0.06);
+            --soft: #27272a;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]) {
+                color-scheme: dark;
+                --bg: #141416;
+                --text: #f4f5f7;
+                --muted: #a1a1aa;
+                --card: #1e1e22;
+                --line: rgba(255, 255, 255, 0.06);
+                --soft: #27272a;
+                --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        [hidden] { display: none !important; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 28px 20px calc(32px + env(safe-area-inset-bottom));
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .theme-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--card);
+            color: var(--text);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .kicker {
+            margin: 0 0 6px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .lead {
+            margin: 0 0 22px;
+            color: var(--muted);
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        .modes {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            margin-bottom: 18px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+        }
+
+        .modes button {
+            flex: 1;
+            border: 0;
+            border-radius: 999px;
+            padding: 10px 12px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .modes button[aria-selected="true"] {
+            background: var(--text);
+            color: var(--bg);
+        }
+
+        .status { margin-bottom: 0; }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .month-btn {
+            min-height: 78px;
+            padding: 8px 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--card);
+            color: var(--text);
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .month-btn.is-empty { color: var(--muted); }
+
+        .month-btn[aria-pressed="true"],
+        .month-btn.is-peak {
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--text);
+        }
+
+        .month-btn:hover { border-color: rgba(127, 127, 127, 0.35); }
+
+        .month-btn[aria-pressed="true"]:hover,
+        .month-btn.is-peak:hover { border-color: var(--text); }
+
+        .m-name {
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .marks {
+            min-height: 18px;
+            font-size: 13px;
+            line-height: 1.2;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .now {
+            min-height: 13px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+        }
+
+        .detail { margin-top: 18px; }
+
+        .detail-title {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .count {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .summary {
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .fruit-list {
+            display: grid;
+            gap: 8px;
+            margin-top: 14px;
+        }
+
+        .fruit-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--card);
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .fruit-row.peak { border-color: var(--text); }
+
+        .fruit-row:hover { border-color: rgba(127, 127, 127, 0.35); }
+
+        .fruit-row.peak:hover { border-color: var(--text); }
+
+        .glyph {
+            width: 44px;
+            height: 44px;
+            flex: none;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: var(--soft);
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .glyph.letter {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .fruit-name {
+            flex: 1;
+            min-width: 0;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .badge {
+            flex: none;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: var(--soft);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .fruit-row.peak .badge {
+            background: var(--text);
+            color: var(--bg);
+        }
+
+        .chev {
+            flex: none;
+            color: var(--muted);
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .jump {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--card);
+            color: var(--text);
+            font: inherit;
+            font-size: 15px;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .jump:hover { border-color: rgba(127, 127, 127, 0.35); }
+
+        .search-label {
+            display: block;
+            margin: 2px 0 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .search-wrap { position: relative; }
+
+        .search-wrap input {
+            width: 100%;
+            padding: 14px 64px 14px 16px;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            background: var(--card);
+            color: var(--text);
+            font: inherit;
+            font-size: 16px;
+        }
+
+        .search-wrap input::placeholder { color: var(--muted); }
+
+        .search-wrap input::-webkit-search-decoration,
+        .search-wrap input::-webkit-search-cancel-button {
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        #clearSearch {
+            position: absolute;
+            top: 50%;
+            right: 8px;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 6px 8px;
+            cursor: pointer;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .chip {
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: var(--card);
+            color: var(--text);
+            font: inherit;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .chip[aria-pressed="true"] {
+            background: var(--text);
+            color: var(--bg);
+            border-color: var(--text);
+        }
+
+        .chip:hover { border-color: rgba(127, 127, 127, 0.35); }
+
+        .hint {
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .timeline { margin-top: 14px; }
+
+        .time-btn { min-height: 72px; }
+
+        .time-btn .marks {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0;
+        }
+
+        .foot {
+            margin: 28px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.65;
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--text);
+            outline-offset: 2px;
+        }
+
+        @media (hover: none) {
+            .month-btn:hover,
+            .fruit-row:hover,
+            .jump:hover,
+            .chip:hover { border-color: var(--line); }
+
+            .month-btn[aria-pressed="true"]:hover,
+            .month-btn.is-peak:hover,
+            .fruit-row.peak:hover,
+            .chip[aria-pressed="true"]:hover { border-color: var(--text); }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="toolbar">
+            <button id="themeToggle" class="theme-toggle" type="button">
+                <span id="themeIcon" aria-hidden="true">🌓</span>
+                <span id="themeText">自动模式</span>
+            </button>
+        </div>
+        <p class="kicker" id="location">大连</p>
+        <h1>大连水果月历</h1>
+        <p class="lead" id="intro">第一年记录大连当季好吃的水果，第二年按月对照，知道什么时候能吃到什么（例如樱桃）。✨ 表示当月高峰/特别推荐。</p>
+        <div class="modes" role="tablist" aria-label="查看方式">
+            <button id="tab-month" type="button" role="tab" aria-controls="monthView" aria-selected="true">按月查看</button>
+            <button id="tab-fruit" type="button" role="tab" aria-controls="fruitView" aria-selected="false" tabindex="-1">按水果查找</button>
+        </div>
+        <p id="loadStatus" class="lead status">正在打开月历…</p>
+        <section id="monthView" role="tabpanel" aria-labelledby="tab-month" hidden>
+            <div id="monthGrid" class="month-grid" role="group" aria-label="十二个月"></div>
+            <div id="monthDetail" class="detail"></div>
+        </section>
+        <section id="fruitView" role="tabpanel" aria-labelledby="tab-fruit" hidden>
+            <label class="search-label" for="fruitSearch">找一种水果</label>
+            <div class="search-wrap">
+                <input id="fruitSearch" type="search" placeholder="搜樱桃、西瓜、冬枣" enterkeyhint="search" autocomplete="off" spellcheck="false" />
+                <button id="clearSearch" type="button" hidden>清除</button>
+            </div>
+            <div id="fruitChips" class="chips"></div>
+            <p id="fruitEmpty" class="hint" hidden>没有找到这种水果。可以试樱桃、西瓜、小蜜蜂、辽峰、奇异果或冬枣。</p>
+            <div id="fruitDetail" class="detail"></div>
+        </section>
+        <p class="foot">空白月份是这一年没有写下当季记录。</p>
+        <noscript><p class="lead">需要开启 JavaScript 才能查看月历。</p></noscript>
+    </main>
+    <script>
+        const MONTHS = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
+        const THEME_KEY = "fruit-theme";
+
+        const state = {
+            data: null,
+            fruits: new Map(),
+            mode: "month",
+            monthIndex: new Date().getMonth(),
+            fruitName: null,
+            query: "",
+        };
+
+        const monthView = document.getElementById("monthView");
+        const fruitView = document.getElementById("fruitView");
+        const monthTab = document.getElementById("tab-month");
+        const fruitTab = document.getElementById("tab-fruit");
+        const monthGrid = document.getElementById("monthGrid");
+        const monthDetail = document.getElementById("monthDetail");
+        const fruitChips = document.getElementById("fruitChips");
+        const fruitEmpty = document.getElementById("fruitEmpty");
+        const fruitDetail = document.getElementById("fruitDetail");
+        const fruitSearch = document.getElementById("fruitSearch");
+        const clearSearch = document.getElementById("clearSearch");
+        const loadStatus = document.getElementById("loadStatus");
+        const modes = document.querySelector(".modes");
+
+        function el(tag, attrs, children) {
+            const node = document.createElement(tag);
+            Object.entries(attrs || {}).forEach(([key, value]) => {
+                if (value == null) return;
+                if (key === "class") node.className = value;
+                else node.setAttribute(key, value);
+            });
+            (children || []).forEach((child) => node.append(child));
+            return node;
+        }
+
+        function splitFruit(name) {
+            const cleaned = String(name || "").replace(/✨/g, "").trim();
+            const match = cleaned.match(/^(.*?)((?:\p{Extended_Pictographic}\uFE0F?)+)$/u);
+            if (!match) return { label: cleaned, emoji: "" };
+            const label = match[1].trim();
+            return { label: label || cleaned, emoji: match[2] };
+        }
+
+        function joinCn(items) {
+            if (items.length <= 1) return items[0] || "";
+            if (items.length === 2) return items[0] + "和" + items[1];
+            return items.slice(0, -1).join("、") + "和" + items[items.length - 1];
+        }
+
+        function normalize(json) {
+            if (!json || !Array.isArray(json.months) || json.months.length !== 12) {
+                throw new Error("月份数据不完整");
+            }
+            return {
+                location: json.location || "大连",
+                purpose: json.purpose || "",
+                months: json.months.map((month) => ({
+                    fruits: (month.fruits || []).map((fruit) => {
+                        if (!fruit || typeof fruit.name !== "string" || !fruit.name.trim()) {
+                            throw new Error("水果名称缺失");
+                        }
+                        const peak = typeof fruit.peak === "boolean"
+                            ? fruit.peak
+                            : String(fruit.raw || "").includes("✨");
+                        return { name: fruit.name.trim(), peak };
+                    }),
+                })),
+            };
+        }
+
+        function indexFruits(data) {
+            const map = new Map();
+            data.months.forEach((month, index) => {
+                month.fruits.forEach((fruit) => {
+                    if (!map.has(fruit.name)) map.set(fruit.name, []);
+                    map.get(fruit.name).push({
+                        month: MONTHS[index],
+                        monthIndex: index,
+                        peak: fruit.peak,
+                    });
+                });
+            });
+            return map;
+        }
+
+        function monthSummary(fruits) {
+            if (!fruits.length) return "这个月没有当季记录。";
+            const peak = fruits.filter((fruit) => fruit.peak).map((fruit) => splitFruit(fruit.name).label);
+            const rest = fruits.filter((fruit) => !fruit.peak).map((fruit) => splitFruit(fruit.name).label);
+            if (peak.length && rest.length) return "高峰是" + joinCn(peak) + "，另外还有" + joinCn(rest) + "。";
+            if (peak.length) return "这个月记下来的都是高峰：" + joinCn(peak) + "。";
+            return joinCn(rest) + "在季，这个月没有标成高峰。";
+        }
+
+        function fruitSummary(label, hits) {
+            if (!hits.length) return label + "这一年没有记录。";
+            const groups = [];
+            hits.forEach((hit) => {
+                const last = groups[groups.length - 1];
+                if (last && last.peak === hit.peak) last.months.push(hit.month);
+                else groups.push({ peak: hit.peak, months: [hit.month] });
+            });
+            const text = groups.map((group) => {
+                const names = joinCn(group.months);
+                return group.peak ? names + "是高峰" : names + "在季";
+            }).join("，");
+            return label + "：" + text + "。";
+        }
+
+        function nearestFruitMonth(index) {
+            for (let distance = 1; distance < 12; distance += 1) {
+                const ahead = index + distance;
+                const behind = index - distance;
+                if (ahead < 12 && state.data.months[ahead].fruits.length) return ahead;
+                if (behind >= 0 && state.data.months[behind].fruits.length) return behind;
+            }
+            return -1;
+        }
+
+        function findFruit(query) {
+            if (!query) return null;
+            if (state.fruits.has(query)) return query;
+            for (const name of state.fruits.keys()) {
+                if (splitFruit(name).label === query) return name;
+            }
+            return null;
+        }
+
+        function readHash() {
+            const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+            if (params.has("f")) {
+                state.mode = "fruit";
+                const found = findFruit(params.get("f"));
+                if (found) state.fruitName = found;
+                return;
+            }
+            const month = Number(params.get("m"));
+            if (month >= 1 && month <= 12) {
+                state.mode = "month";
+                state.monthIndex = month - 1;
+            }
+        }
+
+        function writeHash() {
+            const params = new URLSearchParams();
+            if (state.mode === "fruit" && state.fruitName) params.set("f", splitFruit(state.fruitName).label);
+            else params.set("m", String(state.monthIndex + 1));
+            const next = "#" + params.toString();
+            if (location.hash !== next) history.replaceState(null, "", next);
+        }
+
+        function shortMark(part) {
+            return part.emoji || part.label.slice(-1);
+        }
+
+        function glyph(part) {
+            if (part.emoji) return el("span", { class: "glyph", "aria-hidden": "true" }, [part.emoji]);
+            return el("span", { class: "glyph letter", "aria-hidden": "true" }, [shortMark(part)]);
+        }
+
+        function renderMonths() {
+            const current = new Date().getMonth();
+            monthGrid.replaceChildren();
+            state.data.months.forEach((month, index) => {
+                const fruits = month.fruits;
+                const names = fruits.map((fruit) => {
+                    const part = splitFruit(fruit.name);
+                    return part.label + (fruit.peak ? "高峰" : "");
+                }).join("、");
+                const label = MONTHS[index]
+                    + (index === current ? "，本月" : "")
+                    + (fruits.length ? "，" + names : "，没有记录");
+                const button = el("button", {
+                    type: "button",
+                    class: "month-btn" + (fruits.length ? "" : " is-empty"),
+                    "aria-pressed": index === state.monthIndex ? "true" : "false",
+                    "aria-label": label,
+                });
+                button.append(el("span", { class: "m-name" }, [MONTHS[index]]));
+                const marks = el("span", { class: "marks", "aria-hidden": "true" });
+                if (!fruits.length) {
+                    marks.textContent = "空";
+                } else {
+                    const icons = fruits.map((fruit) => shortMark(splitFruit(fruit.name))).join("");
+                    marks.textContent = icons + (fruits.some((fruit) => fruit.peak) ? "✨" : "");
+                }
+                button.append(marks);
+                button.append(el("span", { class: "now", "aria-hidden": "true" }, [index === current ? "本月" : ""]));
+                button.addEventListener("click", () => selectMonth(index));
+                monthGrid.append(button);
+            });
+            renderMonthDetail();
+        }
+
+        function renderMonthDetail() {
+            const fruits = state.data.months[state.monthIndex].fruits;
+            const title = el("div", { class: "detail-title" }, [
+                el("h2", {}, [MONTHS[state.monthIndex]]),
+                fruits.length ? el("span", { class: "count" }, [fruits.length + " 种"]) : el("span", { class: "count" }, [""]),
+            ]);
+            const summary = el("p", { class: "summary" }, [monthSummary(fruits)]);
+            const list = el("div", { class: "fruit-list" });
+            if (!fruits.length) {
+                const near = nearestFruitMonth(state.monthIndex);
+                if (near >= 0) {
+                    const jump = el("button", { type: "button", class: "jump" }, ["最近的记录在" + MONTHS[near]]);
+                    jump.addEventListener("click", () => selectMonth(near));
+                    list.append(jump);
+                }
+            } else {
+                fruits.forEach((fruit) => {
+                    const part = splitFruit(fruit.name);
+                    const row = el("button", { type: "button", class: "fruit-row" + (fruit.peak ? " peak" : "") });
+                    row.append(glyph(part));
+                    row.append(el("span", { class: "fruit-name" }, [part.label]));
+                    row.append(el("span", { class: "badge" }, [fruit.peak ? "高峰 ✨" : "在季"]));
+                    row.append(el("span", { class: "chev", "aria-hidden": "true" }, ["›"]));
+                    row.addEventListener("click", () => selectFruit(fruit.name));
+                    list.append(row);
+                });
+            }
+            monthDetail.replaceChildren(title, summary, list);
+        }
+
+        function filteredFruitNames() {
+            const query = state.query.trim();
+            return [...state.fruits.keys()].filter((name) => {
+                if (!query) return true;
+                const part = splitFruit(name);
+                return name.includes(query) || part.label.includes(query);
+            });
+        }
+
+        function renderChips() {
+            const names = filteredFruitNames();
+            fruitChips.replaceChildren();
+            fruitEmpty.hidden = names.length > 0;
+            clearSearch.hidden = !state.query;
+            names.forEach((name) => {
+                const part = splitFruit(name);
+                const chip = el("button", {
+                    type: "button",
+                    class: "chip",
+                    "aria-pressed": name === state.fruitName ? "true" : "false",
+                }, [part.emoji ? part.emoji + " " + part.label : part.label]);
+                chip.addEventListener("click", () => selectFruit(name));
+                fruitChips.append(chip);
+            });
+        }
+
+        function renderFruitDetail() {
+            if (!state.fruitName || !state.fruits.has(state.fruitName)) {
+                fruitDetail.replaceChildren(el("p", { class: "hint" }, ["点一种水果，看它在哪些月份出现，以及哪些月份是高峰。"]));
+                return;
+            }
+            const hits = state.fruits.get(state.fruitName);
+            const part = splitFruit(state.fruitName);
+            const peakCount = hits.filter((hit) => hit.peak).length;
+            const countText = peakCount ? hits.length + " 个月 · " + peakCount + " 个高峰" : hits.length + " 个月";
+            const title = el("div", { class: "detail-title" }, [
+                el("h2", {}, [part.emoji ? part.emoji + " " + part.label : part.label]),
+                el("span", { class: "count" }, [countText]),
+            ]);
+            const summary = el("p", { class: "summary" }, [fruitSummary(part.label, hits)]);
+            const byMonth = new Map(hits.map((hit) => [hit.monthIndex, hit]));
+            const grid = el("div", { class: "month-grid timeline", role: "group", "aria-label": part.label + "的月份" });
+            MONTHS.forEach((month, index) => {
+                const hit = byMonth.get(index);
+                const classes = ["month-btn", "time-btn"];
+                if (!hit) classes.push("is-empty");
+                if (hit && hit.peak) classes.push("is-peak");
+                const status = !hit ? "没有记录" : hit.peak ? "高峰" : "在季";
+                const button = el("button", {
+                    type: "button",
+                    class: classes.join(" "),
+                    "aria-label": month + "，" + part.label + status + "，查看这个月",
+                });
+                button.append(el("span", { class: "m-name" }, [month]));
+                button.append(el("span", { class: "marks" }, [!hit ? "—" : hit.peak ? "高峰 ✨" : "在季"]));
+                button.addEventListener("click", () => selectMonth(index));
+                grid.append(button);
+            });
+            const hint = el("p", { class: "hint" }, ["点某个月，查看那个月的全部记录。"]);
+            fruitDetail.replaceChildren(title, summary, grid, hint);
+        }
+
+        function renderTabs() {
+            const monthOn = state.mode === "month";
+            monthTab.setAttribute("aria-selected", monthOn ? "true" : "false");
+            fruitTab.setAttribute("aria-selected", monthOn ? "false" : "true");
+            monthTab.tabIndex = monthOn ? 0 : -1;
+            fruitTab.tabIndex = monthOn ? -1 : 0;
+            monthView.hidden = !monthOn;
+            fruitView.hidden = monthOn;
+        }
+
+        function render() {
+            renderTabs();
+            renderMonths();
+            renderChips();
+            renderFruitDetail();
+        }
+
+        function selectMonth(index) {
+            state.monthIndex = index;
+            state.mode = "month";
+            writeHash();
+            render();
+        }
+
+        function selectFruit(name) {
+            state.fruitName = name;
+            state.mode = "fruit";
+            writeHash();
+            render();
+        }
+
+        monthTab.addEventListener("click", () => {
+            state.mode = "month";
+            writeHash();
+            render();
+        });
+
+        fruitTab.addEventListener("click", () => {
+            state.mode = "fruit";
+            if (!state.fruitName) state.fruitName = state.fruits.keys().next().value || null;
+            writeHash();
+            render();
+        });
+
+        modes.addEventListener("keydown", (event) => {
+            if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
+            const tabs = [monthTab, fruitTab];
+            const index = tabs.indexOf(document.activeElement);
+            if (index < 0) return;
+            event.preventDefault();
+            const next = tabs[(index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length];
+            next.click();
+            next.focus();
+        });
+
+        fruitSearch.addEventListener("input", () => {
+            state.query = fruitSearch.value;
+            renderChips();
+        });
+
+        fruitSearch.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+            const first = filteredFruitNames()[0];
+            if (first) selectFruit(first);
+        });
+
+        clearSearch.addEventListener("click", () => {
+            fruitSearch.value = "";
+            state.query = "";
+            renderChips();
+            fruitSearch.focus();
+        });
+
+        let currentTheme = "auto";
+        try { currentTheme = localStorage.getItem(THEME_KEY) || "auto"; } catch (e) {}
+
+        function themeIsDark() {
+            if (currentTheme === "dark") return true;
+            if (currentTheme === "light") return false;
+            return window.matchMedia("(prefers-color-scheme: dark)").matches;
+        }
+
+        function applyTheme() {
+            const root = document.documentElement;
+            if (currentTheme === "auto") root.removeAttribute("data-theme");
+            else root.setAttribute("data-theme", currentTheme);
+            document.getElementById("themeColor").setAttribute("content", themeIsDark() ? "#141416" : "#f4f5f7");
+            const icon = document.getElementById("themeIcon");
+            const text = document.getElementById("themeText");
+            if (currentTheme === "auto") {
+                icon.textContent = "🌓";
+                text.textContent = "自动模式";
+            } else if (currentTheme === "dark") {
+                icon.textContent = "🌙";
+                text.textContent = "深色模式";
+            } else {
+                icon.textContent = "☀️";
+                text.textContent = "浅色模式";
+            }
+            document.getElementById("themeToggle").setAttribute("aria-label", text.textContent);
+        }
+
+        document.getElementById("themeToggle").addEventListener("click", () => {
+            if (currentTheme === "auto") currentTheme = "light";
+            else if (currentTheme === "light") currentTheme = "dark";
+            else currentTheme = "auto";
+            try { localStorage.setItem(THEME_KEY, currentTheme); } catch (e) {}
+            applyTheme();
+        });
+
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+            if (currentTheme === "auto") applyTheme();
+        });
+
+        window.addEventListener("hashchange", () => {
+            if (!state.data) return;
+            readHash();
+            render();
+        });
+
+        async function init() {
+            const response = await fetch("fruits.json");
+            if (!response.ok) throw new Error("无法读取月历");
+            const json = await response.json();
+            state.data = normalize(json);
+            state.fruits = indexFruits(state.data);
+            if (json.location) document.getElementById("location").textContent = json.location;
+            if (json.purpose) document.getElementById("intro").textContent = json.purpose;
+            if (!state.fruitName) state.fruitName = state.fruits.keys().next().value || null;
+            readHash();
+            if (state.mode === "fruit" && !state.fruitName) state.fruitName = state.fruits.keys().next().value || null;
+            loadStatus.hidden = true;
+            render();
+            writeHash();
+        }
+
+        applyTheme();
+        init().catch(() => {
+            loadStatus.hidden = false;
+            loadStatus.textContent = "月历没有加载出来。请刷新后再试一次。";
+        });
+    </script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            navigator.serviceWorker.register("sw.js", { scope: "./" });
+        }
+    </script>
+</body>
+</html>
