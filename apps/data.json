@@ -21,13 +21,13 @@
     }
   },
   "stats": {
-    "scenario": 49,
-    "ok": 85,
+    "scenario": 51,
+    "ok": 86,
     "weak": 16,
-    "bad": 16,
-    "none": 48,
-    "total_nodes": 214,
-    "apps": 117
+    "bad": 18,
+    "none": 45,
+    "total_nodes": 216,
+    "apps": 120
   },
   "tree": {
     "id": "root",
@@ -169,9 +169,19 @@
                   {
                     "id": "n13",
                     "title": "Seal",
-                    "status": "ok",
+                    "status": "bad",
                     "platforms": [],
-                    "note": "",
+                    "note": "不明原因不可用；同功能改用 SuperX",
+                    "children": []
+                  },
+                  {
+                    "id": "n232",
+                    "title": "SuperX",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "同功能替代 Seal，目前在用",
                     "children": []
                   }
                 ]
@@ -482,7 +492,7 @@
                   {
                     "id": "n221",
                     "title": "ChatGPT",
-                    "status": null,
+                    "status": "ok",
                     "platforms": [],
                     "note": "",
                     "children": []
@@ -1071,7 +1081,7 @@
               {
                 "id": "n110",
                 "title": "眼不见心不烦（新浪微博）",
-                "status": null,
+                "status": "ok",
                 "platforms": [],
                 "note": "",
                 "children": []
@@ -1133,9 +1143,19 @@
                       {
                         "id": "n116",
                         "title": "Seal",
-                        "status": "ok",
+                        "status": "bad",
                         "platforms": [],
-                        "note": "",
+                        "note": "不明原因不可用；同功能改用 SuperX",
+                        "children": []
+                      },
+                      {
+                        "id": "n233",
+                        "title": "SuperX",
+                        "status": "ok",
+                        "platforms": [
+                          "安卓"
+                        ],
+                        "note": "同功能替代 Seal，目前在用",
                         "children": []
                       }
                     ]
@@ -1614,32 +1634,37 @@
               },
               {
                 "id": "n177",
-                "title": "Fossil",
-                "status": null,
+                "title": "电话",
+                "status": "scenario",
                 "platforms": [],
                 "note": "",
                 "children": [
                   {
                     "id": "n174",
-                    "title": "电话",
+                    "title": "Fossil 电话",
                     "status": "ok",
-                    "platforms": [],
+                    "platforms": [
+                      "安卓"
+                    ],
                     "note": "无彩铃",
                     "children": []
-                  },
-                  {
-                    "id": "n175",
-                    "title": "图库",
-                    "status": "ok",
-                    "platforms": [],
-                    "note": "一键删除",
-                    "children": []
-                  },
+                  }
+                ]
+              },
+              {
+                "id": "n234",
+                "title": "文件管理",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
                   {
                     "id": "n176",
-                    "title": "文件",
+                    "title": "Fossil 文件",
                     "status": "weak",
-                    "platforms": [],
+                    "platforms": [
+                      "安卓"
+                    ],
                     "note": "系统文件交替使用",
                     "children": []
                   }
