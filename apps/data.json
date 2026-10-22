@@ -21,13 +21,13 @@
     }
   },
   "stats": {
-    "scenario": 51,
-    "ok": 86,
-    "weak": 16,
-    "bad": 18,
-    "none": 45,
-    "total_nodes": 216,
-    "apps": 120
+    "scenario": 53,
+    "ok": 118,
+    "weak": 32,
+    "bad": 20,
+    "none": 46,
+    "total_nodes": 269,
+    "apps": 170
   },
   "tree": {
     "id": "root",
@@ -131,6 +131,26 @@
                     "platforms": [],
                     "note": "",
                     "children": []
+                  },
+                  {
+                    "id": "n239",
+                    "title": "HiAnime",
+                    "status": "weak",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n240",
+                    "title": "Flow",
+                    "status": "weak",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
                   }
                 ]
               },
@@ -182,6 +202,26 @@
                       "安卓"
                     ],
                     "note": "同功能替代 Seal，目前在用",
+                    "children": []
+                  },
+                  {
+                    "id": "n235",
+                    "title": "鲨鱼下载器",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n236",
+                    "title": "迅雷",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
                     "children": []
                   }
                 ]
@@ -262,6 +302,25 @@
                   "网页"
                 ],
                 "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n238",
+            "title": "格式转换",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n237",
+                "title": "FFmpeg Media",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "mp4 to gif",
                 "children": []
               }
             ]
@@ -379,6 +438,46 @@
                     "children": []
                   }
                 ]
+              },
+              {
+                "id": "n241",
+                "title": "Pix-EzViewer",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n242",
+                "title": "Get Sauce",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n243",
+                "title": "PicHoro",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "免费图床",
+                "children": []
+              },
+              {
+                "id": "n244",
+                "title": "Search By Image",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
               }
             ]
           },
@@ -413,7 +512,7 @@
                 "title": "阿里网盘",
                 "status": "ok",
                 "platforms": [],
-                "note": "",
+                "note": "亦称阿里云盘",
                 "children": []
               },
               {
@@ -421,6 +520,56 @@
                 "title": "夸克网盘",
                 "status": "ok",
                 "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n245",
+                "title": "光鸭云盘",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n246",
+                "title": "Immich",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n247",
+                "title": "MEGA",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n248",
+                "title": "PikPak",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n249",
+                "title": "TeraBox",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
                 "note": "",
                 "children": []
               }
@@ -596,6 +745,16 @@
                 "platforms": [],
                 "note": "",
                 "children": []
+              },
+              {
+                "id": "n253",
+                "title": "Kindle",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
               }
             ]
           },
@@ -676,6 +835,26 @@
                     ],
                     "note": "",
                     "children": []
+                  },
+                  {
+                    "id": "n250",
+                    "title": "绅士漫画",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n251",
+                    "title": "再漫画",
+                    "status": "weak",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
                   }
                 ]
               },
@@ -699,6 +878,16 @@
                     "title": "豆瓣阅读",
                     "status": "ok",
                     "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n252",
+                    "title": "微信读书",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
                     "note": "",
                     "children": []
                   }
@@ -1300,9 +1489,29 @@
               {
                 "id": "n134",
                 "title": "Spotify",
-                "status": "weak",
+                "status": "ok",
                 "platforms": [],
                 "note": "",
+                "children": []
+              },
+              {
+                "id": "n254",
+                "title": "Shazam",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n255",
+                "title": "Poolsuite",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "Poolsuite FM",
                 "children": []
               }
             ]
@@ -1317,6 +1526,16 @@
               {
                 "id": "n136",
                 "title": "AntennaPod",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n256",
+                "title": "看理想",
                 "status": "ok",
                 "platforms": [
                   "安卓"
@@ -1467,6 +1686,16 @@
                     "title": "蓝牙遥控器",
                     "status": "ok",
                     "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n260",
+                    "title": "BT Remote",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
                     "note": "",
                     "children": []
                   }
@@ -1667,6 +1896,36 @@
                     ],
                     "note": "系统文件交替使用",
                     "children": []
+                  },
+                  {
+                    "id": "n257",
+                    "title": "Solid Explorer",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n258",
+                    "title": "ZArchiver",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n259",
+                    "title": "CX 文件管理",
+                    "status": "weak",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
                   }
                 ]
               },
@@ -1682,7 +1941,7 @@
                   {
                     "id": "n201",
                     "title": "chuckle",
-                    "status": "weak",
+                    "status": "ok",
                     "platforms": [],
                     "note": "买断制，非刚需",
                     "children": []
@@ -1712,6 +1971,216 @@
                     "children": []
                   }
                 ]
+              },
+              {
+                "id": "n261",
+                "title": "欧路词典",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n262",
+                "title": "Shizuku",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n263",
+                "title": "FlClash",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n264",
+                "title": "Acode",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n265",
+                "title": "Paperize",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n266",
+                "title": "GitHub",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n267",
+                "title": "DroidDeck",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n268",
+                "title": "Meeye",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n269",
+                "title": "快捷方式 / 快捷图标",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n270",
+                "title": "Bitwarden",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "独立 App",
+                "children": []
+              },
+              {
+                "id": "n271",
+                "title": "Oxygen",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "Oxygen 11 图标包",
+                "children": []
+              },
+              {
+                "id": "n272",
+                "title": "Authenticator",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "微软身份验证",
+                "children": []
+              },
+              {
+                "id": "n273",
+                "title": "身份验证器",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "谷歌身份验证",
+                "children": []
+              },
+              {
+                "id": "n274",
+                "title": "Obtainium",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n275",
+                "title": "MacroDroid",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n276",
+                "title": "Clash Meta",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n277",
+                "title": "Chatbox",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n278",
+                "title": "OMaster",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "OPPO 大师模式滤镜",
+                "children": []
+              },
+              {
+                "id": "n279",
+                "title": "ScreenStream",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n280",
+                "title": "灵梦御所",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n281",
+                "title": "小码盒",
+                "status": "bad",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "收费且挂在PWA可替代",
+                "children": []
               }
             ]
           },
@@ -1817,17 +2286,46 @@
               {
                 "id": "n230",
                 "title": "ChatGPT",
-                "status": "weak",
+                "status": "ok",
                 "platforms": [],
-                "note": "无app",
+                "note": "",
                 "children": []
               },
               {
                 "id": "n231",
                 "title": "Deepseek",
-                "status": "weak",
+                "status": "ok",
                 "platforms": [],
                 "note": "思考时间过长",
+                "children": []
+              },
+              {
+                "id": "n282",
+                "title": "秘塔 AI",
+                "status": "bad",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n284",
+            "title": "邮件",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n283",
+                "title": "Thunderbird",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
                 "children": []
               }
             ]
@@ -1906,6 +2404,35 @@
                 "status": "bad",
                 "platforms": [],
                 "note": "无桌面插件",
+                "children": []
+              },
+              {
+                "id": "n287",
+                "title": "Cubox",
+                "status": "weak",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n286",
+            "title": "书签",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n285",
+                "title": "Raindrop",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
                 "children": []
               }
             ]
