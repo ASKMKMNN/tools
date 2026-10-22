@@ -22,12 +22,12 @@
   },
   "stats": {
     "scenario": 49,
-    "ok": 83,
+    "ok": 85,
     "weak": 16,
     "bad": 16,
-    "none": 50,
+    "none": 48,
     "total_nodes": 214,
-    "apps": 115
+    "apps": 117
   },
   "tree": {
     "id": "root",
@@ -382,7 +382,7 @@
               {
                 "id": "n37",
                 "title": "Fossil 图库",
-                "status": null,
+                "status": "ok",
                 "platforms": [
                   "安卓"
                 ],
@@ -1297,7 +1297,7 @@
               {
                 "id": "n136",
                 "title": "AntennaPod",
-                "status": null,
+                "status": "ok",
                 "platforms": [
                   "安卓"
                 ],
