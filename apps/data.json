@@ -1,0 +1,1892 @@
+{
+  "version": 1,
+  "title": "好用 App 清单",
+  "legend": {
+    "scenario": {
+      "emoji": "⚙️",
+      "label": "需求场景"
+    },
+    "ok": {
+      "emoji": "✔",
+      "label": "可用：有这个需求时能满足"
+    },
+    "weak": {
+      "emoji": "▲",
+      "label": "能用，但有明显短板",
+      "color": "#22c55e"
+    },
+    "bad": {
+      "emoji": "❌",
+      "label": "试过不好用，避免再踩坑"
+    }
+  },
+  "stats": {
+    "scenario": 49,
+    "ok": 85,
+    "weak": 16,
+    "bad": 16,
+    "none": 48,
+    "total_nodes": 214,
+    "apps": 117
+  },
+  "tree": {
+    "id": "root",
+    "title": "好用 App 清单",
+    "status": null,
+    "platforms": [],
+    "note": "基于个人 XMind「工具整理」整理；符号：⚙️需求场景 ✔可用 ▲能用有短板 ❌试过不好用",
+    "children": [
+      {
+        "id": "n24",
+        "title": "视频",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n5",
+            "title": "本地播放",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n1",
+                "title": "VLC",
+                "status": "ok",
+                "platforms": [
+                  "全平台"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n3",
+                "title": "360视频",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n2",
+                    "title": "虚拟现实媒体播放器",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n4",
+                "title": "IINA",
+                "status": "ok",
+                "platforms": [
+                  "Mac"
+                ],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n15",
+            "title": "在线视频",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n9",
+                "title": "在线播放",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n7",
+                    "title": "网盘",
+                    "status": null,
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n6",
+                        "title": "夸克",
+                        "status": "ok",
+                        "platforms": [
+                          "全平台"
+                        ],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n8",
+                    "title": "流畅播",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n14",
+                "title": "下载",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n12",
+                    "title": "浏览器嗅探插件",
+                    "status": null,
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n10",
+                        "title": "猫抓",
+                        "status": "weak",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      },
+                      {
+                        "id": "n11",
+                        "title": "FetchV",
+                        "status": "weak",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n13",
+                    "title": "Seal",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n19",
+            "title": "视频生成",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n18",
+                "title": "图生视频",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n16",
+                    "title": "Grok",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n17",
+                    "title": "kling",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "每日限额；免费版不如 Grok 免费视频好用",
+                    "children": []
+                  },
+                  {
+                    "id": "n210",
+                    "title": "造点",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "效果不定，可能恐怖谷",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n21",
+            "title": "备份/同步",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n20",
+                "title": "夸克",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n23",
+            "title": "无损压缩",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n22",
+                "title": "rotato.app",
+                "status": "ok",
+                "platforms": [
+                  "网页"
+                ],
+                "note": "",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "n50",
+        "title": "图片",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n36",
+            "title": "在线图片",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n33",
+                "title": "Edge",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n29",
+                    "title": "自动翻页",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n28",
+                        "title": "插件",
+                        "status": null,
+                        "platforms": [],
+                        "note": "",
+                        "children": [
+                          {
+                            "id": "n27",
+                            "title": "篡改猴",
+                            "status": "ok",
+                            "platforms": [],
+                            "note": "",
+                            "children": [
+                              {
+                                "id": "n25",
+                                "title": "自动无缝翻页",
+                                "status": "ok",
+                                "platforms": [],
+                                "note": "",
+                                "children": []
+                              },
+                              {
+                                "id": "n26",
+                                "title": "东方永页机",
+                                "status": "weak",
+                                "platforms": [],
+                                "note": "",
+                                "children": []
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n32",
+                    "title": "Picture Reader",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n30",
+                        "title": "打包下载",
+                        "status": "scenario",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      },
+                      {
+                        "id": "n31",
+                        "title": "全屏预览",
+                        "status": "scenario",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "n35",
+                "title": "Alook",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n34",
+                    "title": "看图模式",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n38",
+            "title": "本地管理",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n37",
+                "title": "Fossil 图库",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n41",
+            "title": "备份/同步",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n39",
+                "title": "阿里网盘",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n40",
+                "title": "夸克网盘",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n49",
+            "title": "图片编辑",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n44",
+                "title": "AI改图",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n42",
+                    "title": "豆包",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n43",
+                    "title": "Gemini",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "3.0 次数受限；2.0 不稳定",
+                    "children": []
+                  },
+                  {
+                    "id": "n212",
+                    "title": "Grok",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n220",
+                    "title": "夸克",
+                    "status": null,
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n217",
+                        "title": "造点",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "分辨率低",
+                        "children": []
+                      },
+                      {
+                        "id": "n219",
+                        "title": "灵光",
+                        "status": "bad",
+                        "platforms": [],
+                        "note": "效果差、统一性差",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n221",
+                    "title": "ChatGPT",
+                    "status": null,
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n223",
+                    "title": "Leonardo",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "MJ 类似品",
+                    "children": []
+                  },
+                  {
+                    "id": "n225",
+                    "title": "Copilot",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "效果不定，可能恐怖谷",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n46",
+                "title": "扩图",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n45",
+                    "title": "Picsman",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n48",
+                "title": "编辑",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n47",
+                    "title": "Image Toolbox",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "n76",
+        "title": "电子书",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n54",
+            "title": "本地软件",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n51",
+                "title": "Mihon",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n52",
+                "title": "ReadEra",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n53",
+                "title": "iOS",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n69",
+            "title": "在线看",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n62",
+                "title": "漫画",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n55",
+                    "title": "bilibili漫画",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n59",
+                    "title": "Mihon",
+                    "status": null,
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n56",
+                        "title": "Mihon",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      },
+                      {
+                        "id": "n58",
+                        "title": "Fork",
+                        "status": "weak",
+                        "platforms": [],
+                        "note": "",
+                        "children": [
+                          {
+                            "id": "n57",
+                            "title": "Kahon",
+                            "status": "weak",
+                            "platforms": [],
+                            "note": "",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n60",
+                    "title": "拷贝漫画",
+                    "status": "ok",
+                    "platforms": [
+                      "安卓"
+                    ],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n61",
+                    "title": "漫画人",
+                    "status": "ok",
+                    "platforms": [
+                      "全平台"
+                    ],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n65",
+                "title": "电子书",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n63",
+                    "title": "Readmoo",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n64",
+                    "title": "豆瓣阅读",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n68",
+                "title": "杂志",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n66",
+                    "title": "杂志迷",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n67",
+                    "title": "博看书院",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n75",
+            "title": "资源站",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n71",
+                "title": "电子书",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n70",
+                    "title": "Z-lib",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n73",
+                "title": "漫画",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n72",
+                    "title": "Kmoe",
+                    "status": "ok",
+                    "platforms": [
+                      "网页"
+                    ],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n74",
+                "title": "杂志",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "n131",
+        "title": "浏览器",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n119",
+            "title": "Edge",
+            "status": "ok",
+            "platforms": [
+              "全平台"
+            ],
+            "note": "",
+            "children": [
+              {
+                "id": "n86",
+                "title": "插件1",
+                "status": null,
+                "platforms": [
+                  "全平台"
+                ],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n78",
+                    "title": "广告拦截",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n77",
+                        "title": "ublock origin",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n81",
+                    "title": "脚本",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n80",
+                        "title": "篡改猴",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "",
+                        "children": [
+                          {
+                            "id": "n79",
+                            "title": "自动无缝翻页",
+                            "status": "ok",
+                            "platforms": [],
+                            "note": "",
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n83",
+                    "title": "翻译",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n82",
+                        "title": "沉浸式翻译",
+                        "status": "ok",
+                        "platforms": [
+                          "全平台"
+                        ],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  },
+                  {
+                    "id": "n85",
+                    "title": "密码管理",
+                    "status": "scenario",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n84",
+                        "title": "Bitwarden",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "n88",
+                "title": "书签管理",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n87",
+                    "title": "better bookmarks",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n90",
+                "title": "首页管理",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n89",
+                    "title": "ArchDaily New Tab",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n92",
+                "title": "深色模式",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n91",
+                    "title": "Dark Reader",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n95",
+                "title": "cookies管理",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n94",
+                    "title": "I don't care about cookies",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "部分网站无效",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n99",
+                "title": "阅读模式",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n96",
+                    "title": "Edge 自带",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n97",
+                    "title": "Just Read",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n98",
+                    "title": "简悦 - SimpRead",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n101",
+                "title": "划词翻译",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n100",
+                    "title": "Mate Translate",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n104",
+                "title": "小窗播放",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n102",
+                    "title": "PiP",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n103",
+                    "title": "Picture-in-Picture Extension (by Google)",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n106",
+                "title": "看图模式",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n105",
+                    "title": "Picture Reader",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n109",
+                "title": "浏览器手势",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n108",
+                    "title": "crxMouse Chrome™ 手势",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n107",
+                        "title": "Edge集成",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "n110",
+                "title": "眼不见心不烦（新浪微博）",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n118",
+                "title": "嗅探/下载",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n111",
+                    "title": "Video Downloader",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n112",
+                    "title": "图片助手(ImageAssistant) 批量图片下载器",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n113",
+                    "title": "FetchV - M3U8/HLS视频下载器",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n114",
+                    "title": "猫抓",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n115",
+                    "title": "AIX智能下载器(图片/视频/音乐/文档)",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n117",
+                    "title": "视频",
+                    "status": null,
+                    "platforms": [],
+                    "note": "",
+                    "children": [
+                      {
+                        "id": "n116",
+                        "title": "Seal",
+                        "status": "ok",
+                        "platforms": [],
+                        "note": "",
+                        "children": []
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n122",
+            "title": "Firefox",
+            "status": "ok",
+            "platforms": [
+              "全平台"
+            ],
+            "note": "",
+            "children": [
+              {
+                "id": "n120",
+                "title": "书签同步",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n121",
+                "title": "插件1",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n124",
+            "title": "夸克",
+            "status": "ok",
+            "platforms": [
+              "全平台"
+            ],
+            "note": "",
+            "children": [
+              {
+                "id": "n123",
+                "title": "网盘",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n126",
+            "title": "Alook",
+            "status": "ok",
+            "platforms": [
+              "安卓"
+            ],
+            "note": "",
+            "children": [
+              {
+                "id": "n125",
+                "title": "看图模式",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n128",
+            "title": "Safari",
+            "status": null,
+            "platforms": [
+              "iOS"
+            ],
+            "note": "",
+            "children": [
+              {
+                "id": "n127",
+                "title": "插件1",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n130",
+            "title": "Chrome",
+            "status": "ok",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n129",
+                "title": "安卓 PWA",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "n138",
+        "title": "音频",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n135",
+            "title": "音乐",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n132",
+                "title": "苹果音乐",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n133",
+                "title": "网易云",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n134",
+                "title": "Spotify",
+                "status": "weak",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n137",
+            "title": "播客",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n136",
+                "title": "AntennaPod",
+                "status": "ok",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "n188",
+        "title": "其他工具",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n149",
+            "title": "Mac",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n140",
+                "title": "壁纸轮播",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n139",
+                    "title": "Pap.er",
+                    "status": "ok",
+                    "platforms": [
+                      "Mac"
+                    ],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n142",
+                "title": "显示器亮度调整",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n141",
+                    "title": "MonitorControl",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n144",
+                "title": "应用删除",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n143",
+                    "title": "Appcleaner",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n146",
+                "title": "分屏管理",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n145",
+                    "title": "Spectacle",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n148",
+                "title": "任务栏管理",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n147",
+                    "title": "Hidden Bar",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n178",
+            "title": "安卓",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n151",
+                "title": "开屏跳过",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n150",
+                    "title": "GKD",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n153",
+                "title": "蓝牙遥控",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n152",
+                    "title": "蓝牙遥控器",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n156",
+                "title": "应用商店",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n154",
+                    "title": "F-Droid",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n155",
+                    "title": "Neo Store",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "F-Droid 足矣",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n159",
+                "title": "NDS模拟器",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n158",
+                    "title": "DraStic",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "无法联机",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n161",
+                "title": "卡包",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n160",
+                    "title": "Catima",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n163",
+                "title": "番茄钟",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n162",
+                    "title": "专注清单",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n166",
+                "title": "便签",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n164",
+                    "title": "系统",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n165",
+                    "title": "Joplin",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "无须多个应用",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n169",
+                "title": "第三方微博",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n167",
+                    "title": "One",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n168",
+                    "title": "Share",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "单手友好",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n171",
+                "title": "全局搜索",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n170",
+                    "title": "App搜索",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n173",
+                "title": "壁纸轮播",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n172",
+                    "title": "Wallpaper Changer",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n177",
+                "title": "Fossil",
+                "status": null,
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n174",
+                    "title": "电话",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "无彩铃",
+                    "children": []
+                  },
+                  {
+                    "id": "n175",
+                    "title": "图库",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "一键删除",
+                    "children": []
+                  },
+                  {
+                    "id": "n176",
+                    "title": "文件",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "系统文件交替使用",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n198",
+                "title": "X 第三方客户端",
+                "status": null,
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n201",
+                    "title": "chuckle",
+                    "status": "weak",
+                    "platforms": [],
+                    "note": "买断制，非刚需",
+                    "children": []
+                  },
+                  {
+                    "id": "n203",
+                    "title": "Focus for X (原 Focus for Twitter)",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "折叠屏和平板电脑用户的首选推荐；比官方应用还简陋",
+                    "children": []
+                  },
+                  {
+                    "id": "n205",
+                    "title": "MarinDeck (适合极客与重度用户)",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "完美复刻 TweetDeck 体验；APK无法通过安装",
+                    "children": []
+                  },
+                  {
+                    "id": "n207",
+                    "title": "Fritter / Quack (开源隐私方案)",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "“阅读”而不是“发推”，这两个开源客户端是极佳的备选。；和官方应用同等简陋",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n185",
+            "title": "笔记",
+            "status": null,
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n179",
+                "title": "Notion",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n181",
+                "title": "思维导图",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n180",
+                    "title": "Xmind",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  }
+                ]
+              },
+              {
+                "id": "n184",
+                "title": "白板",
+                "status": "scenario",
+                "platforms": [],
+                "note": "",
+                "children": [
+                  {
+                    "id": "n182",
+                    "title": "FigJam",
+                    "status": "ok",
+                    "platforms": [],
+                    "note": "",
+                    "children": []
+                  },
+                  {
+                    "id": "n183",
+                    "title": "微软白板",
+                    "status": "bad",
+                    "platforms": [],
+                    "note": "卡顿",
+                    "children": []
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "n187",
+            "title": "视频压缩",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n186",
+                "title": "Rotato",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n227",
+            "title": "AI 文字助手",
+            "status": "scenario",
+            "platforms": [],
+            "note": "从原「1-2 AI对比 / 文字」合并",
+            "children": [
+              {
+                "id": "n228",
+                "title": "豆包",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n229",
+                "title": "Gemini",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n230",
+                "title": "ChatGPT",
+                "status": "weak",
+                "platforms": [],
+                "note": "无app",
+                "children": []
+              },
+              {
+                "id": "n231",
+                "title": "Deepseek",
+                "status": "weak",
+                "platforms": [],
+                "note": "思考时间过长",
+                "children": []
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "n197",
+        "title": "资讯/文章",
+        "status": null,
+        "platforms": [],
+        "note": "",
+        "children": [
+          {
+            "id": "n190",
+            "title": "RSS",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n189",
+                "title": "inoreader",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n193",
+            "title": "newsletter",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n191",
+                "title": "Meco.app",
+                "status": "bad",
+                "platforms": [
+                  "安卓"
+                ],
+                "note": "丢订阅",
+                "children": []
+              },
+              {
+                "id": "n192",
+                "title": "Mail 文件夹",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              }
+            ]
+          },
+          {
+            "id": "n196",
+            "title": "Read later",
+            "status": "scenario",
+            "platforms": [],
+            "note": "",
+            "children": [
+              {
+                "id": "n194",
+                "title": "滴答清单",
+                "status": "ok",
+                "platforms": [],
+                "note": "",
+                "children": []
+              },
+              {
+                "id": "n195",
+                "title": "Instapaper",
+                "status": "bad",
+                "platforms": [],
+                "note": "无桌面插件",
+                "children": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

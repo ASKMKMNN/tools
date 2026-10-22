@@ -1,15 +1,18 @@
 # 小工具
 
-三个可以单独安装的网页工具，放在 GitHub Pages 上。每个工具只缓存自己目录里的文件，安装之后互不影响，断网也能打开。
+几个可以单独安装的网页工具，放在 GitHub Pages 上。每个工具只缓存自己目录里的文件，安装之后互不影响，断网也能打开。
 
 ## 网址
 
 - 导航页：<https://askmkmnn.github.io/tools/>
 - 周期频率换算器：<https://askmkmnn.github.io/tools/freq/>
 - 省钱比价：<https://askmkmnn.github.io/tools/price/>
+- 好用 App 清单：<https://askmkmnn.github.io/tools/apps/>
 - 大连水果月历：<https://askmkmnn.github.io/tools/fruit/>
 
-请先打开要安装的那个工具页面，再按下面的步骤操作。导航页本身不能安装。三个工具需要各装一次。
+请先打开要安装的那个工具页面，再按下面的步骤操作。导航页本身不能安装。每个工具需要各装一次。
+
+「好用 App 清单」页面上的「编辑」会打开 GitHub 网页编辑 [`apps/data.json`](https://github.com/ASKMKMNN/tools/edit/main/apps/data.json)（需要登录 GitHub）。公开的 Pages 页面只能查看，不能在页面上直接改数据。
 
 ## 在安卓上安装
 
@@ -34,7 +37,7 @@ iPhone 和 iPad 不会弹出自动安装条，需要按上面的步骤手动添�
 用 Chrome 或 Edge 打开工具网址：
 
 1. 地址栏右侧出现安装图标（显示器加向下箭头）时，点它。
-2. Chrome 也可以打开右上角菜单，选择「安装周期频率换算器」、「安装省钱比价」或「安装大连水果月历」。
+2. Chrome 也可以打开右上角菜单，选择「安装周期频率换算器」「安装省钱比价」「安装好用 App 清单」或「安装大连水果月历」。
 3. Edge 可以打开菜单里的「应用」，再选「将此站点作为应用安装」。
 4. 确认安装。之后可以从开始菜单、启动台或桌面图标打开，断网也能用。
 
