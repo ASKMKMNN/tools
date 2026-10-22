@@ -8,6 +8,7 @@
 - 周期频率换算器：<https://askmkmnn.github.io/tools/freq/>
 - 省钱比价：<https://askmkmnn.github.io/tools/price/>
 - 好用 App 清单：<https://askmkmnn.github.io/tools/apps/>
+- 大连水果月历：<https://askmkmnn.github.io/tools/fruit/>
 
 请先打开要安装的那个工具页面，再按下面的步骤操作。导航页本身不能安装。每个工具需要各装一次。
 
@@ -36,7 +37,7 @@ iPhone 和 iPad 不会弹出自动安装条，需要按上面的步骤手动添�
 用 Chrome 或 Edge 打开工具网址：
 
 1. 地址栏右侧出现安装图标（显示器加向下箭头）时，点它。
-2. Chrome 也可以打开右上角菜单，选择「安装周期频率换算器」「安装省钱比价」或「安装好用 App 清单」。
+2. Chrome 也可以打开右上角菜单，选择「安装周期频率换算器」「安装省钱比价」「安装好用 App 清单」或「安装大连水果月历」。
 3. Edge 可以打开菜单里的「应用」，再选「将此站点作为应用安装」。
 4. 确认安装。之后可以从开始菜单、启动台或桌面图标打开，断网也能用。
 

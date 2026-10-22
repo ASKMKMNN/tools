@@ -1,0 +1,165 @@
+{
+  "title": "大连当季水果月历",
+  "location": "大连",
+  "purpose": "第一年记录大连当季好吃的水果，第二年按月对照，知道什么时候能吃到什么（例如樱桃）。✨ 表示当月高峰/特别推荐。",
+  "legend": {
+    "peak": "✨ = 当月高峰或特别好吃"
+  },
+  "months": [
+    {
+      "month": "一月",
+      "fruits": []
+    },
+    {
+      "month": "二月",
+      "fruits": []
+    },
+    {
+      "month": "三月",
+      "fruits": []
+    },
+    {
+      "month": "四月",
+      "fruits": []
+    },
+    {
+      "month": "五月",
+      "fruits": [
+        {
+          "name": "樱桃🍒",
+          "peak": false,
+          "raw": "樱桃🍒"
+        }
+      ]
+    },
+    {
+      "month": "六月",
+      "fruits": [
+        {
+          "name": "樱桃🍒",
+          "peak": true,
+          "raw": "樱桃🍒✨"
+        },
+        {
+          "name": "西瓜🍉",
+          "peak": false,
+          "raw": "西瓜🍉"
+        }
+      ]
+    },
+    {
+      "month": "七月",
+      "fruits": [
+        {
+          "name": "小蜜蜂🍇",
+          "peak": true,
+          "raw": "小蜜蜂🍇✨"
+        },
+        {
+          "name": "西瓜🍉",
+          "peak": true,
+          "raw": "西瓜🍉✨"
+        },
+        {
+          "name": "樱桃🍒",
+          "peak": true,
+          "raw": "樱桃🍒✨"
+        }
+      ]
+    },
+    {
+      "month": "八月",
+      "fruits": [
+        {
+          "name": "西瓜🍉",
+          "peak": true,
+          "raw": "西瓜🍉✨"
+        },
+        {
+          "name": "小蜜蜂🍇",
+          "peak": true,
+          "raw": "小蜜蜂🍇✨"
+        },
+        {
+          "name": "辽峰🍇",
+          "peak": false,
+          "raw": "辽峰🍇"
+        },
+        {
+          "name": "奇异果🥝",
+          "peak": false,
+          "raw": "奇异果🥝"
+        }
+      ]
+    },
+    {
+      "month": "九月",
+      "fruits": [
+        {
+          "name": "西瓜🍉",
+          "peak": false,
+          "raw": "西瓜🍉"
+        },
+        {
+          "name": "小蜜蜂🍇",
+          "peak": false,
+          "raw": "小蜜蜂🍇"
+        },
+        {
+          "name": "辽峰🍇",
+          "peak": true,
+          "raw": "辽峰🍇✨"
+        },
+        {
+          "name": "奇异果🥝",
+          "peak": true,
+          "raw": "奇异果🥝✨"
+        },
+        {
+          "name": "冬枣",
+          "peak": false,
+          "raw": "冬枣"
+        }
+      ]
+    },
+    {
+      "month": "十月",
+      "fruits": [
+        {
+          "name": "小蜜蜂🍇",
+          "peak": false,
+          "raw": "小蜜蜂🍇"
+        },
+        {
+          "name": "奇异果🥝",
+          "peak": true,
+          "raw": "奇异果🥝✨"
+        },
+        {
+          "name": "冬枣",
+          "peak": true,
+          "raw": "冬枣✨"
+        }
+      ]
+    },
+    {
+      "month": "十一月",
+      "fruits": [
+        {
+          "name": "奇异果🥝",
+          "peak": true,
+          "raw": "奇异果🥝✨"
+        },
+        {
+          "name": "冬枣",
+          "peak": true,
+          "raw": "冬枣✨"
+        }
+      ]
+    },
+    {
+      "month": "十二月",
+      "fruits": []
+    }
+  ]
+}
