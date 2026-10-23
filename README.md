@@ -7,6 +7,8 @@
 - 导航页：<https://askmkmnn.github.io/tools/>
 - 周期频率换算器：<https://askmkmnn.github.io/tools/freq/>
 - 省钱比价：<https://askmkmnn.github.io/tools/price/>
+- Markdown 编辑器：<https://askmkmnn.github.io/tools/md/>
+- QuickMind 思维导图：<https://askmkmnn.github.io/tools/mind/>
 - 好用 App 清单：<https://askmkmnn.github.io/tools/apps/>
 - 大连水果月历：<https://askmkmnn.github.io/tools/fruit/>
 

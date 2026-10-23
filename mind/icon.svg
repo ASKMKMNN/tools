@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <rect width="256" height="256" rx="56" fill="#1c1c1e" />
+  <g transform="translate(10, 0)">
+    <path d="M 80 128 C 115 128, 115 78, 150 78" fill="none" stroke="#636366" stroke-width="8" stroke-linecap="round" />
+    <path d="M 80 128 L 150 128" fill="none" stroke="#636366" stroke-width="8" stroke-linecap="round" />
+    <path d="M 80 128 C 115 128, 115 178, 150 178" fill="none" stroke="#636366" stroke-width="8" stroke-linecap="round" />
+    <rect x="44" y="108" width="40" height="40" rx="12" fill="#0a84ff" />
+    <rect x="150" y="58" width="56" height="40" rx="10" fill="#2c2c2e" stroke="#48484a" stroke-width="3" />
+    <rect x="150" y="108" width="56" height="40" rx="10" fill="#2c2c2e" stroke="#48484a" stroke-width="3" />
+    <rect x="150" y="158" width="56" height="40" rx="10" fill="#2c2c2e" stroke="#48484a" stroke-width="3" />
+    <line x1="162" y1="78" x2="194" y2="78" stroke="#86868b" stroke-width="4" stroke-linecap="round" />
+    <line x1="162" y1="128" x2="180" y2="128" stroke="#86868b" stroke-width="4" stroke-linecap="round" />
+    <line x1="162" y1="178" x2="194" y2="178" stroke="#86868b" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>
