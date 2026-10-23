@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>QuickMind 7.0 - App Edition</title>
+    <style>
+        :root {
+            color-scheme: light; 
+            --bg: #f4f5f7; --panel: #ffffff; --panel-border: #e2e2e6;
+            --text: #1d1d1f; --text-muted: #86868b;
+            --border: #d2d2d7; --accent: #0071e3; --shadow: 0 2px 10px rgba(0,0,0,0.05);
+            --node-bg: #ffffff; --line: #c6c6c8;
+            --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
+            --root-text: #ffffff;
+            --gray-root-bg: #1d1d1f; --gray-root-text: #ffffff; --gray-branch: #86868b;
+            --btn-bg: #f2f2f7; --btn-hover: #e5e5ea;
+            --status-saved: #34c759; --status-dirty: #ff9500;
+        }
+        [data-theme="dark"] {
+            color-scheme: dark; 
+            --bg: #000000; --panel: #1e1e1e; --panel-border: #2c2c2e;
+            --text: #f5f5f7; --text-muted: #98989d;
+            --border: #38383a; --accent: #0a84ff; --shadow: 0 4px 14px rgba(0,0,0,0.5);
+            --node-bg: #2c2c2e; --line: #48484a; --root-text: #ffffff;
+            --gray-root-bg: #e5e5ea; --gray-root-text: #000000; --gray-branch: #636366;
+            --btn-bg: #2c2c2e; --btn-hover: #3a3a3c;
+            --status-saved: #30d158; --status-dirty: #ff9f0a;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: var(--font); background: var(--bg); color: var(--text); transition: background 0.3s; }
+        #app { display: flex; height: 100vh; }
+        
+        #sidebar { width: 300px; border-right: 1px solid var(--panel-border); display: flex; flex-direction: column; background: var(--panel); z-index: 100; }
+        
+        .sidebar-section { padding: 16px; border-bottom: 1px solid var(--panel-border); }
+        .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .app-title { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; }
+        .app-title::before { content: ''; display: block; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+        
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .controls-grid .btn-span { grid-column: span 2; }
+        
+        .toolbar-row { display: flex; gap: 8px; margin-top: 12px; }
+        select option, select optgroup { background-color: var(--panel); color: var(--text); }
+        
+        .editor-container { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
+        .editor-header { 
+            padding: 8px 16px; font-size: 11px; font-weight: 500; color: var(--text-muted); 
+            text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--panel-border); 
+            background: var(--panel); white-space: nowrap; overflow: hidden; 
+            display: flex; align-items: center; gap: 8px;
+        }
+        #editor-header-text { overflow: hidden; text-overflow: ellipsis; }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--status-saved);
+            box-shadow: 0 0 0 2px rgba(52, 199, 89, 0.18);
+            transition: background 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+        .status-dot.dirty {
+            background: var(--status-dirty);
+            box-shadow: 0 0 0 2px rgba(255, 149, 0, 0.18);
+        }
+
+        textarea#source-text { flex: 1; border: none; padding: 16px; font-family: "SFMono-Regular", Consolas, monospace; font-size: 13px; line-height: 1.7; outline: none; resize: none; color: var(--text); background: transparent; white-space: pre; }
+        
+        #viewer { flex: 1; position: relative; overflow: hidden; cursor: grab; background: var(--bg); }
+        #viewer:active { cursor: grabbing; }
+        svg { width: 100%; height: 100%; outline: none; display: block; }
+
+        .node-group { cursor: pointer; }
+        .node-rect { transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1); filter: drop-shadow(var(--shadow)); }
+        .node-text { pointer-events: none; user-select: none; letter-spacing: 0.3px; }
+        .link { opacity: 0.9; transition: stroke 0.3s; }
+
+        .node-group:hover .node-rect { filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15)); }
+        .node-group.selected .node-rect { stroke-width: 2.5 !important; filter: drop-shadow(0 0 0 4px rgba(0, 113, 227, 0.2)); transform: scale(1.02); transform-origin: center; transform-box: fill-box; }
+        .node-group.drop-target .node-rect { fill: var(--accent) !important; opacity: 0.2; stroke-dasharray: 6; }
+        .ghost-node { pointer-events: none; opacity: 0.5; filter: grayscale(1); }
+
+        #node-editor { 
+            position: absolute; 
+            display: none; 
+            border: 2px solid var(--accent); 
+            border-radius: 6px; 
+            padding: 0 10px; 
+            font-size: 14px; 
+            outline: none; 
+            background: var(--panel); 
+            color: var(--text); 
+            box-shadow: var(--shadow); 
+            z-index: 1000; 
+            font-family: -apple-system, 'SF Pro Text', 'Microsoft YaHei', sans-serif;
+            box-sizing: border-box;
+            resize: none;
+            overflow: hidden;
+            text-align: center;
+            line-height: 20px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .btn { background: var(--btn-bg); border: 1px solid transparent; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text); font-family: inherit; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn:hover { background: var(--btn-hover); border-color: var(--border); }
+        .btn:active { transform: scale(0.98); }
+        select.btn { outline: none; appearance: none; padding-right: 15px; flex: 1; text-align: left; justify-content: flex-start; }
+
+        .floating-tools { position: absolute; bottom: 24px; right: 24px; display: flex; gap: 10px; z-index: 10; }
+        .fab { background: var(--panel); border: 1px solid var(--border); box-shadow: var(--shadow); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 500; color: var(--text); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .fab:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.1); }
+
+        .color-picker {
+            position: absolute;
+            bottom: 84px;
+            right: 24px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            padding: 12px 14px;
+            z-index: 25;
+            display: none;
+            min-width: 180px;
+            animation: pickerFade 0.15s ease-out;
+        }
+        @keyframes pickerFade {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .color-picker-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .color-swatches {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s, border-color 0.15s;
+            box-sizing: border-box;
+        }
+        .swatch:hover {
+            transform: scale(1.18);
+        }
+        .swatch.active {
+            border-color: var(--text);
+            transform: scale(1.12);
+        }
+        .color-picker-footer {
+            border-top: 1px solid var(--panel-border);
+            padding-top: 8px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .color-picker-footer .btn {
+            font-size: 11px;
+            padding: 5px 10px;
+        }
+
+        #file-upload { display: none; }
+    </style>
+    <meta name="theme-color" content="#1c1c1e" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="QuickMind" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+</head>
+<body>
+<div id="app">
+    <div id="sidebar">
+        <div class="sidebar-section">
+            <div class="app-header">
+                <h2 class="app-title">QuickMind</h2>
+                <button class="btn" id="mode-toggle" onclick="toggleMode()" style="width: 28px; height: 28px; padding: 0;" title="切换深/浅色模式">🌙</button>
+            </div>
+            
+            <div class="controls-grid">
+                <button class="btn" onclick="newMap()">✨ 新建</button>
+                <button class="btn" onclick="openFileDialog()">📂 打开</button>
+                <button class="btn" onclick="saveFile()" title="保存到当前文件 (Ctrl+S)">💾 保存</button>
+                <button class="btn" onclick="saveAsFile()" title="另存为新文件 (Ctrl+Shift+S)">📝 另存为</button>
+                <button class="btn" onclick="undo()" title="撤销 (Ctrl+Z)">↩ 撤销</button>
+                <button class="btn" onclick="exportSVG()">🖼️ 导 SVG</button>
+                <input type="file" id="file-upload" accept=".txt,.md" onchange="openFileFallback(event)">
+            </div>
+
+            <div class="toolbar-row">
+                <select class="btn" id="style-selector" onchange="changeStyle()">
+                    <optgroup label="横向布局">
+                        <option value="horizontal-rainbow">🎨 横向 - 彩色</option>
+                        <option value="horizontal-grayscale">⚪ 横向 - 灰阶</option>
+                    </optgroup>
+                    <optgroup label="横向直角布局">
+                        <option value="ortho-rainbow">📐 直角 - 彩色</option>
+                        <option value="ortho-grayscale">📏 直角 - 灰阶</option>
+                    </optgroup>
+                    <optgroup label="树状架构">
+                        <option value="vertical-rainbow">🌲 竖向 - 彩色</option>
+                        <option value="vertical-grayscale">🌳 竖向 - 灰阶</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-header" id="editor-header">
+                <span class="status-dot" id="status-dot"></span>
+                <span id="editor-header-text">Markdown 编辑器 — 未命名</span>
+            </div>
+            <textarea id="source-text" spellcheck="false">中心主题
+    核心业务
+        研发部
+            测试节点 1
+            测试节点 2
+        市场部
+    未来规划
+        全球化战略
+            本地化运营
+        AI 集成
+
+独立构思点 </textarea>
+        </div>
+    </div>
+    
+    <div id="viewer">
+        <textarea id="node-editor" spellcheck="false"></textarea>
+        <svg id="canvas" tabindex="0" xmlns="http://www.w3.org/2000/svg">
+            <g id="viewport">
+                <g id="links-layer"></g>
+                <g id="nodes-layer"></g>
+                <g id="drag-layer"></g>
+            </g>
+        </svg>
+        <div class="floating-tools">
+            <button class="fab" onclick="resetView()" title="居中画布">⌖ 居中定位</button>
+        </div>
+        <div class="color-picker" id="color-picker">
+            <div class="color-picker-title">节点颜色</div>
+            <div class="color-swatches" id="color-swatches"></div>
+            <div class="color-picker-footer">
+                <button class="btn" onclick="clearNodeColor()">恢复默认</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const source = document.getElementById('source-text');
+    const nodesLayer = document.getElementById('nodes-layer');
+    const linksLayer = document.getElementById('links-layer');
+    const dragLayer = document.getElementById('drag-layer');
+    const viewport = document.getElementById('viewport');
+    const canvas = document.getElementById('canvas');
+    const nodeEditor = document.getElementById('node-editor');
+    const viewerContainer = document.getElementById('viewer'); 
+    const editorHeaderText = document.getElementById('editor-header-text');
+    const statusDot = document.getElementById('status-dot');
+    const styleSelector = document.getElementById('style-selector');
+    const colorPicker = document.getElementById('color-picker');
+    const colorSwatches = document.getElementById('color-swatches');
+
+    let scale = 1, translateX = 200, translateY = 350;
+    let selectedNodeId = null;
+    let roots = []; 
+    let nextId = 1;
+    let layoutMode = 'horizontal'; 
+    let colorMode = 'rainbow';
+    let isDarkMode = true;
+
+    let drag = { 
+        active: false, 
+        pending: false, 
+        node: null, 
+        startX: 0, 
+        startY: 0, 
+        ghost: null, 
+        targetId: null 
+    };
+    let currentEditingNode = null;
+
+    const LINE_H = 20;
+    const DRAG_THRESHOLD = 4;
+
+    let currentFileHandle = null;
+    let currentFileName = '';
+    let isDirty = false;
+
+    let lastDownTime = 0;
+    let lastDownNodeId = null;
+    let pendingEditTimer = null;
+
+    const hasFileSystemAccess = ('showOpenFilePicker' in window) && ('showSaveFilePicker' in window);
+
+    const LAYOUT_META_RE = /^\s*<!--\s*quickmind-layout:\s*([a-z]+)-([a-z]+)\s*-->\s*\n?/;
+
+    // ★ 撤销历史
+    let history = [];
+    let historyIndex = -1;
+    const MAX_HISTORY = 100;
+
+    const PRESET_COLORS = [
+        '#0a84ff', '#34c759', '#ff9500', '#ff3b30', '#af52de',
+        '#5856d6', '#5ac8fa', '#ff2d55', '#8e8e93', '#30d158'
+    ];
+
+    PRESET_COLORS.forEach(c => {
+        const el = document.createElement('div');
+        el.className = 'swatch';
+        el.dataset.color = c;
+        el.style.background = c;
+        el.title = c;
+        el.onclick = () => setNodeColor(c);
+        colorSwatches.appendChild(el);
+    });
+
+    colorPicker.addEventListener('mousedown', (e) => e.stopPropagation());
+    colorPicker.addEventListener('click', (e) => e.stopPropagation());
+
+    // === 撤销历史管理 ===
+    function captureState() {
+        function cloneNode(n) {
+            return {
+                id: n.id,
+                text: n.text,
+                depth: n.depth,
+                fx: n.fx,
+                fy: n.fy,
+                customColor: n.customColor || null,
+                children: n.children.map(cloneNode)
+            };
+        }
+        return {
+            roots: roots.map(cloneNode),
+            nextId: nextId
+        };
+    }
+
+    function restoreState(state) {
+        function rebuildNode(n, parent) {
+            const node = {
+                id: n.id,
+                text: n.text,
+                depth: n.depth,
+                fx: n.fx,
+                fy: n.fy,
+                customColor: n.customColor || null,
+                children: [],
+                parent: parent
+            };
+            node.children = n.children.map(c => rebuildNode(c, node));
+            return node;
+        }
+        roots = state.roots.map(r => rebuildNode(r, null));
+        nextId = state.nextId;
+    }
+
+    function pushHistory() {
+        if (historyIndex < history.length - 1) {
+            history = history.slice(0, historyIndex + 1);
+        }
+        const state = captureState();
+        if (historyIndex >= 0) {
+            const last = history[historyIndex];
+            try {
+                if (JSON.stringify(last) === JSON.stringify(state)) return;
+            } catch (e) { /* ignore */ }
+        }
+        history.push(state);
+        historyIndex = history.length - 1;
+        while (history.length > MAX_HISTORY) {
+            history.shift();
+            historyIndex--;
+        }
+    }
+
+    function initHistory() {
+        history = [];
+        historyIndex = -1;
+        pushHistory();
+    }
+
+    function undo() {
+        if (historyIndex <= 0) return;
+        if (nodeEditor.style.display === 'block') {
+            nodeEditor.style.display = 'none';
+            currentEditingNode = null;
+        }
+        historyIndex--;
+        restoreState(history[historyIndex]);
+        if (selectedNodeId && !findNodeById(selectedNodeId)) selectedNodeId = null;
+        updateColors();
+        computeLayout();
+        syncToText();
+        render();
+        markDirty();
+        canvas.focus();
+    }
+
+    // === 0. 状态更新 ===
+    function updateFileTitle(status) {
+        const name = currentFileName || '未命名';
+        let suffix = '';
+        if (status === 'saved') suffix = '  ✓ 已保存';
+        else if (isDirty) suffix = '  ●';
+        editorHeaderText.textContent = `Markdown 编辑器 — ${name}${suffix}`;
+        statusDot.classList.toggle('dirty', isDirty);
+        statusDot.title = isDirty ? '有未保存的修改' : '已保存';
+        if (status === 'saved') {
+            clearTimeout(window._titleTimer);
+            window._titleTimer = setTimeout(() => {
+                editorHeaderText.textContent = `Markdown 编辑器 — ${name}${isDirty ? '  ●' : ''}`;
+            }, 1500);
+        }
+    }
+
+    function markDirty() {
+        isDirty = true;
+        updateFileTitle();
+    }
+
+    // === 1. 解析引擎 ===
+    function parseText() {
+        const rawText = source.value.replace(/\r/g, ''); 
+        const lines = rawText.split('\n');
+        roots = []; let stack = []; nextId = 1;
+
+        lines.forEach(line => {
+            if (line.trim() === '') return;
+            let text = line;
+            let customColor = null;
+            
+            const colorMatch = text.match(/<!--\s*color:\s*(#[0-9a-fA-F]{3,8})\s*-->/);
+            if (colorMatch) {
+                customColor = colorMatch[1].toLowerCase();
+                text = text.replace(/<!--\s*color:\s*#[0-9a-fA-F]{3,8}\s*-->/g, '');
+            }
+            
+            let fx = null, fy = null;
+            const posMatch = text.match(/<!--\s*pos:\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*-->/);
+            if (posMatch) {
+                fx = parseFloat(posMatch[1]);
+                fy = parseFloat(posMatch[2]);
+                text = text.replace(/<!--\s*pos:\s*-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?\s*-->/g, '');
+            }
+            
+            let indent = 0;
+            const rawIndent = text.match(/^\s*/)[0];
+            rawIndent.split('').forEach(char => { indent += (char === '\t') ? 4 : 1; });
+            const depth = Math.floor(indent / 4);
+            
+            const nodeText = text.trim().replace(/\\n/g, '\n');
+            
+            const node = { 
+                id: 'n' + (nextId++), 
+                text: nodeText, 
+                children: [], 
+                depth: depth, 
+                parent: null, 
+                fx: fx, 
+                fy: fy, 
+                customColor: customColor 
+            };
+
+            if (depth === 0) {
+                roots.push(node); stack = [node];
+            } else {
+                while (stack.length > depth) stack.pop();
+                if (stack.length === 0) { roots.push(node); stack = [node]; node.depth = 0; } 
+                else {
+                    const parent = stack[stack.length - 1];
+                    parent.children.push(node); node.parent = parent; stack.push(node);
+                }
+            }
+        });
+    }
+
+    function updateColors() {
+        const cs = getComputedStyle(document.documentElement);
+        const isRainbow = colorMode === 'rainbow';
+        const accentCol = cs.getPropertyValue('--accent').trim();
+        const rootDefault = isRainbow ? accentCol : cs.getPropertyValue('--gray-root-bg').trim();
+        const grayBranch = cs.getPropertyValue('--gray-branch').trim();
+        const branchColors = [accentCol, '#34c759', '#ff9500', '#ff3b30', '#af52de', '#5856d6'];
+        
+        roots.forEach(root => {
+            applyColors(root, rootDefault, branchColors, grayBranch, true, isRainbow);
+        });
+    }
+
+    function applyColors(node, defaultColor, branchColors, grayBranch, isRoot, isRainbow) {
+        node.color = node.customColor || defaultColor;
+        node.children.forEach((c, idx) => {
+            let childDefault;
+            if (isRoot) {
+                childDefault = isRainbow 
+                    ? branchColors[idx % branchColors.length] 
+                    : grayBranch;
+            } else {
+                childDefault = defaultColor;
+            }
+            applyColors(c, childDefault, branchColors, grayBranch, false, isRainbow);
+        });
+    }
+
+    function syncToText() {
+        let lines = [];
+        function traverse(node, currentDepth) {
+            let line = '    '.repeat(currentDepth) + node.text.replace(/\n/g, '\\n');
+            if (node.customColor) {
+                line += ` <!-- color: ${node.customColor} -->`;
+            }
+            if (node.fx !== null && node.fy !== null && currentDepth === 0) {
+                line += ` <!-- pos: ${node.fx},${node.fy} -->`;
+            }
+            lines.push(line);
+            node.children.forEach(c => traverse(c, currentDepth + 1));
+        }
+        roots.forEach(r => traverse(r, 0));
+        source.value = lines.join('\n');
+    }
+
+    // === 2. 布局引擎 ===
+    function estimateTextWidth(text) {
+        let w = 0;
+        for (let i = 0; i < text.length; i++) {
+            const c = text.charCodeAt(i);
+            w += (c >= 0x2E80) ? 14 : 8;
+        }
+        return w;
+    }
+
+    function prepSizes(node) {
+        const lines = String(node.text || "").split('\n');
+        node.textLines = lines;
+        let maxW = 0;
+        lines.forEach(l => maxW = Math.max(maxW, estimateTextWidth(l)));
+        node.rectW = Math.max(maxW + 28, 56);
+        node.rectH = Math.max(lines.length * LINE_H + 16, 36);
+        node.children.forEach(prepSizes);
+    }
+
+    function computeLayout() {
+        let offsetHoriz = 0, offsetVert = 0;
+        roots.forEach(root => {
+            prepSizes(root);
+            if (root.fx != null && root.fy != null && !isNaN(root.fx) && !isNaN(root.fy)) {
+                if (layoutMode === 'vertical') layoutTreeVertical(root, root.fx, root.fy);
+                else if (layoutMode === 'ortho') layoutTreeOrtho(root, root.fx, root.fy);
+                else layoutTreeHorizontal(root, root.fx, root.fy);
+            } else {
+                if (layoutMode === 'vertical') {
+                    let w = layoutTreeVertical(root, offsetHoriz, offsetVert);
+                    offsetHoriz += (Number(w) || 100) + 60;
+                } else if (layoutMode === 'ortho') {
+                    let h = layoutTreeOrtho(root, offsetHoriz, offsetVert);
+                    offsetVert += (Number(h) || 48) + 60;
+                } else {
+                    let h = layoutTreeHorizontal(root, offsetHoriz, offsetVert);
+                    offsetVert += (Number(h) || 48) + 40;
+                }
+            }
+        });
+    }
+
+    function layoutTreeHorizontal(node, x = 0, y = 0) {
+        node.x = Number(x) || 0; node.y = Number(y) || 0;
+        let totalH = 0; const xSpace = 100, ySpace = 20;
+
+        if (node.children && node.children.length > 0) {
+            node.children.forEach(child => {
+                let h = layoutTreeHorizontal(child, node.x + node.rectW + xSpace, node.y + totalH);
+                totalH += h + ySpace;
+            });
+            totalH -= ySpace;
+            const firstY = node.children[0].y; const lastY = node.children[node.children.length - 1].y;
+            node.y = (firstY + lastY) / 2;
+            return totalH;
+        }
+        return node.rectH;
+    }
+
+    function layoutTreeVertical(node, x = 0, y = 0) {
+        node.x = Number(x) || 0; node.y = Number(y) || 0;
+        let totalW = 0; const xSpace = 30, ySpace = 65; 
+
+        if (node.children && node.children.length > 0) {
+            node.children.forEach(child => {
+                let w = layoutTreeVertical(child, x + totalW, node.y + ySpace);
+                totalW += w + xSpace;
+            });
+            totalW -= xSpace;
+            const firstX = node.children[0].x + node.children[0].rectW / 2;
+            const lastX = node.children[node.children.length - 1].x + node.children[node.children.length - 1].rectW / 2;
+            node.x = (firstX + lastX) / 2 - node.rectW / 2;
+            return totalW;
+        }
+        return node.rectW;
+    }
+
+    function layoutTreeOrtho(node, x = 0, y = 0) {
+        node.x = Number(x) || 0;
+        node.y = Number(y) || 0;
+        const xSpace = 70, ySpace = 22;
+
+        if (!node.children || node.children.length === 0) {
+            return node.rectH;
+        }
+
+        if (node.children.length === 1) {
+            const child = node.children[0];
+            const h = layoutTreeOrtho(child, node.x + node.rectW + xSpace, node.y);
+            return Math.max(node.rectH, h);
+        }
+
+        const ownTop = node.y - node.rectH / 2;
+        let cursorY = ownTop;
+        node.children.forEach(child => {
+            const childCenterY = cursorY + child.rectH / 2;
+            const h = layoutTreeOrtho(child, node.x + node.rectW + xSpace, childCenterY);
+            cursorY += h + ySpace;
+        });
+        const childrenBottom = cursorY - ySpace;
+        return Math.max(childrenBottom - ownTop, node.rectH);
+    }
+
+    // === 3. 渲染引擎 ===
+    function render() {
+        nodesLayer.innerHTML = ''; linksLayer.innerHTML = '';
+        
+        const cs = getComputedStyle(document.documentElement);
+        const nodeBgCol = cs.getPropertyValue('--node-bg').trim();
+        const textCol = cs.getPropertyValue('--text').trim();
+        const rootTextCol = cs.getPropertyValue('--root-text').trim();
+        const grayRootTextCol = cs.getPropertyValue('--gray-root-text').trim();
+
+        const drawNode = (node) => {
+            if (isNaN(node.x) || isNaN(node.y)) return; 
+
+            const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+            g.setAttribute("class", `node-group ${selectedNodeId === node.id ? 'selected' : ''}`);
+            g.dataset.id = node.id;
+            g.setAttribute("transform", `translate(${node.x}, ${node.y})`);
+
+            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            rect.setAttribute("class", "node-rect");
+            rect.setAttribute("x", 0); rect.setAttribute("y", -node.rectH/2);
+            rect.setAttribute("width", node.rectW); rect.setAttribute("height", node.rectH);
+            
+            rect.setAttribute("rx", "6"); 
+            rect.setAttribute("ry", "6");
+            rect.setAttribute("stroke-width", "1.5");
+            
+            if(node.depth === 0) { 
+                rect.setAttribute("fill", node.color); 
+                rect.setAttribute("stroke", node.color); 
+            } else { 
+                rect.setAttribute("stroke", node.color); 
+                rect.setAttribute("fill", nodeBgCol); 
+            }
+
+            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            text.setAttribute("class", "node-text");
+            text.setAttribute("text-anchor", "middle");
+            text.setAttribute("dominant-baseline", "middle");
+            text.setAttribute("font-size", "14px");
+            text.setAttribute("font-family", "-apple-system, 'SF Pro Text', 'Microsoft YaHei', sans-serif");
+            
+            if(node.depth === 0) text.setAttribute("fill", (colorMode === 'rainbow') ? rootTextCol : grayRootTextCol);
+            else text.setAttribute("fill", textCol);
+
+            const lines = (node.textLines && node.textLines.length) ? node.textLines : [node.text || ''];
+            const totalH = lines.length * LINE_H;
+            const startY = -totalH / 2 + LINE_H / 2;
+
+            lines.forEach((ln, i) => {
+                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                tspan.setAttribute("x", node.rectW / 2);
+                tspan.setAttribute("y", startY + i * LINE_H);
+                tspan.textContent = ln.length ? ln : ' ';
+                text.appendChild(tspan);
+            });
+
+            g.appendChild(rect); g.appendChild(text);
+
+            g.onmousedown = (e) => handleNodeMouseDown(e, node, g);
+            nodesLayer.appendChild(g);
+
+            node.children.forEach(child => {
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                path.setAttribute("class", "link");
+                
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke-width", "2");
+                path.setAttribute("stroke-linecap", "round");
+                path.setAttribute("stroke-linejoin", "miter");
+                path.setAttribute("stroke", node.color);
+                
+                let d = "";
+                if (layoutMode === 'vertical') {
+                    const sX = node.x + node.rectW / 2, sY = node.y + node.rectH / 2;
+                    const eX = child.x + child.rectW / 2, eY = child.y - child.rectH / 2;
+                    const r = 8; 
+                    const midY = sY + (eY - sY) / 2;
+
+                    if (Math.abs(sX - eX) < 5) d = `M ${sX} ${sY} L ${eX} ${eY}`;
+                    else {
+                        const dirX = eX > sX ? 1 : -1;
+                        const radius = Math.min(r, Math.abs(eX - sX) / 2, Math.abs(eY - sY) / 2);
+                        d = `M ${sX} ${sY} V ${midY - radius} Q ${sX} ${midY} ${sX + dirX*radius} ${midY} H ${eX - dirX*radius} Q ${eX} ${midY} ${eX} ${midY + radius} V ${eY}`;
+                    }
+                } else if (layoutMode === 'ortho') {
+                    const sX = node.x + node.rectW, sY = node.y;
+                    const eX = child.x, eY = child.y;
+                    if (Math.abs(eY - sY) < 1) {
+                        d = `M ${sX} ${sY} H ${eX}`;
+                    } else {
+                        const midX = sX + (eX - sX) / 2;
+                        d = `M ${sX} ${sY} H ${midX} V ${eY} H ${eX}`;
+                    }
+                } else {
+                    const sX = node.x + node.rectW, sY = node.y;
+                    const eX = child.x, eY = child.y;
+                    const cpX = sX + (eX - sX) * 0.4;
+                    d = `M ${sX} ${sY} C ${cpX} ${sY}, ${cpX} ${eY}, ${eX} ${eY}`;
+                }
+                path.setAttribute("d", d);
+                linksLayer.appendChild(path);
+                drawNode(child);
+            });
+        };
+        roots.forEach(r => drawNode(r));
+        
+        updateColorPicker();
+    }
+
+    function loadFromText() { parseText(); updateColors(); computeLayout(); render(); }
+    function refreshView() { syncToText(); updateColors(); computeLayout(); render(); }
+    source.oninput = () => { loadFromText(); markDirty(); };
+
+    // === 4. 颜色选择器相关 ===
+    function updateColorPicker() {
+        if (!selectedNodeId) {
+            colorPicker.style.display = 'none';
+            return;
+        }
+        const node = findNodeById(selectedNodeId);
+        if (!node) {
+            colorPicker.style.display = 'none';
+            return;
+        }
+        colorPicker.style.display = 'block';
+        const swatches = colorSwatches.querySelectorAll('.swatch');
+        swatches.forEach(s => {
+            s.classList.toggle('active', node.customColor === s.dataset.color);
+        });
+    }
+
+    function setNodeColor(color) {
+        if (!selectedNodeId) return;
+        const node = findNodeById(selectedNodeId);
+        if (!node) return;
+        if (node.customColor === color) return;
+        pushHistory();
+        node.customColor = color;
+        updateColors();
+        render();
+        syncToText();
+        markDirty();
+    }
+
+    function clearNodeColor() {
+        if (!selectedNodeId) return;
+        const node = findNodeById(selectedNodeId);
+        if (!node || !node.customColor) return;
+        pushHistory();
+        node.customColor = null;
+        updateColors();
+        render();
+        syncToText();
+        markDirty();
+    }
+
+    // === 5. 键盘交互与编辑 ===
+    function findNodeById(id) {
+        let found = null;
+        function search(node) { if(node.id === id) found = node; node.children.forEach(search); }
+        roots.forEach(search); return found;
+    }
+
+    canvas.addEventListener('keydown', (e) => {
+        if (!selectedNodeId) return;
+        if (nodeEditor.style.display === 'block') return;
+        const node = findNodeById(selectedNodeId);
+        if (!node) return;
+
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault(); startEdit(node, true); nodeEditor.value = e.key; return;
+        }
+
+        if (e.key === 'Tab' || e.key === 'Enter') {
+            e.preventDefault();
+            const safeNode = findNodeById(selectedNodeId);
+            if (!safeNode) return;
+
+            pushHistory();   // ★ 添加前记录
+
+            const newNode = { id: 'n'+(nextId++), text: "新主题", children: [], fx: null, fy: null, customColor: null };
+            
+            if (e.key === 'Tab') {
+                newNode.depth = safeNode.depth + 1; newNode.parent = safeNode; safeNode.children.push(newNode);
+            } else { 
+                if (safeNode.depth === 0) return; 
+                newNode.depth = safeNode.depth; newNode.parent = safeNode.parent;
+                const idx = safeNode.parent.children.indexOf(safeNode);
+                safeNode.parent.children.splice(idx + 1, 0, newNode);
+            }
+            
+            refreshView(); markDirty(); selectedNodeId = newNode.id; render();
+            setTimeout(() => { const n = findNodeById(newNode.id); if(n) startEdit(n, true); }, 10);
+        }
+        else if (e.key === 'Delete' || e.key === 'Backspace') {
+            e.preventDefault();
+            if (node.depth === 0 && roots.length === 1) return; 
+            pushHistory();   // ★ 删除前记录
+            if (node.parent) node.parent.children = node.parent.children.filter(c => c.id !== node.id);
+            else roots = roots.filter(r => r.id !== node.id);
+            selectedNodeId = null; refreshView(); markDirty();
+        }
+    });
+
+    canvas.addEventListener('click', (e) => { 
+        if (e.target !== canvas) return;
+        if (nodeEditor.style.display === 'block') return;
+        selectedNodeId = null; 
+        render(); 
+    });
+
+    function handleNodeMouseDown(e, node, gEl) {
+        e.stopPropagation();
+        if (e.button !== 0) return;
+
+        const now = Date.now();
+        const isDouble = (lastDownNodeId === node.id) && (now - lastDownTime < 350);
+
+        if (isDouble) {
+            lastDownNodeId = null;
+            lastDownTime = 0;
+            drag.active = false;
+            drag.pending = false;
+            drag.node = null;
+            dragLayer.innerHTML = '';
+            const nid = node.id;
+            if (pendingEditTimer) clearTimeout(pendingEditTimer);
+            pendingEditTimer = setTimeout(() => {
+                const n = findNodeById(nid);
+                if (n) startEdit(n);
+            }, 10);
+            return;
+        }
+
+        lastDownNodeId = node.id;
+        lastDownTime = now;
+
+        selectedNodeId = node.id; 
+        render(); 
+        canvas.focus();
+
+        drag.pending = true;
+        drag.active = false;
+        drag.node = node;
+        drag.startX = e.clientX;
+        drag.startY = e.clientY;
+        drag.ghost = null;
+        drag.targetId = null;
+    }
+
+    function startEdit(node, selectAll = false) {
+        if (!node) return;
+        if (currentEditingNode && currentEditingNode !== node) finishEdit();
+
+        colorPicker.style.display = 'none';
+
+        currentEditingNode = node;
+        const pt = canvas.createSVGPoint(); pt.x = node.x; pt.y = node.y - node.rectH/2;
+        const sp = pt.matrixTransform(viewport.getScreenCTM());
+        const viewerRect = viewerContainer.getBoundingClientRect();
+
+        nodeEditor.style.display = 'block';
+        nodeEditor.style.left = (sp.x - viewerRect.left) + 'px'; 
+        nodeEditor.style.top  = (sp.y - viewerRect.top)  + 'px'; 
+        nodeEditor.style.width  = (node.rectW * scale) + 'px'; 
+        nodeEditor.style.height = (node.rectH * scale) + 'px';
+        nodeEditor.style.fontSize = (14 * scale) + 'px';
+        nodeEditor.style.lineHeight = (LINE_H * scale) + 'px';
+        nodeEditor.value = node.text; 
+        requestAnimationFrame(() => {
+            nodeEditor.focus({ preventScroll: true });
+            if (selectAll) {
+                nodeEditor.select();
+            } else {
+                nodeEditor.selectionStart = nodeEditor.selectionEnd = nodeEditor.value.length;
+            }
+        });
+    }
+
+    nodeEditor.onblur = () => finishEdit();
+
+    nodeEditor.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            if (e.shiftKey || e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                insertNewlineInEditor();
+            } else {
+                e.preventDefault();
+                finishEdit();
+            }
+            return;
+        }
+        if (e.key === 'Tab') { e.preventDefault(); finishEdit(); return; }
+        if (e.key === 'Escape') { e.preventDefault(); finishEdit(); return; }
+        if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+            e.stopPropagation();
+            finishEdit();
+            if (e.shiftKey) saveAsFile(); else saveFile();
+            return;
+        }
+    };
+
+    nodeEditor.oninput = () => { resizeEditorToContent(); };
+
+    function insertNewlineInEditor() {
+        const start = nodeEditor.selectionStart;
+        const end = nodeEditor.selectionEnd;
+        const val = nodeEditor.value;
+        nodeEditor.value = val.slice(0, start) + '\n' + val.slice(end);
+        nodeEditor.selectionStart = nodeEditor.selectionEnd = start + 1;
+        resizeEditorToContent();
+    }
+
+    function resizeEditorToContent() {
+        if (!currentEditingNode) return;
+        const lineCount = nodeEditor.value.split('\n').length;
+        const neededH = Math.max(lineCount * LINE_H + 16, 36);
+        nodeEditor.style.height = (neededH * scale) + 'px';
+    }
+
+    function finishEdit() {
+        if (!currentEditingNode) return;
+        const v = nodeEditor.value.replace(/\r/g, '').trim();
+        const newText = v || "空";
+        const changed = (currentEditingNode.text !== newText);
+        if (changed) {
+            pushHistory();   // ★ 修改前记录
+            currentEditingNode.text = newText;
+        }
+        nodeEditor.style.display = 'none'; 
+        currentEditingNode = null;
+        if (changed) {
+            refreshView(); 
+            markDirty();
+        }
+        canvas.focus();
+    }
+
+    // === 6. 拖拽 ===
+    let isPanning = false, panStartX, panStartY;
+    canvas.addEventListener('mousedown', e => {
+        if(e.target === canvas) { 
+            if(nodeEditor.style.display === 'block') finishEdit(); 
+            isPanning = true; 
+            panStartX = (e.clientX || 0) - translateX; 
+            panStartY = (e.clientY || 0) - translateY; 
+        }
+    });
+
+    window.addEventListener('mousemove', e => {
+        if (drag.pending && !drag.active && drag.node) {
+            const dx = e.clientX - drag.startX;
+            const dy = e.clientY - drag.startY;
+            if (Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+                drag.pending = false;
+                drag.active = true;
+                const el = document.querySelector(`[data-id="${drag.node.id}"]`);
+                if (el) {
+                    drag.ghost = el.cloneNode(true);
+                    drag.ghost.setAttribute("class", "ghost-node");
+                    dragLayer.appendChild(drag.ghost);
+                } else {
+                    drag.active = false;
+                    drag.node = null;
+                }
+            }
+        }
+
+        if (drag.active && drag.ghost) {
+            const dx = (e.clientX - drag.startX) / scale, dy = (e.clientY - drag.startY) / scale;
+            drag.ghost.setAttribute("transform", `translate(${drag.node.x + dx}, ${drag.node.y + dy})`);
+
+            let closestNode = null, minDist = 80;
+            const px = drag.node.x + dx, py = drag.node.y + dy;
+            function checkDist(n) {
+                if (n.id === drag.node.id || isDescendant(drag.node, n)) return;
+                const dist = Math.hypot(n.x - px, n.y - py);
+                if (dist < minDist) { minDist = dist; closestNode = n; }
+                n.children.forEach(checkDist);
+            }
+            roots.forEach(checkDist);
+
+            if (drag.targetId !== (closestNode ? closestNode.id : null)) {
+                if(drag.targetId) { const el = document.querySelector(`[data-id="${drag.targetId}"]`); if(el) el.classList.remove('drop-target'); }
+                drag.targetId = closestNode ? closestNode.id : null;
+                if(drag.targetId) { const el = document.querySelector(`[data-id="${drag.targetId}"]`); if(el) el.classList.add('drop-target'); }
+            }
+        } 
+        else if (isPanning) {
+            const nx = e.clientX - panStartX, ny = e.clientY - panStartY;
+            if(!isNaN(nx) && !isNaN(ny)) { translateX = nx; translateY = ny; updateTransform(); }
+        }
+    });
+
+    window.addEventListener('mouseup', e => {
+        if (drag.pending && !drag.active) {
+            drag.pending = false;
+            drag.node = null;
+            drag.targetId = null;
+        }
+
+        if (drag.active) {
+            const dx = (e.clientX - drag.startX) / scale, dy = (e.clientY - drag.startY) / scale;
+            const targetId = drag.targetId;
+
+            drag.active = false; 
+            dragLayer.innerHTML = ''; 
+
+            pushHistory();   // ★ 拖拽应用前记录
+
+            if (targetId) {
+                const target = findNodeById(targetId);
+                if (target && !isDescendant(drag.node, target)) {
+                    removeFromParent(drag.node); 
+                    drag.node.parent = target; 
+                    drag.node.depth = target.depth + 1;
+                    drag.node.fx = null; drag.node.fy = null;
+                    target.children.push(drag.node); 
+                    updateDepth(drag.node);
+                }
+                const tEl = document.querySelector(`[data-id="${targetId}"]`);
+                if(tEl) tEl.classList.remove('drop-target');
+                drag.targetId = null;
+                refreshView(); markDirty();
+            } else {
+                removeFromParent(drag.node); 
+                drag.node.parent = null; 
+                drag.node.depth = 0;
+                drag.node.fx = drag.node.x + dx; 
+                drag.node.fy = drag.node.y + dy;
+                roots.push(drag.node); 
+                updateDepth(drag.node);
+                refreshView(); markDirty();
+            }
+            drag.node = null;
+        }
+        isPanning = false;
+    });
+
+    function isDescendant(parent, child) { if (!child) return false; if (child.parent === parent) return true; return isDescendant(parent, child.parent); }
+    function removeFromParent(node) { if (node.parent) node.parent.children = node.parent.children.filter(c => c.id !== node.id); else roots = roots.filter(r => r.id !== node.id); }
+    function updateDepth(node) { node.children.forEach(c => { c.depth = node.depth + 1; updateDepth(c); }); }
+
+    // === 7. 视图与UI设置 ===
+    canvas.addEventListener('dblclick', e => {
+        if(e.target !== canvas) return;
+        pushHistory();   // ★ 新增独立节点前记录
+        const pt = canvas.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+        const svgP = pt.matrixTransform(viewport.getScreenCTM().inverse());
+        const newNode = { id: 'n'+(nextId++), text: "独立主题", children: [], depth: 0, parent: null, fx: svgP.x, fy: svgP.y, customColor: null };
+        roots.push(newNode); refreshView(); markDirty(); selectedNodeId = newNode.id; render();
+        setTimeout(() => { const n = findNodeById(newNode.id); if(n) startEdit(n, true); }, 20);
+    });
+
+    canvas.addEventListener('wheel', e => {
+        if(nodeEditor.style.display === 'block') finishEdit();
+        e.preventDefault(); 
+        const newScale = scale * (e.deltaY > 0 ? 0.9 : 1.1);
+        if(!isNaN(newScale) && newScale > 0.1 && newScale < 5) { scale = newScale; updateTransform(); }
+    });
+
+    function updateTransform() {
+        if(isNaN(translateX) || isNaN(translateY) || isNaN(scale)) return;
+        viewport.setAttribute("transform", `translate(${translateX}, ${translateY}) scale(${scale})`);
+    }
+    
+    function resetView() { 
+        scale = 1; 
+        const viewerW = viewerContainer.clientWidth || (window.innerWidth - 300);
+        const viewerH = viewerContainer.clientHeight || window.innerHeight;
+
+        if (roots.length > 0) {
+            const root = roots[0]; 
+            if (layoutMode === 'vertical') {
+                translateX = viewerW / 2 - (root.x + root.rectW / 2); 
+                translateY = 80; 
+            } else if (layoutMode === 'ortho') {
+                translateX = 80; 
+                translateY = 80; 
+            } else {
+                translateX = 150; 
+                translateY = viewerH / 2 - root.y; 
+            }
+        } else {
+            if (layoutMode === 'vertical') { translateX = viewerW / 2; translateY = 100; }
+            else if (layoutMode === 'ortho') { translateX = 80; translateY = 80; }
+            else { translateX = 200; translateY = viewerH / 2; }
+        }
+        updateTransform(); 
+    }
+
+    function toggleMode() {
+        isDarkMode = !isDarkMode;
+        document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+        document.getElementById('mode-toggle').innerText = isDarkMode ? '🌙' : '☀️';
+        updateColors(); render(); 
+    }
+
+    function changeStyle() {
+        const val = styleSelector.value;
+        const parts = val.split('-');
+        layoutMode = parts[0]; colorMode = parts[1];  
+        updateColors(); computeLayout(); render(); resetView(); 
+    }
+
+    function applyLayoutFromMeta(layout, color) {
+        layoutMode = layout;
+        colorMode = color;
+        styleSelector.value = `${layout}-${color}`;
+    }
+
+    function newMap() {
+        if (!confirm("确定要清空当前内容新建导图吗？")) return;
+        source.value = "中心主题\n    子主题 1\n    子主题 2";
+        currentFileHandle = null;
+        currentFileName = '';
+        isDirty = false;
+        selectedNodeId = null;
+        updateFileTitle();
+        loadFromText(); 
+        resetView();
+        initHistory();   // ★ 新建后重置历史
+    }
+
+    // === 8. 文件操作 ===
+    function buildFileContent() {
+        return `<!-- quickmind-layout: ${layoutMode}-${colorMode} -->\n` + source.value;
+    }
+
+    function extractMeta(text) {
+        const match = text.match(LAYOUT_META_RE);
+        if (match) {
+            return { layout: match[1], color: match[2], content: text.slice(match[0].length) };
+        }
+        return { layout: null, color: null, content: text };
+    }
+
+    async function openFileDialog() {
+        if (hasFileSystemAccess) {
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    multiple: false,
+                    types: [{
+                        description: 'Markdown / 文本文件',
+                        accept: { 'text/markdown': ['.md', '.txt'] }
+                    }]
+                });
+                const file = await handle.getFile();
+                const rawText = await file.text();
+                const meta = extractMeta(rawText);
+                
+                source.value = meta.content;
+                currentFileHandle = handle;
+                currentFileName = file.name;
+                isDirty = false;
+                selectedNodeId = null;
+                
+                if (meta.layout && meta.color) {
+                    applyLayoutFromMeta(meta.layout, meta.color);
+                }
+                
+                updateFileTitle();
+                loadFromText();
+                resetView();
+                initHistory();   // ★ 打开后重置历史
+            } catch (err) {
+                if (err && err.name !== 'AbortError') {
+                    console.error(err);
+                    alert('打开失败：' + err.message);
+                }
+            }
+        } else {
+            document.getElementById('file-upload').click();
+        }
+    }
+
+    function openFileFallback(e) {
+        const file = e.target.files[0]; if(!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => { 
+            const meta = extractMeta(evt.target.result);
+            source.value = meta.content; 
+            currentFileHandle = null;
+            currentFileName = file.name;
+            isDirty = false;
+            selectedNodeId = null;
+            if (meta.layout && meta.color) {
+                applyLayoutFromMeta(meta.layout, meta.color);
+            }
+            updateFileTitle();
+            loadFromText(); 
+            resetView(); 
+            initHistory();   // ★ 打开后重置历史
+        };
+        reader.readAsText(file, "UTF-8"); 
+        e.target.value = '';
+    }
+
+    async function saveFile() {
+        if (!currentFileHandle) {
+            return saveAsFile();
+        }
+        try {
+            const writable = await currentFileHandle.createWritable();
+            await writable.write(buildFileContent());
+            await writable.close();
+            isDirty = false;
+            updateFileTitle('saved');
+        } catch (err) {
+            console.error(err);
+            alert('保存失败：' + err.message);
+        }
+    }
+
+    async function saveAsFile() {
+        if (hasFileSystemAccess) {
+            try {
+                const suggested = currentFileName || 'QuickMind导图.md';
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: suggested,
+                    types: [{
+                        description: 'Markdown 文件',
+                        accept: { 'text/markdown': ['.md'] }
+                    }]
+                });
+                const writable = await handle.createWritable();
+                await writable.write(buildFileContent());
+                await writable.close();
+                currentFileHandle = handle;
+                currentFileName = handle.name;
+                isDirty = false;
+                updateFileTitle('saved');
+            } catch (err) {
+                if (err && err.name !== 'AbortError') {
+                    console.error(err);
+                    alert('保存失败：' + err.message);
+                }
+            }
+        } else {
+            let fileName = prompt("请输入要保存的文件名", currentFileName || "QuickMind导图");
+            if (fileName === null) return; 
+            if (fileName.trim() === '') fileName = "QuickMind导图";
+            if (!fileName.endsWith('.md')) fileName += '.md';
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([buildFileContent()], {type: "text/markdown;charset=utf-8"}));
+            a.download = fileName; 
+            a.click();
+            currentFileName = fileName;
+            isDirty = false;
+            updateFileTitle('saved');
+        }
+    }
+
+    // ★ 全局快捷键：Ctrl+S 保存 / Ctrl+Z 撤销
+    window.addEventListener('keydown', (e) => {
+        // Ctrl/Cmd + S 保存
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (nodeEditor.style.display === 'block') finishEdit();
+            saveFile();
+            return;
+        }
+        // Ctrl/Cmd + Shift + S 另存为
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 's' || e.key === 'S')) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (nodeEditor.style.display === 'block') finishEdit();
+            saveAsFile();
+            return;
+        }
+        // Ctrl/Cmd + Z 撤销（焦点在文本框里时让浏览器原生撤销）
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 'z' || e.key === 'Z')) {
+            const el = document.activeElement;
+            if (el && (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT' || el.isContentEditable)) {
+                return;
+            }
+            e.preventDefault();
+            e.stopPropagation();
+            undo();
+        }
+    });
+
+    function exportSVG() {
+        const clone = canvas.cloneNode(true);
+        const sel = clone.querySelector('.selected'); if(sel) sel.classList.remove('selected');
+        
+        const bbox = viewport.getBBox();
+        const padding = 60; 
+        const width = bbox.width + padding * 2;
+        const height = bbox.height + padding * 2;
+        const viewBox = `${bbox.x - padding} ${bbox.y - padding} ${width} ${height}`;
+        
+        clone.setAttribute("viewBox", viewBox);
+        clone.setAttribute("width", width);
+        clone.setAttribute("height", height);
+        clone.removeAttribute("tabindex");
+
+        const viewportClone = clone.querySelector('#viewport');
+        viewportClone.removeAttribute("transform");
+
+        const cs = getComputedStyle(document.documentElement);
+        const bgCol = cs.getPropertyValue('--bg').trim();
+        const bgRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        bgRect.setAttribute("x", bbox.x - padding);
+        bgRect.setAttribute("y", bbox.y - padding);
+        bgRect.setAttribute("width", width);
+        bgRect.setAttribute("height", height);
+        bgRect.setAttribute("fill", bgCol);
+        clone.insertBefore(bgRect, clone.firstChild);
+
+        const svgData = new XMLSerializer().serializeToString(clone);
+        const blob = new Blob([svgData], {type: "image/svg+xml;charset=utf-8"});
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = (currentFileName ? currentFileName.replace(/\.[^.]+$/, '') : 'quickmind') + '.svg'; 
+        a.click();
+    }
+
+    loadFromText(); 
+    updateFileTitle();
+    resetView();
+    initHistory();   // ★ 页面加载时初始化历史
+</script>
+<script>
+if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { scope: './' }); }
+</script>
+</body>
+</html>
