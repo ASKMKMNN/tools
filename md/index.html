@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Markdown Editor V37 - FontFinal</title>
+    <title>Markdown 编辑器</title>
     <style>
         .btn-new { background: #6b8e8e; }
         .btn-save { background: #6c8ebf; }
@@ -105,6 +105,9 @@
     <button class="btn-common" onclick="saveAsFile()">另存为</button>
     <button class="btn-export" onclick="window.print()">导出PDF</button>
     <button class="btn-common" onclick="document.getElementById('imageInput').click()">插图</button>
+    <button class="btn-common" onclick="exportBackup()" title="把历史与收藏导出为 JSON 备份">导出备份</button>
+    <button class="btn-common" onclick="document.getElementById('backupInput').click()" title="导入 JSON 备份（与现有数据合并）">导入备份</button>
+    <input type="file" id="backupInput" accept=".json,application/json" style="display:none" onchange="if(this.files[0]) importBackupFile(this.files[0]); this.value='';">
     <input type="file" id="imageInput" accept="image/*" style="display:none" onchange="insertImage(this)">
     <div style="width:1px; height:18px; background:#5f6368; margin:0 4px;"></div>
     <div class="theme-switch-wrapper">
@@ -357,6 +360,60 @@ window.onload = async () => {
     let h = await idb.get("workspace_root"); if (h) wsBtnText.textContent = "确认工作区授权";
     showHome();
 };
+</script>
+<script>
+function mergeIntoDB(data) {
+    if (!data || !Array.isArray(data.history)) throw new Error('不是有效的备份文件');
+    let db = getDB(); let added = 0, updated = 0;
+    data.history.forEach(h => {
+        if (!h || typeof h.name !== 'string') return;
+        const cur = db.history.find(i => i.name === h.name);
+        if (!cur) { db.history.push(h); added++; }
+        else if (h.time && cur.time && h.time > cur.time) { Object.assign(cur, h); updated++; }
+    });
+    (data.favorites || []).forEach(f => { if (!db.favorites.includes(f)) db.favorites.push(f); });
+    saveDB(db); return { added, updated };
+}
+function exportBackup() {
+    const raw = localStorage.getItem(DB_NAME) || '{"history":[], "favorites":[]}';
+    const d = new Date(), pad = n => String(n).padStart(2, '0');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }));
+    a.download = `MD_Config_Backup_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function importBackupFile(file) {
+    try {
+        const r = mergeIntoDB(JSON.parse(await file.text()));
+        alert(`导入完成：新增 ${r.added} 篇，更新 ${r.updated} 篇（已有数据保留）`);
+        showHome();
+    } catch (e) { alert('导入失败：' + e.message); }
+}
+async function openMdFile(file, handle) {
+    const t = await file.text();
+    currentHandle = handle || null;
+    smartLoad(t); fileNameDisplay.textContent = file.name; homeView.style.display = 'none'; isDiskSync = !!handle; handleInput();
+}
+async function routeFile(file, handle) {
+    if (/\.json$/i.test(file.name)) return importBackupFile(file);
+    if (/\.(md|markdown|txt)$/i.test(file.name) || file.type.startsWith('text/')) return openMdFile(file, handle);
+    alert('不支持的文件类型：' + file.name);
+}
+document.addEventListener('dragover', e => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) e.preventDefault(); });
+document.addEventListener('drop', async e => {
+    if (!e.dataTransfer || !e.dataTransfer.files.length) return;
+    e.preventDefault();
+    const item = e.dataTransfer.items && e.dataTransfer.items[0];
+    let handle = null;
+    try { if (item && item.getAsFileSystemHandle) { const h = await item.getAsFileSystemHandle(); if (h && h.kind === 'file') handle = h; } } catch (_) {}
+    routeFile(e.dataTransfer.files[0], handle);
+});
+if ('launchQueue' in window) {
+    launchQueue.setConsumer(async params => {
+        if (!params.files || !params.files.length) return;
+        const h = params.files[0]; routeFile(await h.getFile(), h);
+    });
+}
 </script>
 <script>
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { scope: './' }); }

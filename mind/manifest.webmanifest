@@ -35,5 +35,21 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "text/markdown": [
+          ".md"
+        ],
+        "text/plain": [
+          ".txt"
+        ]
+      }
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
 }

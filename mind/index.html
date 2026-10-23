@@ -2,7 +2,7 @@
 <html lang="zh-CN" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <title>QuickMind 7.0 - App Edition</title>
+    <title>QuickMind 思维导图</title>
     <style>
         :root {
             color-scheme: light; 
@@ -1362,6 +1362,25 @@
     updateFileTitle();
     resetView();
     initHistory();   // ★ 页面加载时初始化历史
+</script>
+<script>
+window.addEventListener('beforeunload', e => { if (isDirty) { e.preventDefault(); e.returnValue = ''; } });
+if ('launchQueue' in window) {
+    launchQueue.setConsumer(async params => {
+        if (!params.files || !params.files.length) return;
+        if (isDirty && !confirm('当前有未保存的修改，确定打开新文件吗？')) return;
+        const handle = params.files[0];
+        try {
+            const file = await handle.getFile();
+            const meta = extractMeta(await file.text());
+            source.value = meta.content;
+            currentFileHandle = handle; currentFileName = file.name;
+            isDirty = false; selectedNodeId = null;
+            if (meta.layout && meta.color) applyLayoutFromMeta(meta.layout, meta.color);
+            updateFileTitle(); loadFromText(); resetView(); initHistory();
+        } catch (err) { alert('打开失败：' + err.message); }
+    });
+}
 </script>
 <script>
 if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js', { scope: './' }); }
