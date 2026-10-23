@@ -22,12 +22,12 @@
   },
   "stats": {
     "scenario": 37,
-    "ok": 114,
-    "weak": 30,
+    "ok": 113,
+    "weak": 29,
     "bad": 19,
     "none": 42,
-    "total_nodes": 242,
-    "apps": 163
+    "total_nodes": 240,
+    "apps": 161
   },
   "tree": {
     "id": "root",
@@ -718,16 +718,6 @@
                     "status": "ok",
                     "platforms": [
                       "全平台"
-                    ],
-                    "note": "",
-                    "children": []
-                  },
-                  {
-                    "id": "n250",
-                    "title": "绅士漫画",
-                    "status": "ok",
-                    "platforms": [
-                      "安卓"
                     ],
                     "note": "",
                     "children": []
@@ -1910,16 +1900,6 @@
               {
                 "id": "n279",
                 "title": "ScreenStream",
-                "status": "weak",
-                "platforms": [
-                  "安卓"
-                ],
-                "note": "",
-                "children": []
-              },
-              {
-                "id": "n280",
-                "title": "灵梦御所",
                 "status": "weak",
                 "platforms": [
                   "安卓"
