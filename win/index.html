@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Windows 工具</title>
+    <link rel="icon" href="../icon.svg" type="image/svg+xml">
+    <link rel="icon" href="../icon-192.png" sizes="192x192">
+    <link rel="apple-touch-icon" href="../apple-touch-icon.png">
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #f4f5f7;
+            --text: #1c1c1f;
+            --muted: #71717a;
+            --card: #ffffff;
+            --line: rgba(0, 0, 0, 0.06);
+            --ok: #16a34a;
+            --win: #0078d4;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #141416;
+                --text: #f4f5f7;
+                --muted: #a1a1aa;
+                --card: #1e1e22;
+                --line: rgba(255, 255, 255, 0.06);
+                --ok: #4ade80;
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 560px;
+            margin: 0 auto;
+            padding: 40px 20px 72px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back:hover { color: var(--text); }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.4px;
+        }
+
+        .lead {
+            margin: 0 0 28px;
+            color: var(--muted);
+            line-height: 1.65;
+            font-size: 15px;
+        }
+
+        .list { display: grid; gap: 12px; }
+
+        article {
+            padding: 16px 16px 14px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+        }
+
+        article h2 {
+            margin: 0 0 6px;
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        article p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.55;
+        }
+
+        .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tag {
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: color-mix(in srgb, var(--muted) 14%, transparent);
+            color: var(--muted);
+        }
+
+        .tag.ready {
+            color: var(--ok);
+            background: color-mix(in srgb, var(--ok) 14%, transparent);
+        }
+
+        a.btn {
+            margin-left: auto;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            text-decoration: none;
+            color: #fff;
+            background: var(--win);
+        }
+
+        a.btn:hover { filter: brightness(1.08); }
+    </style>
+</head>
+<body>
+    <main>
+        <a class="back" href="../">← 返回小工具</a>
+        <h1>Windows 工具</h1>
+        <p class="lead">解压即用的脚本工具。详细使用备忘仍在 OneDrive「Grok Bot / Tool bo」对应文件夹；仓库里只放可公开的脚本和短说明。</p>
+        <div class="list">
+            <article>
+                <h2>录屏批量压缩</h2>
+                <p>Win+G 录屏批量居中裁成 16:9、压到 1080p、音量标准化。依赖本机 FFmpeg。</p>
+                <div class="meta">
+                    <span class="tag">.bat</span>
+                    <span class="tag ready">可用</span>
+                    <a class="btn" href="screen-compress/录屏批量压缩.zip" download="录屏批量压缩.zip">下载 zip</a>
+                </div>
+            </article>
+        </div>
+    </main>
+</body>
+</html>
