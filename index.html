@@ -90,12 +90,22 @@
             color: var(--muted);
             font-size: 13px;
         }
+
+        .section {
+            margin: 0 0 12px;
+            font-size: 13px;
+            color: var(--muted);
+            letter-spacing: 0.02em;
+        }
+
+        nav + .section { margin-top: 28px; }
     </style>
 </head>
 <body>
     <main>
         <h1>小工具</h1>
-        <p class="lead">几个可以单独安装的网页工具。请打开对应页面，再用浏览器的「安装」或「添加到主屏幕」。装好后断网也能打开。</p>
+        <p class="lead">几个可以单独安装的网页工具。请打开对应页面，再用浏览器的「安装」或「添加到主屏幕」。装好后断网也能打开。Windows 脚本在下方「桌面」，下载解压即用。</p>
+        <p class="section">网页</p>
         <nav>
             <a href="freq/">
                 <img src="freq/icon-192.png" width="64" height="64" alt="" />
@@ -137,6 +147,16 @@
                 <span>
                     <strong>大连水果月历</strong>
                     <small>按月对照大连当季水果</small>
+                </span>
+            </a>
+        </nav>
+        <p class="section">桌面</p>
+        <nav>
+            <a href="win/">
+                <img src="win/icon.png" width="64" height="64" alt="" />
+                <span>
+                    <strong>Windows 工具</strong>
+                    <small>.bat / .vbs / .hta · 下载解压即用</small>
                 </span>
             </a>
         </nav>

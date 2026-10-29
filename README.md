@@ -1,6 +1,6 @@
 # 小工具
 
-几个可以单独安装的网页工具，放在 GitHub Pages 上。每个工具只缓存自己目录里的文件，安装之后互不影响，断网也能打开。
+几个可以单独安装的网页工具，放在 GitHub Pages 上。每个工具只缓存自己目录里的文件，安装之后互不影响，断网也能打开。Windows 脚本单独放在「桌面」分类，下载解压即用。
 
 ## 网址
 
@@ -11,8 +11,10 @@
 - QuickMind 思维导图：<https://askmkmnn.github.io/tools/mind/>
 - 好用 App 清单：<https://askmkmnn.github.io/tools/apps/>
 - 大连水果月历：<https://askmkmnn.github.io/tools/fruit/>
+- Windows 工具：<https://askmkmnn.github.io/tools/win/>
+  - 录屏批量压缩：<https://askmkmnn.github.io/tools/win/screen-compress/录屏批量压缩.zip>
 
-请先打开要安装的那个工具页面，再按下面的步骤操作。导航页本身不能安装。每个工具需要各装一次。
+请先打开要安装的那个网页工具页面，再按下面的步骤操作。导航页和 Windows 工具页本身不能安装。每个网页工具需要各装一次。Windows 脚本请到「Windows 工具」页面下载 zip，解压后按里面的短说明运行；完整个人备忘仍在 OneDrive。
 
 「好用 App 清单」页面上的「编辑」会打开 GitHub 网页编辑 [`apps/data.json`](https://github.com/ASKMKMNN/tools/edit/main/apps/data.json)（需要登录 GitHub）。公开的 Pages 页面只能查看，不能在页面上直接改数据。
 
