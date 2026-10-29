@@ -325,6 +325,16 @@ async function saveFile() {
     } catch(e) {}
 }
 
+// Ctrl/Cmd+S 走应用内保存，避免触发浏览器“保存网页”
+window.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.repeat) return;
+        saveFile();
+    }
+});
+
 async function openFile() {
     try {
         const [h] = await window.showOpenFilePicker({types:[{description:'MD', accept:{'text/markdown':['.md']}}]}); currentHandle = h; const f = await h.getFile(); const t = await f.text();
