@@ -28,35 +28,35 @@
     <style>
         :root {
             color-scheme: light;
-            --bg: #f4f5f7;
-            --text: #1c1c1f;
-            --muted: #71717a;
-            --card: #ffffff;
+            --bg: #f6f4f1;
+            --text: #1d1b18;
+            --muted: #5f5f66;
+            --card: #fffdfa;
             --line: rgba(0, 0, 0, 0.06);
-            --soft: #eef0f3;
+            --soft: #eeece6;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
         }
 
         :root[data-theme="dark"] {
             color-scheme: dark;
-            --bg: #141416;
-            --text: #f4f5f7;
-            --muted: #a1a1aa;
-            --card: #1e1e22;
+            --bg: #1a1917;
+            --text: #f0ece5;
+            --muted: #a49f97;
+            --card: #24221f;
             --line: rgba(255, 255, 255, 0.06);
-            --soft: #27272a;
+            --soft: #302d29;
             --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
         }
 
         @media (prefers-color-scheme: dark) {
             :root:not([data-theme="light"]) {
                 color-scheme: dark;
-                --bg: #141416;
-                --text: #f4f5f7;
-                --muted: #a1a1aa;
-                --card: #1e1e22;
+                --bg: #1a1917;
+                --text: #f0ece5;
+                --muted: #a49f97;
+                --card: #24221f;
                 --line: rgba(255, 255, 255, 0.06);
-                --soft: #27272a;
+                --soft: #302d29;
                 --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
             }
         }
@@ -217,7 +217,7 @@
 
         .now {
             min-height: 13px;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 700;
             letter-spacing: 0.06em;
         }
@@ -446,6 +446,14 @@
             .month-btn.is-peak:hover,
             .fruit-row.peak:hover,
             .chip[aria-pressed="true"]:hover { border-color: var(--text); }
+        }
+    
+        /* 设计自查补丁：A7 横向溢出 / A2 焦点态 */
+        html, body { overflow-x: clip; }
+        a:focus-visible, button:focus-visible, input:focus-visible,
+        textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
         }
     </style>
 </head>

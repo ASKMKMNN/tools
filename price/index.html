@@ -20,9 +20,9 @@
         :root {
             --primary-color: #111111; /* 核心高亮改为纯粹的深铬黑 */
             --bg-color: #f5f6f8;      /* 柔和的浅灰底色 */
-            --card-bg: #ffffff;
+            --card-bg: #fffdfa;
             --text-main: #222222;
-            --text-muted: #8a8a93;
+            --text-muted: #6b6b73;
             --border-color: rgba(0, 0, 0, 0.06);
             --input-bg: #f9fafb;
             
@@ -34,12 +34,12 @@
             
             --tip-bg: #eef0f3;         /* 灰调提示框 */
             --instruction-bg: #f9fafb;
-            --card-cheaper-bg: #ffffff;
+            --card-cheaper-bg: #fffdfa;
             --hr-color: rgba(0, 0, 0, 0.05);
         }
 
         [data-theme="dark"] {
-            --primary-color: #ffffff; /* 暗黑模式下高亮为纯白 */
+            --primary-color: #fffdfa; /* 暗黑模式下高亮为纯白 */
             --bg-color: #141416;      /* 极深的石墨灰底色 */
             --card-bg: #1e1e22;       /* 钛金灰卡片 */
             --text-main: #e4e4e7;
@@ -176,7 +176,7 @@
         /* 标签也改为质感中性色 */
         .card.cheaper h2::after {
             content: "更划算";
-            font-size: 11px;
+            font-size: 12px;
             background: var(--text-main);
             color: var(--card-bg);
             padding: 2px 8px;
@@ -218,7 +218,7 @@
         }
 
         .input-group .hint {
-            font-size: 11px;
+            font-size: 12px;
             color: var(--text-muted);
             margin-top: 6px;
             padding-left: 2px;
@@ -273,6 +273,14 @@
             left: 2px;
             color: var(--text-main);
             font-weight: bold;
+        }
+    
+        /* 设计自查补丁：A7 横向溢出 / A2 焦点态 */
+        html, body { overflow-x: clip; }
+        a:focus-visible, button:focus-visible, input:focus-visible,
+        textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
         }
     </style>
 </head>

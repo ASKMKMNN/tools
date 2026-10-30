@@ -6,23 +6,23 @@
     <style>
         :root {
             color-scheme: light; 
-            --bg: #f4f5f7; --panel: #ffffff; --panel-border: #e2e2e6;
-            --text: #1d1d1f; --text-muted: #86868b;
+            --bg: #f4f5f7; --panel: #fffdfa; --panel-border: #e2e2e6;
+            --text: #1d1d1f; --text-muted: #6a6a70;
             --border: #d2d2d7; --accent: #0071e3; --shadow: 0 2px 10px rgba(0,0,0,0.05);
-            --node-bg: #ffffff; --line: #c6c6c8;
+            --node-bg: #fffdfa; --line: #c6c6c8;
             --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Arial, sans-serif;
-            --root-text: #ffffff;
-            --gray-root-bg: #1d1d1f; --gray-root-text: #ffffff; --gray-branch: #86868b;
+            --root-text: #fffdfa;
+            --gray-root-bg: #1d1d1f; --gray-root-text: #fffdfa; --gray-branch: #86868b;
             --btn-bg: #f2f2f7; --btn-hover: #e5e5ea;
             --status-saved: #34c759; --status-dirty: #ff9500;
         }
         [data-theme="dark"] {
             color-scheme: dark; 
-            --bg: #000000; --panel: #1e1e1e; --panel-border: #2c2c2e;
+            --bg: #141310; --panel: #1e1e1e; --panel-border: #2c2c2e;
             --text: #f5f5f7; --text-muted: #98989d;
             --border: #38383a; --accent: #0a84ff; --shadow: 0 4px 14px rgba(0,0,0,0.5);
-            --node-bg: #2c2c2e; --line: #48484a; --root-text: #ffffff;
-            --gray-root-bg: #e5e5ea; --gray-root-text: #000000; --gray-branch: #636366;
+            --node-bg: #2c2c2e; --line: #48484a; --root-text: #fffdfa;
+            --gray-root-bg: #e5e5ea; --gray-root-text: #141310; --gray-branch: #636366;
             --btn-bg: #2c2c2e; --btn-hover: #3a3a3c;
             --status-saved: #30d158; --status-dirty: #ff9f0a;
         }
@@ -45,7 +45,7 @@
         
         .editor-container { flex: 1; display: flex; flex-direction: column; background: var(--bg); }
         .editor-header { 
-            padding: 8px 16px; font-size: 11px; font-weight: 500; color: var(--text-muted); 
+            padding: 8px 16px; font-size: 12px; font-weight: 500; color: var(--text-muted); 
             text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--panel-border); 
             background: var(--panel); white-space: nowrap; overflow: hidden; 
             display: flex; align-items: center; gap: 8px;
@@ -129,7 +129,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .color-picker-title {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-muted);
             margin-bottom: 10px;
@@ -165,11 +165,19 @@
             justify-content: flex-end;
         }
         .color-picker-footer .btn {
-            font-size: 11px;
+            font-size: 12px;
             padding: 5px 10px;
         }
 
         #file-upload { display: none; }
+    
+        /* 设计自查补丁：A7 横向溢出 / A2 焦点态 */
+        html, body { overflow-x: clip; }
+        a:focus-visible, button:focus-visible, input:focus-visible,
+        textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
     </style>
     <meta name="theme-color" content="#1c1c1e" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -238,7 +246,7 @@
     
     <div id="viewer">
         <textarea id="node-editor" spellcheck="false"></textarea>
-        <svg id="canvas" tabindex="0" xmlns="http://www.w3.org/2000/svg">
+        <svg id="canvas" tabindex="0" role="application" aria-label="思维导图画布" xmlns="http://www.w3.org/2000/svg">
             <g id="viewport">
                 <g id="links-layer"></g>
                 <g id="nodes-layer"></g>

@@ -8,13 +8,13 @@
         .btn-save { background: #6c8ebf; }
         .btn-common { background: #70757a; }
         .btn-export { background: #8e6b8e; }
-        .btn-workspace { background: transparent; border: 1px solid #d93025; color: #d93025; padding: 4px 10px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+        .btn-workspace { background: transparent; border: 1px solid #d93025; color: #d93025; padding: 4px 10px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
         .btn-workspace.active { border-color: #555; color: #888; }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #d93025; display: inline-block; }
         .active .status-dot { background: #34a853; box-shadow: 0 0 5px rgba(52, 168, 83, 0.4); }
         .btn-home { background: transparent; color: #9aa0a6; border: 1px solid #5f6368; display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; }
         
-        :root { --header-bg: #3c4043; --editor-bg: #fafafa; --preview-bg: #ffffff; --text-color: #202124; --border-color: #e0e0e0; --scrollbar-thumb: #ccc; }
+        :root { --header-bg: #3c4043; --editor-bg: #fafafa; --preview-bg: #fffdfa; --text-color: #202124; --border-color: #e0e0e0; --scrollbar-thumb: #ccc; }
         body.dark-mode { --header-bg: #1a1a1a; --editor-bg: #2d2d2d; --preview-bg: #1e1e1e; --text-color: #e8eaed; --border-color: #444; --scrollbar-thumb: #555; }
         
         /* 全局字体强制为 Meiryo 和 微软雅黑 */
@@ -32,7 +32,7 @@
         
         header { background: var(--header-bg); color: #e8eaed; padding: 6px 15px; display: flex; gap: 8px; align-items: center; z-index: 100; box-shadow: 0 1px 3px rgba(0,0,0,0.2); height: 40px; box-sizing: border-box; }
         header button, .theme-switch-wrapper, .file-tag, .status-bar { height: 28px; display: flex; align-items: center; }
-        button { cursor: pointer; border-radius: 4px; font-size: 11px; font-weight: 500; transition: 0.2s; border: none; padding: 0 10px; color: white; white-space: nowrap; }
+        button { cursor: pointer; border-radius: 4px; font-size: 12px; font-weight: 500; transition: 0.2s; border: none; padding: 0 10px; color: #fffdfa; white-space: nowrap; }
         button:hover { opacity: 0.8; }
         
         main { display: flex; flex: 1; overflow: hidden; position: relative; }
@@ -60,14 +60,14 @@
             header, #editor, .btn-home, .status-bar { display: none !important; }
             main { display: block; overflow: visible; }
             #preview-container { width: 100%; height: auto; padding: 0; overflow: visible; position: absolute; top: 0; left: 0; }
-            .markdown-body { color: #000 !important; background: #fff !important; font-family: 'Meiryo', 'Microsoft YaHei', sans-serif; font-size: 12pt; }
-            body { background: #fff !important; }
+            .markdown-body { color: #141310 !important; background: #fffdfa !important; font-family: 'Meiryo', 'Microsoft YaHei', sans-serif; font-size: 12pt; }
+            body { background: #fffdfa !important; }
         }
         
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
-        .status-bar { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 11px; color: #9aa0a6; }
-        .file-tag { background: #4f5357; padding: 0 12px; border-radius: 14px; color: #fff; display: flex; align-items: center; gap: 8px; font-size: 11px; }
+        .status-bar { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 12px; color: #9aa0a6; }
+        .file-tag { background: #4f5357; padding: 0 12px; border-radius: 14px; color: #fffdfa; display: flex; align-items: center; gap: 8px; font-size: 12px; }
         .btn-star { background: transparent; border: none; color: #9aa0a6; cursor: pointer; font-size: 16px; padding: 0; line-height: 1; }
         .btn-star.active { color: #fadb14; }
         
@@ -75,19 +75,29 @@
         .theme-switch { position: relative; display: inline-block; width: 44px; height: 22px; }
         .theme-switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #5f6368; transition: .4s; border-radius: 22px; }
-        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: #fffdfa; transition: .4s; border-radius: 50%; }
         input:checked + .slider { background-color: #34a853; }
         input:checked + .slider:before { transform: translateX(22px); }
         
         #home-view { position: absolute; top:0; left:0; width:100%; height:100%; background: var(--preview-bg); z-index: 60; display: none; flex-direction: column; align-items: center; padding-top: 40px; overflow-y: auto; }
         .home-section { width: 100%; max-width: 650px; margin-bottom: 30px; padding: 0 20px; box-sizing: border-box; }
-        .section-title { font-size: 11px; text-transform: uppercase; color: #888; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; }
+        .section-title { font-size: 12px; text-transform: uppercase; color: #888; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 15px; letter-spacing: 1px; display: flex; align-items: center; justify-content: space-between; }
         .history-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; background: var(--editor-bg); }
         .history-item:hover { border-color: #6c8ebf; transform: translateY(-1px); }
         .history-item .name-box { display: flex; align-items: center; gap: 10px; }
         .history-item .name { font-weight: 500; font-size: 14px; color: var(--text-color); }
-        .history-item .time { font-size: 11px; color: #777; }
+        .history-item .time { font-size: 12px; color: #777; }
         .icon-svg { width: 14px; height: 14px; fill: currentColor; }
+    
+        /* 设计自查补丁：A7 横向溢出 / A2 焦点态 */
+        html, body { overflow-x: clip; }
+        a:focus-visible, button:focus-visible, input:focus-visible,
+        textarea:focus-visible, select:focus-visible, [tabindex]:focus-visible {
+            outline: 2px solid currentColor;
+            outline-offset: 2px;
+        }
+
+        header button:focus-visible { outline-color: #ffffff14; box-shadow: 0 0 0 2px #fffdfa; }
     </style>
     <meta name="theme-color" content="#24292e" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -120,24 +130,24 @@
             <button class="btn-star" id="favStar" onclick="toggleFavorite()">★</button>
         </div>
         <div title="隐匿数据点" style="display:flex; align-items:center; gap:3px;">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 11H5V9h14v8z"/></svg>
+            <svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-1 11H5V9h14v8z"/></svg>
             <span id="dataZoneCount">0</span>
         </div>
     </div>
-    <button class="btn-home" onclick="showHome()" title="主页"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+    <button class="btn-home" onclick="showHome()" title="主页"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
 </header>
 <main>
     <div id="home-view">
         <div class="home-section">
             <div class="section-title">
-                <div style="display: flex; align-items: center; gap: 5px;"><svg class="icon-svg" style="color:#fadb14" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>收藏固定</span></div>
+                <div style="display: flex; align-items: center; gap: 5px;"><svg class="icon-svg" aria-hidden="true" style="color:#fadb14" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg><span>收藏固定</span></div>
                 <button class="btn-workspace" id="wsBtn" onclick="initWorkspace()"><span class="status-dot"></span> <span id="wsBtnText">确认 C 盘工作区授权</span></button>
             </div>
             <div id="favList"></div>
         </div>
         <div class="home-section">
             <div class="section-title">
-                <div style="display: flex; align-items: center; gap: 5px;"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg><span>最近编辑</span></div>
+                <div style="display: flex; align-items: center; gap: 5px;"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg><span>最近编辑</span></div>
             </div>
             <div id="recentList"></div>
         </div>
@@ -302,12 +312,12 @@ function smartLoad(text) {
 function showHome() {
     homeView.style.display = 'flex';
     const db = getDB();
-    document.getElementById('favList').innerHTML = db.history.filter(i => db.favorites.includes(i.name)).map(i => renderItem(i)).join('') || '<div style="font-size:11px;color:#888;text-align:center">暂无收藏</div>';
-    document.getElementById('recentList').innerHTML = db.history.map(i => renderItem(i)).join('') || '<div style="font-size:11px;color:#888;text-align:center">暂无记录</div>';
+    document.getElementById('favList').innerHTML = db.history.filter(i => db.favorites.includes(i.name)).map(i => renderItem(i)).join('') || '<div style="font-size:12px;color:#888;text-align:center">暂无收藏</div>';
+    document.getElementById('recentList').innerHTML = db.history.map(i => renderItem(i)).join('') || '<div style="font-size:12px;color:#888;text-align:center">暂无记录</div>';
 }
 
 function renderItem(item) {
-    return `<div class="history-item" onclick="loadItem('${item.name.replace(/'/g, "\\'")}')"><div class="name-box"><svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="name">${item.name}</span></div><span class="time">${item.time}</span></div>`;
+    return `<div class="history-item" onclick="loadItem('${item.name.replace(/'/g, "\\'")}')"><div class="name-box"><svg class="icon-svg" aria-hidden="true" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg><span class="name">${item.name}</span></div><span class="time">${item.time}</span></div>`;
 }
 
 function loadItem(name) {

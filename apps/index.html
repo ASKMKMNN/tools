@@ -4,8 +4,8 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <meta name="color-scheme" content="light dark" />
-<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
-<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="content="#161513"" media="(prefers-color-scheme: dark)" />
+<meta name="theme-color" content="content="#fffdfa"" media="(prefers-color-scheme: light)" />
 <title>好用 App 清单</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="icon" href="icon.svg" type="image/svg+xml" />
@@ -16,73 +16,73 @@
 <meta name="apple-mobile-web-app-title" content="App清单" />
 <style>
   :root {
-    --bg: #f1f5f9;
-    --bg2: #ffffff;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --line: #94a3b8;
-    --accent: #2563eb;
-    --accent-soft: #dbeafe;
-    --ok: #16a34a;
-    --weak: #22c55e;
-    --bad: #dc2626;
-    --scenario: #a855f7;
+    --bg: #f2f1ee;
+    --bg2: #fffdfa;
+    --text: #1b1a17;
+    --muted: #5f5c55;
+    --border: #e0ddd5;
+    --line: #a9a49a;
+    --accent: #1f6f5c;
+    --accent-soft: #dcebe4;
+    --ok: #2f6b46;
+    --weak: #5c8a6b;
+    --bad: #9c2d24;
+    --scenario: #7a4a5e;
     --shadow: 0 1px 2px rgba(15,23,42,.06);
     --radius: 10px;
     --safe-bottom: env(safe-area-inset-bottom, 0px);
-    --card-root: #1e293b;
-    --card-root-text: #f8fafc;
-    --card-cat: #eff6ff;
-    --card-cat-border: #93c5fd;
+    --card-root: #262421;
+    --card-root-text: #f4f1ea;
+    --card-cat: #eef4f0;
+    --card-cat-border: #a8c8b8;
     --gap-h: 28px;
     --gap-v: 12px;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #121212;
-      --bg2: #1a1a1a;
-      --text: #e8e8e8;
-      --muted: #9a9a9a;
-      --border: #2a2a2a;
-      --line: #555555;
-      --accent: #60a5fa;
-      --accent-soft: #243040;
+      --bg: #161513;
+      --bg2: #1e1d1a;
+      --text: #ece8e1;
+      --muted: #a49f97;
+      --border: #2e2c28;
+      --line: #4e4a44;
+      --accent: #5fb3a1;
+      --accent-soft: #1e2f2b;
       --shadow: 0 1px 2px rgba(0,0,0,.45);
-      --card-root: #2a2a2a;
-      --card-root-text: #f0f0f0;
-      --card-cat: #222222;
-      --card-cat-border: #3a3a3a;
+      --card-root: #2b2925;
+      --card-root-text: #f2efe8;
+      --card-cat: #22211e;
+      --card-cat-border: #3a3833;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #121212;
-    --bg2: #1a1a1a;
-    --text: #e8e8e8;
-    --muted: #9a9a9a;
-    --border: #2a2a2a;
-    --line: #555555;
-    --accent: #60a5fa;
-    --accent-soft: #243040;
+    --bg: #161513;
+    --bg2: #1e1d1a;
+    --text: #ece8e1;
+    --muted: #a49f97;
+    --border: #2e2c28;
+    --line: #4e4a44;
+    --accent: #5fb3a1;
+    --accent-soft: #1e2f2b;
     --shadow: 0 1px 2px rgba(0,0,0,.45);
-    --card-root: #2a2a2a;
-    --card-root-text: #f0f0f0;
-    --card-cat: #222222;
-    --card-cat-border: #3a3a3a;
+    --card-root: #2b2925;
+    --card-root-text: #f2efe8;
+    --card-cat: #22211e;
+    --card-cat-border: #3a3833;
   }
   :root[data-theme="light"] {
-    --bg: #f1f5f9;
-    --bg2: #ffffff;
-    --text: #0f172a;
-    --muted: #64748b;
-    --border: #e2e8f0;
-    --line: #94a3b8;
-    --accent: #2563eb;
-    --accent-soft: #dbeafe;
-    --card-root: #1e293b;
-    --card-root-text: #f8fafc;
-    --card-cat: #eff6ff;
-    --card-cat-border: #93c5fd;
+    --bg: #f2f1ee;
+    --bg2: #fffdfa;
+    --text: #1b1a17;
+    --muted: #5f5c55;
+    --border: #e0ddd5;
+    --line: #a9a49a;
+    --accent: #1f6f5c;
+    --accent-soft: #dcebe4;
+    --card-root: #262421;
+    --card-root-text: #f4f1ea;
+    --card-cat: #eef4f0;
+    --card-cat-border: #a8c8b8;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; height: 100%; }
@@ -212,6 +212,7 @@
     position: relative;
     overflow: hidden;
     background:
+      /* selfcheck:waive B6 · 地图视口用 16px 点阵示意可拖画布，非装饰光晕 */
       radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--line) 40%, transparent) 1px, transparent 0)
       0 0 / 16px 16px;
   }
@@ -361,7 +362,7 @@
     font-weight: 700;
   }
   .card.hit-card {
-    outline: 2px solid #eab308;
+    outline: 2px solid #c99a12;
     outline-offset: 1px;
   }
   .card.scenario-card {
@@ -402,12 +403,12 @@
     white-space: pre-wrap; word-break: break-word;
   }
   .note.show { display: block; }
-  .card.root-card .note { color: #cbd5e1; background: rgba(255,255,255,.08); }
+  .card.root-card .note { color: #cfc9bf; background: rgba(255,255,255,.08); }
   .badge-count {
     font-size: .62rem; color: var(--muted); font-weight: 500;
     margin-left: 2px;
   }
-  .hit { background: color-mix(in srgb, #eab308 35%, transparent); border-radius: 3px; padding: 0 2px; }
+  .hit { background: color-mix(in srgb, #c99a12 35%, transparent); border-radius: 3px; padding: 0 2px; }
   .empty {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     color: var(--muted); font-size: .95rem; pointer-events: none;
@@ -418,6 +419,14 @@
     .search { max-width: 140px; }
     h1 { font-size: .88rem; }
     .card { max-width: 170px; }
+  }
+
+  /* 设计自查补丁：A7 横向溢出 / A2 焦点态 */
+  html, body { overflow-x: clip; }
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
   }
 </style>
 </head>
