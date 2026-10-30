@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "大连水果月历",
+  "name": "大连·南京水果月历",
   "short_name": "水果月历",
-  "description": "按月对照大连当季水果，✨ 表示高峰",
+  "description": "按月对照大连、南京当季水果，✨ 表示高峰",
   "lang": "zh-CN",
   "dir": "ltr",
   "start_url": "./",

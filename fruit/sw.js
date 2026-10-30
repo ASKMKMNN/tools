@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'fruit-v1';
+const CACHE = 'fruit-v2';
 const ASSETS = [
   './',
   './index.html',

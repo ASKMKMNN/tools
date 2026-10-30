@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="按月份查看大连当季水果，并查找樱桃等水果哪几个月是高峰。" />
+    <meta name="description" content="按月查看大连和南京当季水果，并查找樱桃等水果哪几个月是高峰。" />
     <meta name="theme-color" content="#f4f5f7" id="themeColor" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="大连水果月历" />
+    <meta name="apple-mobile-web-app-title" content="水果月历" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png" />
     <link rel="apple-touch-icon" href="icon-192.png" />
-    <title>大连水果月历</title>
+    <title>大连·南京水果月历</title>
     <script>
         try {
             var savedTheme = localStorage.getItem("fruit-theme");
@@ -81,8 +81,37 @@
 
         .toolbar {
             display: flex;
-            justify-content: flex-end;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
             margin-bottom: 8px;
+        }
+
+        .city-switch {
+            display: inline-flex;
+            gap: 2px;
+            padding: 3px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            background: var(--card);
+            box-shadow: var(--shadow);
+        }
+
+        .city-switch button {
+            border: 0;
+            border-radius: 999px;
+            padding: 6px 13px;
+            background: transparent;
+            color: var(--muted);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .city-switch button[aria-pressed="true"] {
+            background: var(--text);
+            color: var(--bg);
         }
 
         .theme-toggle {
@@ -99,14 +128,6 @@
             font-weight: 600;
             cursor: pointer;
             box-shadow: var(--shadow);
-        }
-
-        .kicker {
-            margin: 0 0 6px;
-            color: var(--muted);
-            font-size: 13px;
-            font-weight: 600;
-            letter-spacing: 0.08em;
         }
 
         h1 {
@@ -460,14 +481,17 @@
 <body>
     <main>
         <div class="toolbar">
+            <div class="city-switch" id="citySwitch" role="group" aria-label="城市">
+                <button type="button" data-city="dalian" aria-pressed="true">大连</button>
+                <button type="button" data-city="nanjing" aria-pressed="false">南京</button>
+            </div>
             <button id="themeToggle" class="theme-toggle" type="button">
                 <span id="themeIcon" aria-hidden="true">🌓</span>
                 <span id="themeText">自动模式</span>
             </button>
         </div>
-        <p class="kicker" id="location">大连</p>
-        <h1>大连水果月历</h1>
-        <p class="lead" id="intro">第一年记录大连当季好吃的水果，第二年按月对照，知道什么时候能吃到什么（例如樱桃）。✨ 表示当月高峰/特别推荐。</p>
+        <h1 id="pageTitle">水果月历</h1>
+        <p class="lead" id="intro">按月对照两座城市当季好吃的水果，✨ 表示当月高峰或特别推荐。</p>
         <div class="modes" role="tablist" aria-label="查看方式">
             <button id="tab-month" type="button" role="tab" aria-controls="monthView" aria-selected="true">按月查看</button>
             <button id="tab-fruit" type="button" role="tab" aria-controls="fruitView" aria-selected="false" tabindex="-1">按水果查找</button>
@@ -493,8 +517,11 @@
     <script>
         const MONTHS = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
         const THEME_KEY = "fruit-theme";
+        const CITY_KEY = "fruit-city";
 
         const state = {
+            cities: [],
+            cityId: null,
             data: null,
             fruits: new Map(),
             mode: "month",
@@ -516,6 +543,15 @@
         const clearSearch = document.getElementById("clearSearch");
         const loadStatus = document.getElementById("loadStatus");
         const modes = document.querySelector(".modes");
+        const citySwitch = document.getElementById("citySwitch");
+        const pageTitle = document.getElementById("pageTitle");
+        const intro = document.getElementById("intro");
+
+        citySwitch.addEventListener("click", (event) => {
+            const button = event.target.closest("button[data-city]");
+            if (!button) return;
+            selectCity(button.dataset.city);
+        });
 
         function el(tag, attrs, children) {
             const node = document.createElement(tag);
@@ -542,25 +578,43 @@
             return items.slice(0, -1).join("、") + "和" + items[items.length - 1];
         }
 
-        function normalize(json) {
-            if (!json || !Array.isArray(json.months) || json.months.length !== 12) {
+        function normalizeMonths(months) {
+            if (!Array.isArray(months) || months.length !== 12) {
                 throw new Error("月份数据不完整");
             }
+            return months.map((month) => ({
+                fruits: (month.fruits || []).map((fruit) => {
+                    if (!fruit || typeof fruit.name !== "string" || !fruit.name.trim()) {
+                        throw new Error("水果名称缺失");
+                    }
+                    const peak = typeof fruit.peak === "boolean"
+                        ? fruit.peak
+                        : String(fruit.raw || "").includes("✨");
+                    return { name: fruit.name.trim(), peak };
+                }),
+            }));
+        }
+
+        function normalizeCity(raw) {
+            if (!raw || typeof raw !== "object") throw new Error("城市数据缺失");
+            const name = String(raw.name || "").trim();
+            if (!name) throw new Error("城市名称缺失");
             return {
-                location: json.location || "大连",
-                purpose: json.purpose || "",
-                months: json.months.map((month) => ({
-                    fruits: (month.fruits || []).map((fruit) => {
-                        if (!fruit || typeof fruit.name !== "string" || !fruit.name.trim()) {
-                            throw new Error("水果名称缺失");
-                        }
-                        const peak = typeof fruit.peak === "boolean"
-                            ? fruit.peak
-                            : String(fruit.raw || "").includes("✨");
-                        return { name: fruit.name.trim(), peak };
-                    }),
-                })),
+                id: String(raw.id || name).trim().toLowerCase(),
+                name: name,
+                purpose: String(raw.purpose || ""),
+                months: normalizeMonths(raw.months),
             };
+        }
+
+        // 兼容单城老数据：没有 cities 字段时，整份 json 当成一座城市。
+        function normalize(json) {
+            const list = json && Array.isArray(json.cities) && json.cities.length
+                ? json.cities
+                : [{ id: "dalian", name: json && json.location, purpose: json && json.purpose, months: json && json.months }];
+            const cities = list.map(normalizeCity);
+            if (!cities.length) throw new Error("城市数据缺失");
+            return cities;
         }
 
         function indexFruits(data) {
@@ -576,6 +630,54 @@
                 });
             });
             return map;
+        }
+
+        function cityById(id) {
+            return state.cities.find((city) => city.id === id) || null;
+        }
+
+        function fruitLabels() {
+            return [...state.fruits.keys()].map((name) => splitFruit(name).label);
+        }
+
+        function syncCitySwitch() {
+            [...citySwitch.querySelectorAll("button")].forEach((button) => {
+                button.setAttribute("aria-pressed", button.dataset.city === state.cityId ? "true" : "false");
+            });
+        }
+
+        function renderCitySwitch() {
+            citySwitch.replaceChildren();
+            state.cities.forEach((city) => {
+                citySwitch.append(el("button", { type: "button", "data-city": city.id }, [city.name]));
+            });
+            syncCitySwitch();
+        }
+
+        // 只换数据与文案，不写地址栏、不渲染——init 与 hashchange 共用
+        function setCityData(id) {
+            const city = cityById(id);
+            if (!city) return false;
+            state.cityId = city.id;
+            state.data = city;
+            state.fruits = indexFruits(city);
+            if (!state.fruits.has(state.fruitName)) {
+                state.fruitName = state.fruits.keys().next().value || null;
+            }
+            pageTitle.textContent = city.name + "水果月历";
+            intro.textContent = city.purpose || "";
+            const labels = fruitLabels();
+            fruitSearch.placeholder = labels.length ? "搜" + labels.slice(0, 3).join("、") : "这个城市还没有记录";
+            try { localStorage.setItem(CITY_KEY, city.id); } catch (e) {}
+            syncCitySwitch();
+            return true;
+        }
+
+        function selectCity(id) {
+            if (id === state.cityId) return;
+            if (!setCityData(id)) return;
+            writeHash();
+            render();
         }
 
         function monthSummary(fruits) {
@@ -623,6 +725,8 @@
 
         function readHash() {
             const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+            const city = params.get("c");
+            if (city && city !== state.cityId) setCityData(city);
             if (params.has("f")) {
                 state.mode = "fruit";
                 const found = findFruit(params.get("f"));
@@ -638,6 +742,7 @@
 
         function writeHash() {
             const params = new URLSearchParams();
+            if (state.cities.length > 1 && state.cityId) params.set("c", state.cityId);
             if (state.mode === "fruit" && state.fruitName) params.set("f", splitFruit(state.fruitName).label);
             else params.set("m", String(state.monthIndex + 1));
             const next = "#" + params.toString();
@@ -728,6 +833,10 @@
 
         function renderChips() {
             const names = filteredFruitNames();
+            const labels = fruitLabels();
+            fruitEmpty.textContent = labels.length
+                ? "没有找到这种水果。可以试" + joinCn(labels.slice(0, 6)) + "。"
+                : "这个城市还没有记录水果，等吃到了再补。";
             fruitChips.replaceChildren();
             fruitEmpty.hidden = names.length > 0;
             clearSearch.hidden = !state.query;
@@ -899,17 +1008,27 @@
             render();
         });
 
+        function initialCityId() {
+            const params = new URLSearchParams(location.hash.replace(/^#/, ""));
+            const fromHash = params.get("c");
+            if (fromHash && cityById(fromHash)) return fromHash;
+            let saved = null;
+            try { saved = localStorage.getItem(CITY_KEY); } catch (e) {}
+            if (saved && cityById(saved)) return saved;
+            return state.cities[0].id;
+        }
+
         async function init() {
             const response = await fetch("fruits.json");
             if (!response.ok) throw new Error("无法读取月历");
             const json = await response.json();
-            state.data = normalize(json);
-            state.fruits = indexFruits(state.data);
-            if (json.location) document.getElementById("location").textContent = json.location;
-            if (json.purpose) document.getElementById("intro").textContent = json.purpose;
-            if (!state.fruitName) state.fruitName = state.fruits.keys().next().value || null;
+            state.cities = normalize(json);
+            renderCitySwitch();
+            setCityData(initialCityId());
             readHash();
-            if (state.mode === "fruit" && !state.fruitName) state.fruitName = state.fruits.keys().next().value || null;
+            if (!state.fruits.has(state.fruitName)) {
+                state.fruitName = state.fruits.keys().next().value || null;
+            }
             loadStatus.hidden = true;
             render();
             writeHash();
