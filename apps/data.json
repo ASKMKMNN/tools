@@ -745,8 +745,12 @@
                     "id": "n63",
                     "title": "Readmoo",
                     "status": "ok",
-                    "platforms": [],
-                    "note": "",
+                    "platforms": [
+                      "网页",
+                      "iOS",
+                      "安卓"
+                    ],
+                    "note": "看海外书好用",
                     "children": []
                   },
                   {
