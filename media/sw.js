@@ -1,6 +1,7 @@
 'use strict';
 
-const CACHE = 'media-shell-v3';
+const CACHE = 'media-shell-v4';
+const LOCAL_COVERS = ["covers/126800.jpg", "covers/335152.jpg", "covers/77322.jpg", "covers/408753.jpg", "covers/484592.jpg", "covers/203681.jpg", "covers/74201.jpg"];
 const SHELL = new Set([
   '',
   'index.html',
@@ -9,19 +10,26 @@ const SHELL = new Set([
   'icon-192.png',
   'icon-512.png',
   'icon-maskable.png',
+  ...LOCAL_COVERS,
 ]);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll([
-      './',
-      './index.html',
-      './manifest.webmanifest',
-      './icon.svg',
-      './icon-192.png',
-      './icon-512.png',
-      './icon-maskable.png',
-    ])).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then((cache) => cache.addAll([
+        './',
+        './index.html',
+        './manifest.webmanifest',
+        './icon.svg',
+        './icon-192.png',
+        './icon-512.png',
+        './icon-maskable.png',
+      ]).then(() => Promise.all(LOCAL_COVERS.map((p) =>
+        // 封面是尽力而为：某张暂时取不到不能拖住整个 SW 升级，
+        // 之后 networkFirst 会在页面访问时补进缓存。
+        cache.add('./' + p).catch(() => null)
+      ))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -42,9 +50,10 @@ self.addEventListener('fetch', (event) => {
   try { url = new URL(request.url); } catch (e) { return; }
   if (url.origin !== self.location.origin) return;
 
-  const rel = url.pathname.endsWith('/')
-    ? ''
-    : url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
+  const base = new URL('./', self.registration.scope).pathname;
+  const rel = url.pathname.indexOf(base) === 0
+    ? url.pathname.slice(base.length)
+    : '';
   if (!SHELL.has(rel)) return;
 
   event.respondWith(networkFirst(request));

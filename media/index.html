@@ -282,6 +282,15 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
   const SNAP_KEY = 'anime-tracker-v1-rollback';
   const BGM = 'https://api.bgm.tv';
   const VISION_MODELS = ['deepseek-flash', 'deepseek-v4-flash', 'deepseek-v4-flash-vision-exp'];
+  // 随 Pages 一起发布的公开封面：只有 Bangumi 编号，不含私人片单标题。
+  // 页面按编号优先读同源 covers/<id>.jpg，Service Worker 预缓存后离线也能显示。
+  const LOCAL_COVER_IDS = [126800, 335152, 77322, 408753, 484592, 203681, 74201];
+  function localCoverFor(item) {
+    const id = bangumiId(item && item.bgmId);
+    if (!id || LOCAL_COVER_IDS.indexOf(id) < 0) return '';
+    return new URL('covers/' + id + '.jpg', document.baseURI).href;
+  }
+  function hasLocalCover(item) { return !!localCoverFor(item); }
   const MEDIA = ['book', 'anime', 'series', 'movie', 'game'];
   const MEDIA_LABEL = { book: '书', anime: '动漫', series: '剧集', movie: '电影', game: '游戏', all: '全部' };
   const STATUS_LABEL = {
@@ -762,6 +771,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
   function coverNeedList() {
     return data.items.filter(function (it) {
       if (coverIssues[it.id]) return true;
+      if (hasLocalCover(it)) return false;
       if (safeHttpUrl(it.cover || '')) return false;
       return !!coverLocalOf(it);
     });
@@ -876,7 +886,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     const go = h('button', { class: 'btn primary', type: 'button' }, '导入封面');
     const root = h('div', null,
       h('h2', { class: 'sheet-h' }, '导入封面包'),
-      h('p', { class: 'sheet-desc' }, '封面包里是已经抓好的封面图。导入后直接存进本机数据，之后不联网也能显示。文件只在这台设备上读取，不会上传，也不会改你的进度。'),
+      h('p', { class: 'sheet-desc' }, '在线版已按 Bangumi 编号自带封面，通常不需要这一步。只有用本地单文件 HTML、或要补自带清单以外的条目时才用：导入后图片存进本机数据，断网也能显示。文件只在这台设备上读取，不会上传，也不会改你的进度。'),
       field('选择封面包文件', file),
       field('或粘贴封面包内容', ta),
       h('div', { class: 'sheet-actions' }, go),
@@ -1377,7 +1387,9 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     el.dataset.type = item.mediaType;
     el.dataset.personal = item.personalStatus;
     el.dataset.pit = isPit(item) ? '1' : '0';
-    const cover = safeHttpUrl(item.cover || '');
+    const netCover = safeHttpUrl(item.cover || '');
+    const localCover = localCoverFor(item);
+    const cover = localCover || netCover;
     const localOnly = !cover && !!coverLocalOf(item);
     let fixBtn = null;
     function putFix(text) {
@@ -1393,7 +1405,13 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
       el.classList.add('has-poster');
       const img = h('img', { alt: '', src: cover, referrerpolicy: 'no-referrer', decoding: 'async' });
       const poster = h('div', { class: 'poster' }, img);
+      let fellBack = false;
       img.addEventListener('error', function () {
+        if (!fellBack && localCover && netCover) {
+          fellBack = true;
+          img.src = netCover;
+          return;
+        }
         el.classList.remove('has-poster');
         if (poster.parentNode) poster.remove();
         markCoverIssue(item.id, '图片加载失败');
@@ -2421,7 +2439,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
       const it = bound[i];
       if (netFails >= 3) {
         const why = '设备连不上 Bangumi，其余条目已跳过';
-        markCoverIssue(it.id, why);
+        if (!hasLocalCover(it)) markCoverIssue(it.id, why);
         report.push({ id: it.id, title: it.title, ok: false, why: why });
         continue;
       }
@@ -2460,9 +2478,11 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
         }
       } catch (e) {
         const timedOut = /^TIMEOUT/.test(String(e && e.message));
-        const why = timedOut ? '请求超时（6 秒）· 稍后重试或导入封面包' : networkMessage(e);
+        const why = timedOut
+          ? (hasLocalCover(it) ? '请求超时（6 秒）· 封面已用自带图，仅资料未更新' : '请求超时（6 秒）· 稍后重试')
+          : networkMessage(e);
         if (e && (e.netKind || timedOut)) netFails++;
-        if (!safeHttpUrl(it.cover || '')) markCoverIssue(it.id, why);
+        if (!safeHttpUrl(it.cover || '') && !hasLocalCover(it)) markCoverIssue(it.id, why);
         report.push({ id: it.id, title: it.title, ok: false, why: why });
       }
       it.current = progress.current;
@@ -2542,6 +2562,8 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     sanitizeExtract: sanitizeExtract, mapBgmHit: mapBgmHit, mapOlDoc: mapOlDoc,
     mapTmdbReleaseDates: mapTmdbReleaseDates, mapTmdbProviders: mapTmdbProviders,
     bgmSearch: bgmSearch, olSearch: olSearch, networkMessage: networkMessage,
+    localCoverFor: localCoverFor, LOCAL_COVER_IDS: LOCAL_COVER_IDS,
+    coverNeedList: coverNeedList, coverIssues: coverIssues,
     setToday: function (s) { todayOverride = s || null; },
     getToday: todayStr,
     items: function () { return data.items; },
