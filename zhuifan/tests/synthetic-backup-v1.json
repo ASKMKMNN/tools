@@ -1,0 +1,66 @@
+{
+  "app": "追番助手",
+  "version": 1,
+  "exportedAt": "2026-11-06T09:50:40.000Z",
+  "note": "SYNTHETIC test fixture only — not user library data",
+  "items": [
+    {
+      "id": "syn_a1",
+      "title": "示例动画甲",
+      "current": 3,
+      "latest": 5,
+      "latestDate": "2026-10-01",
+      "cycle": 7,
+      "total": 0,
+      "unit": "集",
+      "status": "airing",
+      "stars": 2,
+      "updatedAt": 1700000000001,
+      "bgmId": 0,
+      "customNote": "unknown-field-should-be-preserved",
+      "futureField": {
+        "nested": true
+      }
+    },
+    {
+      "id": "syn_b1",
+      "title": "同名示例剧",
+      "current": 1,
+      "latest": 1,
+      "latestDate": "2026-09-15",
+      "cycle": 0,
+      "total": 12,
+      "unit": "集",
+      "status": "airing",
+      "stars": 1,
+      "updatedAt": 1700000000002
+    },
+    {
+      "id": "syn_b2",
+      "title": "同名示例剧",
+      "current": 10,
+      "latest": 10,
+      "latestDate": "2026-08-01",
+      "cycle": 0,
+      "total": 10,
+      "unit": "集",
+      "status": "finished",
+      "stars": 3,
+      "updatedAt": 1700000000003,
+      "orphanExt": "same-title-different-id"
+    },
+    {
+      "id": "syn_c1",
+      "title": "示例完结未知总量",
+      "current": 8,
+      "latest": 8,
+      "latestDate": "2026-07-01",
+      "cycle": 0,
+      "total": 0,
+      "unit": "话",
+      "status": "finished",
+      "stars": 0,
+      "updatedAt": 1700000000004
+    }
+  ]
+}
