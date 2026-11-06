@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "追番助手",
-  "short_name": "追番",
+  "name": "书影游助手",
+  "short_name": "书影游助手",
   "description": "在这台设备上记录书、动漫、剧集、电影和游戏",
   "lang": "zh-CN",
   "dir": "ltr",

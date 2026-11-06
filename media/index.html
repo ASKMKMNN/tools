@@ -8,12 +8,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="追番">
+<meta name="apple-mobile-web-app-title" content="书影游助手">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>追番助手</title>
+<title>书影游助手</title>
 <style>
 :root{
   --bg:#f5f6f8; --bg-blur:rgba(245,246,248,.88);
@@ -240,7 +240,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
       <path d="M29 31l8 4-8 4z" fill="#3b82f6"/>
     </svg>
     <div>
-      <h1>追番助手</h1>
+      <h1>书影游助手</h1>
       <p class="sub" id="summary" data-pit="0">库是空的</p>
     </div>
   </div>
@@ -889,7 +889,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
   }
   function buildPayload() {
     return JSON.stringify(stripSecrets({
-      app: '追番助手',
+      app: '书影游助手',
       version: 2,
       schema: 2,
       exportedAt: new Date().toISOString(),
@@ -897,6 +897,19 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
       prefs: data.prefs,
       items: data.items
     }, knownSecretValues()), null, 2);
+  }
+  function readBackup(parsed) {
+    if (Array.isArray(parsed)) return { ok: true, items: parsed, from: 'array', label: '旧列表备份' };
+    if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.items)) return { ok: false, message: '找不到条目' };
+    const version = Number(parsed.version);
+    const schema = Number(parsed.schema);
+    if (parsed.app === '追番助手' && (parsed.version == null || version === 1 || version === 2)) {
+      return { ok: true, items: parsed.items, from: version === 2 ? 'legacy-v2' : 'legacy-v1', label: '追番助手备份 version ' + (parsed.version == null ? 1 : parsed.version) };
+    }
+    if (parsed.app === '书影游助手' && (version === 2 || schema === 2)) {
+      return { ok: true, items: parsed.items, from: 'schema-2', label: '书影游助手 schema 2' };
+    }
+    return { ok: false, message: '不认识这份备份的名称或版本，没有导入' };
   }
 
   function filteredItems() {
@@ -1699,7 +1712,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     const savePrefs = h('button', { class: 'btn primary', type: 'button' }, '保存常用地区/平台');
     const root = h('div', null,
       h('h2', { class: 'sheet-h' }, '数据与设置'),
-      h('p', { class: 'sheet-desc' }, '记录只在这台设备的浏览器里。不会后台提醒。档期已到只说明日期到了，不保证你能看或能玩。'),
+      h('p', { class: 'sheet-desc' }, '记录只在这台设备的浏览器里。不会后台提醒。档期已到只说明日期到了，不保证你能看或能玩。Bangumi 和 Open Library 可直接查。TMDB 和图片识别在填写并确认密钥之前保持关闭。'),
       field('常用地区', region),
       h('div', { class: 'field' }, h('label', null, '常用平台'), chips),
       h('p', { class: 'hint' }, '倒计时只用这里选中的地区和平台。单部作品可以另外覆盖。没选就不会拿别的地区的日期来凑。'),
@@ -1753,7 +1766,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     const file = h('button', { class: 'btn ghost', type: 'button' }, '下载');
     const overlay = createOverlay(h('div', null,
       h('h2', { class: 'sheet-h' }, '导出'),
-      h('p', { class: 'sheet-desc' }, '这是片单，版本 2。不含 AI / TMDB 密钥，也不含图片原件。'),
+      h('p', { class: 'sheet-desc' }, '书影游助手 schema 2。追番助手 version 1 的备份可以导入。不含密钥，也不含图片原件。'),
       field('备份', ta),
       h('div', { class: 'sheet-actions' }, copy, file)
     ));
@@ -1764,7 +1777,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     file.addEventListener('click', function () {
       const blob = new Blob([payload], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
-      const a = h('a', { href: url, download: '追番备份_' + todayStr() + '.json' });
+      const a = h('a', { href: url, download: '书影游助手备份_' + todayStr() + '.json' });
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
     });
@@ -1793,8 +1806,9 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
       let parsed;
       try { parsed = JSON.parse(String(ta.value || '').trim()); }
       catch (e) { toast('不是有效的 JSON'); return; }
-      const rawItems = Array.isArray(parsed) ? parsed : (parsed && parsed.items);
-      if (!Array.isArray(rawItems)) { toast('找不到条目'); return; }
+      const backup = readBackup(parsed);
+      if (!backup.ok) { toast(backup.message); return; }
+      const rawItems = backup.items;
       const incoming = rawItems.map(normalize);
       const plan = planImport(data.items, incoming);
       preview.textContent = '';
@@ -1804,7 +1818,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
         if (!row || typeof row !== 'object') return;
         Object.keys(row).forEach(function (k) { if (!known[k] && unknown.indexOf(k) < 0) unknown.push(k); });
       });
-      preview.appendChild(h('p', { class: 'hint' }, '识别到 ' + incoming.length + ' 条。新增 ' + plan.added.length + '，同 id 冲突 ' + plan.conflicts.length + '。'));
+      preview.appendChild(h('p', { class: 'hint' }, backup.label + '。识别到 ' + incoming.length + ' 条。新增 ' + plan.added.length + '，同 id 冲突 ' + plan.conflicts.length + '。'));
       if (unknown.length) preview.appendChild(h('p', { class: 'hint' }, '这些原有字段会保留：' + unknown.join('、')));
       plan.sameTitle.forEach(function (s) {
         preview.appendChild(h('p', { class: 'hint' }, '同名不同 id「' + s.title + '」会同时保留（' + s.existingIds.join(', ') + ' 与 ' + s.incomingId + '）。'));
@@ -2219,6 +2233,7 @@ input,textarea,select{-webkit-user-select:text;user-select:text}
     items: function () { return data.items; },
     prefs: function () { return data.prefs; },
     exportPayload: buildPayload,
+    readBackup: readBackup,
     setPrefs: function (p) { data.prefs = normalizePrefs(p); save(); render(); },
     replaceLibrary: function (items) { data.items = (items || []).map(normalize); save(); render(); }
   };

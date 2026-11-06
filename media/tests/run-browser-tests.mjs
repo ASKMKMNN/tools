@@ -9,7 +9,7 @@ const repo = path.resolve(here, '../..');
 const fixturePath = path.join(here, 'synthetic-backup-v1.json');
 const fixture = JSON.parse(fs.readFileSync(fixturePath, 'utf8'));
 const SECRET = 'unit-test-secret-value';
-const outDir = process.env.ARTIFACT_DIR || '/tmp/zhuifan-test-out';
+const outDir = process.env.ARTIFACT_DIR || '/tmp/media-test-out';
 fs.mkdirSync(outDir, { recursive: true });
 
 const report = {
@@ -54,7 +54,7 @@ async function boot(browser, options) {
   const logs = [];
   page.on('console', (msg) => logs.push(msg.text()));
   page.on('pageerror', (err) => logs.push('PAGEERROR ' + err.message));
-  await page.goto('http://127.0.0.1:8765/zhuifan/', { waitUntil: 'domcontentloaded' });
+  await page.goto('http://127.0.0.1:8765/media/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => window.ZF && document.getElementById('summary'));
   return { context, page, logs };
 }
@@ -69,7 +69,7 @@ async function main() {
   try {
     const { context, page, logs } = await boot(browser);
     assert('fresh library is empty', await page.evaluate(() => ZF.items().length === 0 && document.body.innerText.indexOf('示例动画甲') < 0));
-    assert('no synthetic titles in the shipped page', !fs.readFileSync(path.join(repo, 'zhuifan/index.html'), 'utf8').includes('示例动画甲'));
+    assert('no synthetic titles in the shipped page', !fs.readFileSync(path.join(repo, 'media/index.html'), 'utf8').includes('示例动画甲'));
 
     const dates = await page.evaluate(() => {
       const leap = ZF.addDays({ y: 2024, m: 2, d: 29 }, 1);
@@ -180,7 +180,15 @@ async function main() {
     await page.locator('#aiConfirm').check();
     await page.keyboard.press('Escape');
     const payload = await page.evaluate(() => ZF.exportPayload());
-    assert('export schema is version 2', payload.includes('"version": 2') && payload.includes('"schema": 2'));
+    assert('export schema is version 2', payload.includes('"version": 2') && payload.includes('"schema": 2') && JSON.parse(payload).app === '书影游助手');
+    const backupId = await page.evaluate(() => ({
+      legacy: ZF.readBackup({ app: '追番助手', version: 1, items: [{ id: 'a', title: '旧' }] }),
+      current: ZF.readBackup({ app: '书影游助手', version: 2, schema: 2, items: [] }),
+      foreign: ZF.readBackup({ app: '别的工具', version: 1, items: [{ id: 'a' }] })
+    }));
+    assert('legacy 追番助手 version 1 is accepted', backupId.legacy.ok === true && backupId.legacy.from === 'legacy-v1');
+    assert('current schema 2 is accepted', backupId.current.ok === true && backupId.current.from === 'schema-2');
+    assert('unknown backup identity is refused', backupId.foreign.ok === false);
     assert('export has no secret', !payload.includes(SECRET) && !payload.includes('apiKey') && !payload.includes('data:image'));
     assert('export roundtrip keeps unknown fields', (() => {
       const parsed = JSON.parse(payload);
@@ -303,7 +311,7 @@ async function main() {
     const beforeVision = await page.evaluate(() => ZF.items().length);
     await page.click('#btnMore');
     await page.getByRole('button', { name: '图片识别', exact: true }).click();
-    await page.setInputFiles('#visionFile', path.join(repo, 'zhuifan/icon-192.png'));
+    await page.setInputFiles('#visionFile', path.join(repo, 'media/icon-192.png'));
     await page.waitForTimeout(200);
     assert('choosing an image does not call the API', aiCalls.length === 0, JSON.stringify(aiCalls));
     await page.click('#visionGo');
@@ -353,7 +361,7 @@ async function main() {
       }
       return { scope: reg.scope, controller: !!navigator.serviceWorker.controller, keys, leakedUrl, leakedBody, urls };
     }, SECRET);
-    assert('service worker controls the app', !!sw.controller && sw.scope.includes('/zhuifan/'), JSON.stringify(sw));
+    assert('service worker controls the app', !!sw.controller && sw.scope.includes('/media/'), JSON.stringify(sw));
     assert('cache does not store API responses or the secret', !sw.leakedUrl && !sw.leakedBody, JSON.stringify(sw));
 
     const manifest = await page.evaluate(async () => {
@@ -363,24 +371,24 @@ async function main() {
     assert('manifest is standalone', manifest.display === 'standalone' && manifest.start_url === './' && manifest.scope === './');
 
     await page.locator('#typeFilters [data-type="all"]').click();
-    await page.screenshot({ path: path.join(outDir, 'zhuifan-desktop-dark.png'), fullPage: true });
-    report.screenshots.push('zhuifan-desktop-dark.png');
+    await page.screenshot({ path: path.join(outDir, 'media-desktop-dark.png'), fullPage: true });
+    report.screenshots.push('media-desktop-dark.png');
     await page.setViewportSize({ width: 390, height: 844 });
-    await page.screenshot({ path: path.join(outDir, 'zhuifan-mobile-dark.png'), fullPage: true });
-    report.screenshots.push('zhuifan-mobile-dark.png');
+    await page.screenshot({ path: path.join(outDir, 'media-mobile-dark.png'), fullPage: true });
+    report.screenshots.push('media-mobile-dark.png');
 
     await context.setOffline(true);
     await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForFunction(() => window.ZF && ZF.items().length > 0);
     assert('offline reload keeps the library', (await page.locator('#summary').innerText()).includes('坑'));
-    await page.screenshot({ path: path.join(outDir, 'zhuifan-offline-mobile-dark.png'), fullPage: true });
-    report.screenshots.push('zhuifan-offline-mobile-dark.png');
+    await page.screenshot({ path: path.join(outDir, 'media-offline-mobile-dark.png'), fullPage: true });
+    report.screenshots.push('media-offline-mobile-dark.png');
     await context.setOffline(false);
 
     await context.close();
 
     const livePage = await (await browser.newContext()).newPage();
-    await livePage.goto('http://127.0.0.1:8765/zhuifan/', { waitUntil: 'domcontentloaded' });
+    await livePage.goto('http://127.0.0.1:8765/media/', { waitUntil: 'domcontentloaded' });
     await livePage.waitForFunction(() => window.ZF);
     report.live = await livePage.evaluate(async () => {
       async function probe(name, run) {
@@ -498,13 +506,13 @@ async function main() {
     report.limits = report.limits.filter((line) => !line.includes('Camera permission'));
     report.limits.push('Camera tests used a mocked getUserMedia. A real OS permission prompt was not shown. The denial, missing-API, and captured-frame paths were exercised in Chrome.');
 
-    const tree = fs.readFileSync(path.join(repo, 'zhuifan/index.html'), 'utf8') + fs.readFileSync(path.join(repo, 'zhuifan/sw.js'), 'utf8') + fs.readFileSync(path.join(repo, 'zhuifan/README.md'), 'utf8');
+    const tree = fs.readFileSync(path.join(repo, 'media/index.html'), 'utf8') + fs.readFileSync(path.join(repo, 'media/sw.js'), 'utf8') + fs.readFileSync(path.join(repo, 'media/README.md'), 'utf8');
     assert('shipped files have no preset key', !/sk-[A-Za-z0-9]{8,}/.test(tree) && !tree.includes(SECRET) && !/api_key\s*[:=]\s*['"][A-Za-z0-9]{8,}/.test(tree));
     assert('shipped files have no home directory or email', !/\/Users\/|C:\\Users\\|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(tree));
   } finally {
     await browser.close();
     server.kill('SIGTERM');
-    fs.writeFileSync(path.join(outDir, 'zhuifan-test-report.json'), JSON.stringify(report, null, 2));
+    fs.writeFileSync(path.join(outDir, 'media-test-report.json'), JSON.stringify(report, null, 2));
   }
 }
 
@@ -518,6 +526,6 @@ main().then(() => {
   console.log('LIMITS ' + report.limits.join('\n'));
 }).catch((err) => {
   console.error(err && err.stack || err);
-  fs.writeFileSync(path.join(outDir, 'zhuifan-test-report.json'), JSON.stringify(report, null, 2));
+  fs.writeFileSync(path.join(outDir, 'media-test-report.json'), JSON.stringify(report, null, 2));
   process.exit(1);
 });

@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'zhuifan-shell-v1';
+const CACHE = 'media-shell-v1';
 const SHELL = new Set([
   '',
   'index.html',
