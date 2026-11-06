@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'media-shell-v1';
+const CACHE = 'media-shell-v2';
 const SHELL = new Set([
   '',
   'index.html',
@@ -53,7 +53,7 @@ self.addEventListener('fetch', (event) => {
 async function networkFirst(request) {
   const cache = await caches.open(CACHE);
   try {
-    const response = await fetch(request);
+    const response = await fetch(request, { cache: 'no-cache' });
     if (response && response.ok && response.type === 'basic') {
       await cache.put(request, response.clone());
     }
