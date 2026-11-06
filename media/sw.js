@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'media-shell-v2';
+const CACHE = 'media-shell-v3';
 const SHELL = new Set([
   '',
   'index.html',
