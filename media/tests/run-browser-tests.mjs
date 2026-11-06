@@ -506,6 +506,67 @@ async function main() {
     report.limits = report.limits.filter((line) => !line.includes('Camera permission'));
     report.limits.push('Camera tests used a mocked getUserMedia. A real OS permission prompt was not shown. The denial, missing-API, and captured-frame paths were exercised in Chrome.');
 
+    const cover = await boot(browser, { colorScheme: 'dark', viewport: { width: 390, height: 844 } });
+    const legacyCovers = {
+      app: '追番助手', version: 1, items: [
+        { id: 'cov_anime_local', title: '封面仅本地动画', bgmId: 55770, bgmType: 2, cover: '', coverLocal: 'file:///storage/emulated/0/covers/55770.jpg', current: 3, latest: 5, latestDate: '2026-10-01', cycle: 7, total: 0, unit: '集', status: 'airing', customNote: 'keep-me', futureField: { nested: true } },
+        { id: 'cov_book_local', title: '封面仅本地书', bgmId: 9585, bgmType: 1, coverLocal: 'file:///storage/emulated/0/covers/9585.jpg', current: 4, latest: 6, latestDate: '2026-05-01', cycle: 0, total: 0, unit: '卷', status: 'airing' },
+        { id: 'cov_game', title: '游戏本地封面', bgmId: 284157, bgmType: 4, coverLocal: 'content://com.example.provider/covers/284157', current: 0, latest: 0, latestDate: '2026-01-01', cycle: 0, total: 0, unit: '集', status: 'finished' },
+        { id: 'cov_bad_id', title: '无效编号', bgmId: 0, bgmType: 2, cover: 'https://lain.bgm.tv/pic/cover/l/78/c9/55770_HsJfh.jpg', current: 1, latest: 1, latestDate: '2026-09-01', cycle: 0, total: 0, unit: '集', status: 'airing' },
+        { id: 'cov_empty_id', title: '空编号', bgmId: '', cover: 'not a url', coverLocal: 'content://local/x', current: 2, latest: 4, latestDate: '2026-08-01', cycle: 7, total: 12, unit: '集', status: 'airing' }
+      ]
+    };
+    await cover.page.evaluate(() => localStorage.clear());
+    await cover.page.reload({ waitUntil: 'domcontentloaded' });
+    await cover.page.waitForFunction(() => window.ZF);
+    await cover.page.click('#btnMore');
+    await cover.page.getByRole('button', { name: '导入备份' }).click();
+    await cover.page.fill('#impText', JSON.stringify(legacyCovers));
+    await cover.page.getByRole('button', { name: '预览', exact: true }).click();
+    const importHint = await cover.page.locator('#importPreview').innerText();
+    assert('legacy cover backup is recognized as 追番助手', importHint.includes('追番助手'));
+    await cover.page.getByRole('button', { name: '只加新 id' }).click();
+    await cover.page.waitForFunction(() => ZF.items().length === 5);
+    const beforeCovers = await cover.page.evaluate(() => ({
+      localPoster: !!document.querySelector('.card[data-id="cov_anime_local"] .poster img'),
+      httpsPoster: !!document.querySelector('.card[data-id="cov_bad_id"] .poster img'),
+      bookPoster: !!document.querySelector('.card[data-id="cov_book_local"] .poster img')
+    }));
+    assert('phone file cover is not used as the image', beforeCovers.localPoster === false && beforeCovers.bookPoster === false);
+    assert('existing https cover still displays beside a local file', beforeCovers.httpsPoster === true);
+    await cover.page.click('#btnMore');
+    await cover.page.getByRole('button', { name: '刷新已绑定的 Bangumi' }).click();
+    await cover.page.waitForFunction(() => {
+      const img = document.querySelector('.card[data-id="cov_book_local"] .poster img');
+      return img && img.complete && img.naturalWidth > 0;
+    }, null, { timeout: 20000 });
+    await cover.page.waitForFunction(() => {
+      const img = document.querySelector('.card[data-id="cov_anime_local"] .poster img');
+      return img && img.complete && img.naturalWidth > 0;
+    }, null, { timeout: 20000 });
+    const afterCovers = await cover.page.evaluate(() => {
+      const byId = Object.fromEntries(ZF.items().map((it) => [it.id, it]));
+      const width = (id) => {
+        const img = document.querySelector('.card[data-id="' + id + '"] .poster img');
+        return img ? img.naturalWidth : 0;
+      };
+      return {
+        anime: { cover: byId.cov_anime_local.cover, current: byId.cov_anime_local.current, latest: byId.cov_anime_local.latest, date: byId.cov_anime_local.latestDate, note: byId.cov_anime_local.customNote, nested: byId.cov_anime_local.futureField.nested, local: byId.cov_anime_local.coverLocal, width: width('cov_anime_local') },
+        book: { cover: byId.cov_book_local.cover, current: byId.cov_book_local.current, latest: byId.cov_book_local.latest, width: width('cov_book_local') },
+        game: { cover: byId.cov_game.cover, personal: byId.cov_game.personalStatus, width: width('cov_game') },
+        bad: { cover: byId.cov_bad_id.cover, latest: byId.cov_bad_id.latest },
+        empty: { cover: byId.cov_empty_id.cover, poster: !!document.querySelector('.card[data-id="cov_empty_id"] .poster img') }
+      };
+    });
+    assert('refresh replaces a phone-only anime cover with a loaded Bangumi image', /^https:\/\/lain\.bgm\.tv\//.test(afterCovers.anime.cover) && afterCovers.anime.width > 0, JSON.stringify(afterCovers.anime));
+    assert('refresh keeps legacy progress and unknown fields', afterCovers.anime.current === 3 && afterCovers.anime.latest === 5 && afterCovers.anime.date === '2026-10-01' && afterCovers.anime.note === 'keep-me' && afterCovers.anime.nested === true && afterCovers.anime.local.indexOf('file:') === 0);
+    assert('refresh also loads a book cover without changing its record', /^https:\/\/lain\.bgm\.tv\//.test(afterCovers.book.cover) && afterCovers.book.width > 0 && afterCovers.book.current === 4 && afterCovers.book.latest === 6, JSON.stringify(afterCovers.book));
+    assert('refresh loads a game cover', /^https:\/\/lain\.bgm\.tv\//.test(afterCovers.game.cover) && afterCovers.game.width > 0 && afterCovers.game.personal === 'planned', JSON.stringify(afterCovers.game));
+    assert('invalid and empty Bangumi ids are not rewritten', afterCovers.bad.latest === 1 && afterCovers.bad.cover.indexOf('55770_HsJfh') > 0 && afterCovers.empty.cover === 'not a url' && afterCovers.empty.poster === false, JSON.stringify(afterCovers));
+    await cover.page.screenshot({ path: path.join(outDir, 'cover-refresh-mobile-dark.png'), fullPage: true });
+    report.screenshots.push('cover-refresh-mobile-dark.png');
+    await cover.context.close();
+
     const tree = fs.readFileSync(path.join(repo, 'media/index.html'), 'utf8') + fs.readFileSync(path.join(repo, 'media/sw.js'), 'utf8') + fs.readFileSync(path.join(repo, 'media/README.md'), 'utf8');
     assert('shipped files have no preset key', !/sk-[A-Za-z0-9]{8,}/.test(tree) && !tree.includes(SECRET) && !/api_key\s*[:=]\s*['"][A-Za-z0-9]{8,}/.test(tree));
     assert('shipped files have no home directory or email', !/\/Users\/|C:\\Users\\|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.test(tree));
