@@ -124,6 +124,20 @@
         }
         .more a:hover { border-color: transparent; color: var(--text); }
         .more + .section { margin-top: 32px; }
+
+        p.lead { max-width: 65ch; }
+
+        /* 宽屏把窄单列铺开；窄屏保持原来的单列不变 */
+        @media (min-width: 820px) {
+            main { max-width: 1000px; padding: 56px 32px 72px; }
+            h1 { font-size: 36px; }
+            nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        @media (min-width: 1240px) {
+            main { max-width: 1180px; }
+            nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            nav.single { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
     </style>
 </head>
 <body>
@@ -178,28 +192,28 @@
         <p class="section">桌面</p>
         <nav class="single">
             <a href="win/screen-compress/录屏批量压缩.zip" download="录屏批量压缩.zip">
-                <img src="win/icon.png" width="64" height="64" alt="" />
+                <img src="win/icons/screen-compress.png" width="64" height="64" alt="" />
                 <span>
                     <strong>录屏批量压缩</strong>
                     <small>Win+G 录屏批量裁 16:9、压到 1080p，依赖本机 FFmpeg</small>
                 </span>
             </a>
             <a href="win/desktoppet/DesktopPet.zip" download="DesktopPet.zip">
-                <img src="win/icon.png" width="64" height="64" alt="" />
+                <img src="win/icons/desktoppet.png" width="64" height="64" alt="" />
                 <span>
                     <strong>桌宠 DesktopPet</strong>
                     <small>PowerShell 桌宠，附迷你聊天窗，解压双击即用</small>
                 </span>
             </a>
             <a href="win/quicknav/QuickNav.exe" download="QuickNav.exe">
-                <img src="win/icon.png" width="64" height="64" alt="" />
+                <img src="win/icons/quicknav.png" width="64" height="64" alt="" />
                 <span>
                     <strong>QuickNav 快捷启动器</strong>
                     <small>输别名回车就打开文件，exe 版；hta 版见下方说明页</small>
                 </span>
             </a>
             <a href="win/todo/Todo.zip" download="Todo.zip">
-                <img src="win/icon.png" width="64" height="64" alt="" />
+                <img src="win/icons/todo.png" width="64" height="64" alt="" />
                 <span>
                     <strong>Todo 桌面待办</strong>
                     <small>贴边收纳的桌面待办条，鼠标移上去展开</small>
