@@ -109,14 +109,27 @@
 
         nav + .section { margin-top: 32px; }
 
-        /* C3：桌面区只有一张卡，给它另一种疏密，避免整页同一配方 */
+        /* C3：桌面与手机区换一种疏密，避免整页同一配方 */
         nav.single a { padding: 18px 16px; border-radius: 22px; }
+
+        .more { margin: 12px 0 0; font-size: 14px; }
+        .more a {
+            display: inline;
+            padding: 0;
+            border: 0;
+            background: none;
+            color: var(--muted);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+        .more a:hover { border-color: transparent; color: var(--text); }
+        .more + .section { margin-top: 32px; }
     </style>
 </head>
 <body>
     <main>
         <h1>小工具</h1>
-        <p class="lead">几个可以单独安装的网页工具。请打开对应页面，再用浏览器的「安装」或「添加到主屏幕」。装好后断网也能打开。Windows 脚本在下方「桌面」，下载解压即用。</p>
+        <p class="lead">网页工具打开后用浏览器的「安装」或「添加到主屏幕」，装好断网也能打开。桌面和手机这两区直接列到这一级，点开就能下载，不用再进一层。</p>
         <p class="section">网页</p>
         <nav>
             <a href="freq/">
@@ -161,21 +174,46 @@
                     <small>按月对照大连当季水果</small>
                 </span>
             </a>
+        </nav>
+        <p class="section">桌面</p>
+        <nav class="single">
+            <a href="win/screen-compress/录屏批量压缩.zip" download="录屏批量压缩.zip">
+                <img src="win/icon.png" width="64" height="64" alt="" />
+                <span>
+                    <strong>录屏批量压缩</strong>
+                    <small>Win+G 录屏批量裁 16:9、压到 1080p，依赖本机 FFmpeg</small>
+                </span>
+            </a>
+            <a href="win/desktoppet/DesktopPet.zip" download="DesktopPet.zip">
+                <img src="win/icon.png" width="64" height="64" alt="" />
+                <span>
+                    <strong>桌宠 DesktopPet</strong>
+                    <small>PowerShell 桌宠，附迷你聊天窗，解压双击即用</small>
+                </span>
+            </a>
+            <a href="win/quicknav/QuickNav.exe" download="QuickNav.exe">
+                <img src="win/icon.png" width="64" height="64" alt="" />
+                <span>
+                    <strong>QuickNav 快捷启动器</strong>
+                    <small>输别名回车就打开文件，exe 版；hta 版见下方说明页</small>
+                </span>
+            </a>
+            <a href="win/todo/Todo.zip" download="Todo.zip">
+                <img src="win/icon.png" width="64" height="64" alt="" />
+                <span>
+                    <strong>Todo 桌面待办</strong>
+                    <small>贴边收纳的桌面待办条，鼠标移上去展开</small>
+                </span>
+            </a>
+        </nav>
+        <p class="more"><a href="win/">Windows 工具页：四个工具的用法说明与更多版本</a></p>
+        <p class="section">手机</p>
+        <nav class="single">
             <a href="media/">
                 <img src="media/icon-192.png" width="64" height="64" alt="" />
                 <span>
                     <strong>书影游助手</strong>
-                    <small>本地记录书、动漫、剧、电影和游戏</small>
-                </span>
-            </a>
-        </nav>
-        <p class="section">桌面</p>
-        <nav class="single">
-            <a href="win/">
-                <img src="win/icon.png" width="64" height="64" alt="" />
-                <span>
-                    <strong>Windows 工具</strong>
-                    <small>.bat / .vbs / .hta · 下载解压即用</small>
+                    <small>下载 APK 安装，本地记录书、动漫、剧、电影和游戏</small>
                 </span>
             </a>
         </nav>
