@@ -129,21 +129,23 @@
 
         /* 宽屏把窄单列铺开；窄屏保持原来的单列不变 */
         @media (min-width: 820px) {
-            main { max-width: 1000px; padding: 56px 32px 72px; }
+            main { max-width: 920px; padding: 56px 32px 72px; }
             h1 { font-size: 36px; }
             nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
         @media (min-width: 1240px) {
-            main { max-width: 1180px; }
-            nav { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-            nav.single { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            main { max-width: 1080px; }
+            nav, nav.single { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+            /* 卡片收窄后同步收紧图标与内距、给出统一高度，避免又扁又长 */
+            nav a { gap: 12px; padding: 16px; min-height: 132px; }
+            nav img { width: 56px; height: 56px; }
         }
     </style>
 </head>
 <body>
     <main>
         <h1>小工具</h1>
-        <p class="lead">网页工具打开后用浏览器的「安装」或「添加到主屏幕」，装好断网也能打开。桌面和手机这两区直接列到这一级，点开就能下载，不用再进一层。</p>
+        <p class="lead">网页工具打开后用浏览器的「安装」或「添加到主屏幕」，装好断网也能打开。</p>
         <p class="section">网页</p>
         <nav>
             <a href="freq/">
