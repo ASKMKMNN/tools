@@ -78,7 +78,13 @@ a{color:var(--accent)}
 .meta{margin-top:5px;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;min-width:0}
 .meta .src{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%;cursor:pointer}
 .meta .src:hover{text-decoration:underline}
-.thumb{flex:none;width:76px;height:76px;border-radius:10px;object-fit:cover;background:var(--chip)}
+.thumb{flex:none;width:80px;height:80px;border-radius:10px;object-fit:cover;background:var(--chip)}
+.card.has-thumb{align-items:flex-start}
+.card.has-thumb .body{display:flex;flex-direction:column;height:80px;min-height:80px;max-height:80px;overflow:hidden}
+.card.has-thumb h3{font-size:15px;line-height:1.28;-webkit-line-clamp:2;flex:none}
+.card.has-thumb .thumb-gap{flex:1 1 auto;min-height:0}
+.card.has-thumb p{margin:2px 0 0;font-size:13px;line-height:1.3;-webkit-line-clamp:1;flex:none}
+.card.has-thumb .meta{margin-top:3px;flex:none}
 .starb{border:0;background:none;padding:2px 4px;margin-left:auto;cursor:pointer;color:var(--muted);font-size:15px;line-height:1}
 .starb.on{color:var(--star)}
 .empty{text-align:center;color:var(--muted);padding:60px 20px}
@@ -271,7 +277,7 @@ var RSSCore = (function () {
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false,
     customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true
   };
-  var GROUP_ORDER = ['新闻+', '科技', '杂志', '杂志F', '设计', '其他', '推荐'];
+  var GROUP_ORDER = ['新闻+', '科技', '杂志', '设计', '其他', '推荐'];
   var DEFAULT_FEEDS = [
     { title: 'NewsBot AI Reports', url: 'https://newsbot.justinyan.app/api/public/rss/reports.xml', group: '新闻+' },
     { title: '爱范儿', url: 'https://feedx.net/rss/ifanr.xml', group: '新闻+' },
@@ -283,7 +289,6 @@ var RSSCore = (function () {
     { title: 'Colossal', url: 'https://feeds.feedburner.com/colossal', group: '新闻+' },
     { title: 'Design Milk', url: 'https://feeds.feedburner.com/design-milk', group: '新闻+' },
     { title: 'Nautilus', url: 'https://nautil.us/feed/', group: '新闻+' },
-    { title: 'Buzzing', url: 'https://www.buzzing.cc/feed.xml', group: '新闻+' },
     { title: 'Product Hunt', url: 'https://www.producthunt.com/feed', group: '新闻+' },
     { title: 'V2EX', url: 'https://www.v2ex.com/index.xml', group: '新闻+' },
     { title: '9to5Google', url: 'https://9to5google.com/feed/', group: '科技' },
@@ -299,13 +304,13 @@ var RSSCore = (function () {
     { title: 'PALM REPORT', url: 'https://palmreport.poolsuite.net/rss/', group: '杂志' },
     { title: 'BRUTUS.jp | ブルータスのウェブ', url: 'https://brutus.jp/feed/', group: '杂志' },
     { title: 'Ideal Magazine', url: 'https://idealmagazine.co.uk/feed/', group: '杂志' },
-    { title: 'Ribs And Dust Aus - Lookbook', url: 'https://ribsanddust.com/blogs/lookbook.atom', group: '杂志F' },
-    { title: "Harper's BAZAAR tw", url: 'https://www.harpersbazaar.com/tw/rss/default.xml', group: '杂志F' },
-    { title: 'Vogue Taiwan', url: 'https://www.vogue.com.tw/feed/rss', group: '杂志F' },
-    { title: 'ELLE China', url: 'https://www.ellechina.com/rss/default.xml', group: '杂志F' },
-    { title: "Harper's BAZAAR", url: 'https://www.harpersbazaar.com/rss/default.xml', group: '杂志F' },
-    { title: 'ELLE', url: 'https://www.elle.com/rss/default.xml', group: '杂志F' },
-    { title: 'Vogue', url: 'https://www.vogue.com/feed/rss', group: '杂志F' },
+    { title: 'Ribs And Dust Aus - Lookbook', url: 'https://ribsanddust.com/blogs/lookbook.atom', group: '杂志' },
+    { title: "Harper's BAZAAR tw", url: 'https://www.harpersbazaar.com/tw/rss/default.xml', group: '杂志' },
+    { title: 'Vogue Taiwan', url: 'https://www.vogue.com.tw/feed/rss', group: '杂志' },
+    { title: 'ELLE China', url: 'https://www.ellechina.com/rss/default.xml', group: '杂志' },
+    { title: "Harper's BAZAAR", url: 'https://www.harpersbazaar.com/rss/default.xml', group: '杂志' },
+    { title: 'ELLE', url: 'https://www.elle.com/rss/default.xml', group: '杂志' },
+    { title: 'Vogue', url: 'https://www.vogue.com/feed/rss', group: '杂志' },
     { title: 'ArchDaily | ArchDaily', url: 'https://www.archdaily.com/zh/cn.xml', group: '设计' },
     { title: 'but does it float', url: 'https://butdoesitfloat.com/rss', group: '设计' },
     { title: 'Taiwan 2.0', url: 'https://taiwan.chtsai.org/feed/', group: '其他' },
@@ -888,6 +893,8 @@ var RSSCore = (function () {
     var body = doc.getElementsByTagName('body')[0];
     var groups = [], feeds = [];
     function groupFor(name) {
+      name = canonicalGroupName(name);
+      if (!name) return null;
       var g = groups.find(function (x) { return x.name === name; });
       if (!g) { g = { name: name }; groups.push(g); }
       return g;
@@ -898,10 +905,10 @@ var RSSCore = (function () {
         var name = (o.getAttribute('title') || o.getAttribute('text') || '').trim();
         if (xml) {
           if (folder) groupFor(folder);
-          feeds.push({ url: xml.trim(), title: name, siteUrl: o.getAttribute('htmlUrl') || o.getAttribute('htmlurl') || '', group: folder || '' });
+          feeds.push({ url: xml.trim(), title: name, siteUrl: o.getAttribute('htmlUrl') || o.getAttribute('htmlurl') || '', group: canonicalGroupName(folder) || '' });
         } else {
           // 文件夹：多层嵌套时并到最外层文件夹
-          walk(o, folder || name || '未命名');
+          walk(o, folder || canonicalGroupName(name) || '未命名');
         }
       });
     }
@@ -927,15 +934,19 @@ var RSSCore = (function () {
   var AUTO_PIN = ['新闻+'];
   /* 把 OPML 结果并进现有状态（按网址去重），返回新增数量 */
   function mergeOPML(state, parsed) {
+    migrateGroups(state);
     var added = 0;
     parsed.groups.forEach(function (pg) {
-      var g = state.groups.find(function (x) { return x.name === pg.name; });
-      if (!g) { g = { id: uid('g'), name: pg.name, pinned: false }; state.groups.push(g); }
-      if (AUTO_PIN.indexOf(pg.name) >= 0) g.pinned = true;
+      var name = canonicalGroupName(pg.name);
+      if (!name) return;
+      var g = state.groups.find(function (x) { return x.name === name; });
+      if (!g) { g = { id: uid('g'), name: name, pinned: false }; state.groups.push(g); }
+      if (AUTO_PIN.indexOf(name) >= 0) g.pinned = true;
     });
     parsed.feeds.forEach(function (pf) {
       if (state.feeds.some(function (f) { return feedKey(f.url) === feedKey(pf.url); })) return;
-      var g = pf.group ? state.groups.find(function (x) { return x.name === pf.group; }) : null;
+      var gname = canonicalGroupName(pf.group);
+      var g = gname ? state.groups.find(function (x) { return x.name === gname; }) : null;
       state.feeds.push({ id: uid('f'), url: pf.url, title: pf.title, siteUrl: pf.siteUrl, groupId: g ? g.id : '' });
       added++;
     });
@@ -956,7 +967,49 @@ var RSSCore = (function () {
     var i = GROUP_ORDER.indexOf(name);
     return i < 0 ? GROUP_ORDER.length : i;
   }
+  function canonicalGroupName(name) {
+    return String(name || '') === '杂志F' ? '杂志' : String(name || '');
+  }
+  var DROPPED_FEED_URLS = ['https://www.buzzing.cc/feed.xml'];
+  function isDroppedFeedUrl(url) {
+    var k = feedKey(url);
+    var i;
+    for (i = 0; i < DROPPED_FEED_URLS.length; i++) {
+      if (feedKey(DROPPED_FEED_URLS[i]) === k) return true;
+    }
+    return false;
+  }
+  /* 一次性去掉已从默认列表移除的源（目前仅 Buzzing）。不删其他订阅，也不动收藏。可重复执行。 */
+  function migrateDroppedFeeds(state) {
+    if (!state || !state.feeds) return state;
+    var feeds = state.feeds, i;
+    for (i = feeds.length - 1; i >= 0; i--) {
+      if (isDroppedFeedUrl(feeds[i].url)) feeds.splice(i, 1);
+    }
+    return state;
+  }
+  /* 把旧分组「杂志F」并入「杂志」：不删订阅、不动其他分组。可重复执行。 */
+  function migrateGroups(state) {
+    if (!state) return state;
+    var groups = state.groups || [];
+    var feeds = state.feeds || [];
+    var mags = groups.filter(function (g) { return g.name === '杂志' || g.name === '杂志F'; });
+    if (!mags.length) return state;
+    var keep = groups.find(function (g) { return g.name === '杂志'; }) || mags[0];
+    keep.name = '杂志';
+    var drop = {};
+    mags.forEach(function (g) {
+      if (g === keep) return;
+      drop[g.id] = 1;
+      feeds.forEach(function (f) { if (f.groupId === g.id) f.groupId = keep.id; });
+    });
+    for (var i = groups.length - 1; i >= 0; i--) {
+      if (drop[groups[i].id]) groups.splice(i, 1);
+    }
+    return state;
+  }
   function ensureGroup(state, name) {
+    name = canonicalGroupName(name);
     if (!name) return null;
     var g = state.groups.find(function (x) { return x.name === name; });
     if (!g) { g = { id: uid('g'), name: name, pinned: AUTO_PIN.indexOf(name) >= 0 }; state.groups.push(g); }
@@ -965,6 +1018,8 @@ var RSSCore = (function () {
   }
   /* 把默认订阅并进现有状态（按网址/域名写法去重），不删除任何已有源，返回新增数量 */
   function mergeDefaults(state) {
+    migrateGroups(state);
+    migrateDroppedFeeds(state);
     var added = 0;
     GROUP_ORDER.forEach(function (name) { ensureGroup(state, name); });
     DEFAULT_FEEDS.forEach(function (pf) {
@@ -1004,6 +1059,8 @@ var RSSCore = (function () {
       if (!gids[gid] && f.group) { var g = groups.find(function (x) { return x.name === f.group; }); if (!g) { g = { id: uid('g'), name: String(f.group), pinned: f.group === '新闻+' }; groups.push(g); gids[g.id] = 1; } gid = g.id; }
       return { id: String(f.id || uid('f')), url: String(f.url || f.xmlUrl), title: String(f.title || ''), siteUrl: String(f.siteUrl || f.htmlUrl || ''), groupId: gids[gid] ? gid : '', route: String(f.route || '') };
     });
+    migrateGroups({ groups: groups, feeds: feeds });
+    migrateDroppedFeeds({ feeds: feeds });
     var stars = (Array.isArray(data.stars) ? data.stars : []).filter(function (s) { return s && s.id; }).map(function (s) {
       return { id: String(s.id), feedId: String(s.feedId || ''), title: String(s.title || ''), link: String(s.link || ''), date: +s.date || 0, summary: String(s.summary || ''), content: String(s.content || ''), thumb: String(s.thumb || ''), author: String(s.author || ''), feedTitle: String(s.feedTitle || ''), enclosures: Array.isArray(s.enclosures) ? s.enclosures : [], base: String(s.base || s.link || ''), starredAt: +s.starredAt || 0 };
     });
@@ -1321,7 +1378,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns
@@ -1511,9 +1568,10 @@ var RSSCore = (function () {
     var f = feedById(it.feedId);
     var star = isStarred(it.id);
     var thumb = state.settings.showListThumb !== false ? C.itemListThumb(it) : '';
-    return '<article class="card" data-i="' + i + '">' +
-      (thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(thumb) + '" alt="" onerror="this.remove()">' : '') +
+    return '<article class="card' + (thumb ? ' has-thumb' : '') + '" data-i="' + i + '">' +
+      (thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(thumb) + '" alt="" onerror="if(this.parentNode)this.parentNode.classList.remove(\'has-thumb\');this.remove()">' : '') +
       '<div class="body"><h3>' + esc(it.title) + '</h3>' +
+      (thumb ? '<div class="thumb-gap" aria-hidden="true"></div>' : '') +
       (it.summary ? '<p>' + esc(it.summary) + '</p>' : '') +
       '<div class="meta"><span class="src" data-feed="' + esc(it.feedId) + '">' + esc(f ? feedName(f) : (it.feedTitle || '')) + '</span><span>·</span><span>' + ago(it.date) + '</span>' +
       '<button class="starb' + (star ? ' on' : '') + '" data-star="' + i + '" aria-label="收藏">' + (star ? '★' : '☆') + '</button></div></div>' +
@@ -1530,6 +1588,22 @@ var RSSCore = (function () {
       });
     }, { rootMargin: '100% 0px' });
     Array.prototype.forEach.call(root.querySelectorAll('img[loading="lazy"]'), function (img) { imgIO.observe(img); });
+  }
+  function fitThumbCards(root) {
+    var el = root || $('list');
+    if (!el) return;
+    Array.prototype.forEach.call(el.querySelectorAll('.card.has-thumb'), function (card) {
+      var h = card.querySelector('h3');
+      var p = card.querySelector('p');
+      if (!h || !p) return;
+      var cs = getComputedStyle(h);
+      var lh = parseFloat(cs.lineHeight);
+      if (!isFinite(lh) || lh <= 0) lh = (parseFloat(cs.fontSize) || 15) * 1.28;
+      var lines = Math.max(1, Math.round(h.getBoundingClientRect().height / lh));
+      var n = lines >= 2 ? 1 : 2;
+      p.style.webkitLineClamp = String(n);
+      try { p.style.lineClamp = String(n); } catch (err) {}
+    });
   }
   function attachListSentinel() {
     listIO = disconnectIO(listIO);
@@ -1554,6 +1628,7 @@ var RSSCore = (function () {
       sent.insertAdjacentHTML('beforebegin', html);
       attachListSentinel();
       observeLazyImages(el);
+      fitThumbCards(el);
     }
     if (window.IntersectionObserver) {
       listIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) more(); }, { rootMargin: '100% 0px' });
@@ -1578,6 +1653,7 @@ var RSSCore = (function () {
     el.innerHTML = current.slice(0, shown).map(cardHtml).join('');
     attachListSentinel();
     observeLazyImages(el);
+    fitThumbCards(el);
   }
   function setMode(next) {
     mode = next === 'pics' ? 'pics' : 'feed';
@@ -1764,7 +1840,10 @@ var RSSCore = (function () {
     var rt;
     window.addEventListener('resize', function () {
       clearTimeout(rt);
-      rt = setTimeout(function () { if (mode === 'pics') { syncColCtl(); relayoutGallery(); } }, 120);
+      rt = setTimeout(function () {
+        if (mode === 'pics') { syncColCtl(); relayoutGallery(); }
+        else fitThumbCards($('list'));
+      }, 120);
     });
   }
   $('gallery').addEventListener('click', function (e) {
