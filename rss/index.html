@@ -43,6 +43,7 @@ button{font:inherit;color:inherit}
 a{color:var(--accent)}
 :focus-visible{outline:2px solid var(--text);outline-offset:2px}
 .wrap{max-width:720px;margin:0 auto}
+.wrap.wide{max-width:min(1400px,100%)}
 /* 顶栏 + 筛选条（吸顶） */
 .top{position:sticky;top:0;z-index:20;background:var(--bg);padding-top:var(--sat);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;gap:6px;padding:10px 14px 4px}
@@ -131,12 +132,14 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .mode button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:0 12px;font-size:13px;cursor:pointer}
 .mode button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 /* 图流水流 */
-.masonry{padding:10px 12px calc(28px + var(--sab));column-count:2;column-gap:8px}
+.masonry{padding:8px 8px calc(28px + var(--sab))}
+.masonry-cols{display:flex;align-items:flex-start;gap:3px}
+.masonry-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:3px}
 .masonry[hidden],.list[hidden]{display:none}
-.tile{break-inside:avoid;margin:0 0 8px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;display:none;width:100%;padding:0;text-align:left;color:inherit}
-.tile.show{display:inline-block}
-.tile img{width:100%;height:auto;display:block;background:var(--chip);vertical-align:middle}
-.tile figcaption{margin:0;padding:7px 9px 8px;font-size:12px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile{margin:0;background:transparent;border:0;border-radius:4px;overflow:hidden;cursor:pointer;display:block;width:100%;padding:0;text-align:left;color:inherit;position:relative}
+.tile.show{display:block}
+.tile img{width:100%;height:auto;display:block;background:var(--chip);vertical-align:middle;border-radius:4px;object-fit:unset}
+.tile figcaption{position:absolute;left:0;right:0;bottom:0;margin:0;padding:22px 8px 6px;font-size:12px;line-height:1.35;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:linear-gradient(to bottom,transparent,rgba(0,0,0,.6));pointer-events:none;border-radius:0 0 4px 4px}
 /* 大图浏览 */
 .pv-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:calc(100dvh - 70px - var(--sat) - var(--sab));padding:8px 12px calc(24px + var(--sab));touch-action:pan-y}
 .pv-stage img{max-width:100%;max-height:calc(100dvh - 90px - var(--sat) - var(--sab));object-fit:contain;border-radius:8px;background:var(--chip)}
@@ -145,10 +148,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .pv-nav.next{right:8px}
 .pv-cap{text-align:center;font-size:13px;color:var(--muted);padding:0 16px 8px}
 @media (min-width:820px){
-  .masonry{column-count:3;padding:14px 20px 40px}
-}
-@media (min-width:1100px){
-  .masonry{column-count:4}
+  .masonry{padding:10px 10px 40px}
 }
 @media (min-width:820px){
   .list{padding:14px 20px 40px}
@@ -248,10 +248,11 @@ var RSSCore = (function () {
     '# https://corsproxy.io/?url={url}',
     '# https://api.cors.lol/?url={url}'
   ];
+  var DEFAULT_CUSTOM_PROXY = 'https://rss-proxy.askmkmnn.workers.dev/?url=';
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false,
-    customProxy: '', imageFilter: 'strict'
+    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict'
   };
   var GROUP_ORDER = ['新闻+', '科技', '杂志', '杂志F', '设计', '其他', '推荐'];
   var DEFAULT_FEEDS = [
@@ -688,22 +689,35 @@ var RSSCore = (function () {
     if (t.indexOf('{raw}') >= 0) return t.replace('{raw}', target);
     return t + encodeURIComponent(target);
   }
-  /* 自建代理排在公共代理前面；地址由设置填入，留空则跳过。用户写 https://xxx/?url= 时自动补上 {url}。 */
-  function withCustomProxy(proxies, custom) {
-    var list = (proxies || []).slice();
+  /* 自建代理：用户写 https://xxx/?url= 时自动补上 {url}；留空则跳过。 */
+  function normalizeCustomProxy(custom) {
     var c = String(custom || '').trim();
-    if (!c) return list;
+    if (!c) return '';
     if (c.indexOf('{url}') < 0 && c.indexOf('{raw}') < 0) {
       if (/[?&]url=$/i.test(c) || /url=$/i.test(c)) c += '{url}';
       else if (/[?&]$/.test(c)) c += 'url={url}';
       else if (c.indexOf('?') >= 0) c += '&url={url}';
       else c += '?url={url}';
     }
-    return [c].concat(list);
+    return c;
   }
-  function routes(proxies, preferred, penalty) {
-    var list = [{ key: 'direct', mode: 'raw', direct: true }];
-    (proxies || []).forEach(function (l) { var p = parseProxy(l); if (p) list.push(p); });
+  function withCustomProxy(proxies, custom) {
+    var c = normalizeCustomProxy(custom);
+    var list = (proxies || []).slice();
+    return c ? [c].concat(list) : list;
+  }
+  /* 线路顺序：上次成功的路线 → 自建代理 → 直连 → 公共代理 */
+  function routes(proxies, preferred, penalty, custom) {
+    var customRoute = parseProxy(normalizeCustomProxy(custom));
+    var list = [];
+    if (customRoute) list.push(customRoute);
+    list.push({ key: 'direct', mode: 'raw', direct: true });
+    (proxies || []).forEach(function (l) {
+      var p = parseProxy(l);
+      if (!p) return;
+      if (customRoute && p.key === customRoute.key) return;
+      list.push(p);
+    });
     // 本轮刷新里连续失败 3 次以上的线路挪到最后，少等超时
     if (penalty) {
       var good = list.filter(function (r) { return (penalty[r.key] || 0) < 3; }), bad = list.filter(function (r) { return (penalty[r.key] || 0) >= 3; });
@@ -730,14 +744,14 @@ var RSSCore = (function () {
     }
     return res.text();
   }
-  /* 依次尝试：上次成功的线路 → 直连 → 代理列表。accept(text) 返回 true 才算成功。
+  /* 依次尝试：上次成功的线路 → 自建代理 → 直连 → 公共代理。accept(text) 返回 true 才算成功。
      返回 { text, route, attempts }；rss2json 线路返回 { feed }。 */
   async function fetchVia(url, opts) {
     opts = opts || {};
     var fetchImpl = opts.fetchImpl || (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
     var ms = opts.timeoutMs || 12000;
     var accept = opts.accept || function (t) { return looksLikeFeed(t); };
-    var list = routes(opts.proxies, opts.preferred, opts.penalty);
+    var list = routes(opts.proxies, opts.preferred, opts.penalty, opts.customProxy);
     var pen = opts.penalty;
     if (opts.allowJsonAdapter === false) list = list.filter(function (r) { return r.mode !== 'rss2json'; });
     var attempts = [];
@@ -957,7 +971,9 @@ var RSSCore = (function () {
     settings.timeoutMs = Math.max(2000, Math.min(60000, +settings.timeoutMs || DEFAULT_SETTINGS.timeoutMs));
     settings.concurrency = Math.max(1, Math.min(10, +settings.concurrency || DEFAULT_SETTINGS.concurrency));
     if (!Array.isArray(settings.proxies)) settings.proxies = DEFAULT_PROXIES.slice();
-    settings.customProxy = String(settings.customProxy || '');
+    settings.customProxyCleared = !!settings.customProxyCleared;
+    if (!settings.customProxyCleared && !String(settings.customProxy || '').trim()) settings.customProxy = DEFAULT_CUSTOM_PROXY;
+    else settings.customProxy = String(settings.customProxy || '');
     settings.imageFilter = settings.imageFilter === 'medium' ? 'medium' : 'strict';
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     return { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
@@ -1145,19 +1161,41 @@ var RSSCore = (function () {
     tiles.sort(function (a, b) { return b.date - a.date; });
     return tiles;
   }
+  /* 图流列数：手机 2 列；宽屏按约 240px 列宽增加。 */
+  function galleryColumnCount(width, colW, gap) {
+    width = +width || 0;
+    colW = +colW || 240;
+    gap = gap == null ? 3 : +gap;
+    if (width < 600) return 2;
+    return Math.max(2, Math.floor((width + gap) / (colW + gap)));
+  }
+  /* 按时间顺序把条目分到当前最矮的列，保持从上到下大致按时间读。 */
+  function assignToShortestColumn(items, colCount, heightOf) {
+    var n = Math.max(1, +colCount || 1);
+    var heights = [], cols = [];
+    var i;
+    for (i = 0; i < n; i++) { heights[i] = 0; cols[i] = []; }
+    (items || []).forEach(function (it, idx) {
+      var ci = 0, j;
+      for (j = 1; j < n; j++) if (heights[j] < heights[ci]) ci = j;
+      cols[ci].push(idx);
+      heights[ci] += (heightOf ? heightOf(it, idx) : 1) || 1;
+    });
+    return cols;
+  }
 
   return {
-    SCHEMA: SCHEMA, DEFAULT_PROXIES: DEFAULT_PROXIES, DEFAULT_SETTINGS: DEFAULT_SETTINGS,
+    SCHEMA: SCHEMA, DEFAULT_PROXIES: DEFAULT_PROXIES, DEFAULT_SETTINGS: DEFAULT_SETTINGS, DEFAULT_CUSTOM_PROXY: DEFAULT_CUSTOM_PROXY,
     DEFAULT_FEEDS: DEFAULT_FEEDS, GROUP_ORDER: GROUP_ORDER,
     hash: hash, uid: uid, absUrl: absUrl, escapeHtml: escapeHtml, stripTags: stripTags, parseDate: parseDate, decodeBytes: decodeBytes,
     parseXml: parseXml, parseFeed: parseFeed, fromRss2Json: fromRss2Json, sanitizeHtml: sanitizeHtml,
-    discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy,
+    discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
     mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
-    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, gallery: gallery
+    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn
   };
 })();
 
@@ -1234,7 +1272,7 @@ var RSSCore = (function () {
   }
   function fullDate(t) { if (!t) return ''; var x = new Date(t); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return x.getFullYear() + '-' + p(x.getMonth() + 1) + '-' + p(x.getDate()) + ' ' + p(x.getHours()) + ':' + p(x.getMinutes()); }
   function feedById(id) { return state.feeds.find(function (f) { return f.id === id; }); }
-  function proxies() { return C.withCustomProxy(state.settings.proxies, state.settings.customProxy); }
+  function fetchOpts(extra) { return Object.assign({ proxies: state.settings.proxies, customProxy: state.settings.customProxy, timeoutMs: state.settings.timeoutMs, penalty: penalty }, extra || {}); }
   function groupById(id) { return state.groups.find(function (g) { return g.id === id; }); }
   function feedName(f) { return (f && (f.title || f.url.replace(/^https?:\/\//, ''))) || ''; }
   function isStarred(id) { return state.stars.some(function (s) { return s.id === id; }); }
@@ -1325,44 +1363,120 @@ var RSSCore = (function () {
   $('modeFeed').onclick = function () { setMode('feed'); };
   $('modePics').onclick = function () { setMode('pics'); };
   function renderMain() {
-    if (mode === 'pics') renderGallery();
-    else { $('gallery').hidden = true; $('list').hidden = false; renderList(); }
+    var wrap = document.querySelector('main.wrap');
+    if (mode === 'pics') { if (wrap) wrap.classList.add('wide'); renderGallery(); }
+    else { if (wrap) wrap.classList.remove('wide'); $('gallery').hidden = true; $('list').hidden = false; renderList(); }
+  }
+  var galleryGen = 0, placedTiles = [], galleryLoadFrom = 0, galleryIO = null;
+  function galleryColCount() {
+    var el = $('gallery');
+    return C.galleryColumnCount(el ? el.clientWidth : window.innerWidth);
+  }
+  function buildGalleryCols(n) {
+    var el = $('gallery');
+    var html = '<div class="masonry-cols">';
+    for (var i = 0; i < n; i++) html += '<div class="masonry-col"></div>';
+    el.innerHTML = html + '</div>';
+  }
+  function shortestCol(cols) {
+    var ci = 0, min = cols[0] ? cols[0].offsetHeight : 0, j;
+    for (j = 1; j < cols.length; j++) if (cols[j].offsetHeight < min) { min = cols[j].offsetHeight; ci = j; }
+    return ci;
+  }
+  function placeTile(t) {
+    var el = $('gallery');
+    var cols = el.querySelectorAll('.masonry-col');
+    if (!cols.length) return;
+    var i = tiles.indexOf(t);
+    var fig = document.createElement('figure');
+    fig.className = 'tile show';
+    fig.dataset.i = String(i);
+    var nw = t.naturalWidth || t.width || 0, nh = t.naturalHeight || t.height || 0;
+    if (nw && nh) fig.style.aspectRatio = nw + ' / ' + nh;
+    fig.innerHTML = '<img width="' + (nw || '') + '" height="' + (nh || '') + '" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(t.url) + '" alt="' + esc(t.title || '') + '">' +
+      '<figcaption>' + esc(t.title || '') + '</figcaption>';
+    cols[shortestCol(cols)].appendChild(fig);
+  }
+  function relayoutGallery() {
+    var el = $('gallery');
+    if (!el || el.hidden || !placedTiles.length) return;
+    buildGalleryCols(galleryColCount());
+    placedTiles.forEach(placeTile);
+    attachGalleryMore();
+  }
+  function attachGalleryMore() {
+    var el = $('gallery');
+    var old = $('morePics');
+    if (old) old.remove();
+    if (galleryIO) { try { galleryIO.disconnect(); } catch (e) {} galleryIO = null; }
+    if (galleryLoadFrom >= tiles.length) return;
+    var more = document.createElement('div');
+    more.className = 'more';
+    more.id = 'morePics';
+    more.textContent = '继续加载…';
+    el.appendChild(more);
+    if (window.IntersectionObserver) {
+      galleryIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { galleryIO.disconnect(); shown += 60; loadGalleryBatch(); } });
+      galleryIO.observe(more);
+    } else more.onclick = function () { shown += 60; loadGalleryBatch(); };
+  }
+  function loadGalleryBatch() {
+    var gen = galleryGen, level = state.settings.imageFilter === 'medium' ? 'medium' : 'strict';
+    var from = galleryLoadFrom, to = Math.min(tiles.length, shown);
+    if (from >= to) { attachGalleryMore(); return; }
+    galleryLoadFrom = to;
+    var batch = tiles.slice(from, to);
+    var ready = new Array(batch.length);
+    var cursor = 0;
+    function tryPlace() {
+      if (gen !== galleryGen) return;
+      while (cursor < batch.length && ready[cursor] !== undefined) {
+        var t = ready[cursor++];
+        if (t) { placedTiles.push(t); placeTile(t); }
+      }
+      if (cursor >= batch.length) attachGalleryMore();
+    }
+    batch.forEach(function (t, i) {
+      var img = new Image();
+      img.referrerPolicy = 'no-referrer';
+      img.onload = function () {
+        if (gen !== galleryGen) return;
+        if (!C.passesImageSize(img.naturalWidth, img.naturalHeight, level)) { ready[i] = null; tryPlace(); return; }
+        t.naturalWidth = img.naturalWidth;
+        t.naturalHeight = img.naturalHeight;
+        ready[i] = t;
+        tryPlace();
+      };
+      img.onerror = function () { if (gen !== galleryGen) return; ready[i] = null; tryPlace(); };
+      img.src = t.url;
+    });
   }
   function renderGallery() {
     $('list').hidden = true;
     var el = $('gallery');
     el.hidden = false;
+    galleryGen++;
+    placedTiles = [];
+    galleryLoadFrom = 0;
     tiles = C.gallery(state, itemsByFeed, view);
-    var feedTitleOf = function (id, fallback) { var f = feedById(id); return f ? feedName(f) : (fallback || ''); };
     if (!state.feeds.length && view.type !== 'star') {
-      el.innerHTML = '<div class="empty" style="column-span:all"><div>还没有订阅</div></div>';
+      el.innerHTML = '<div class="empty"><div>还没有订阅</div></div>';
       return;
     }
     if (!tiles.length) {
-      el.innerHTML = '<div class="empty" style="column-span:all">' + (view.type === 'star' ? '收藏的文章里还没有合适的图。' : '这一组暂时没有合适的图。刷一下，或到设置里把过滤改成「中」。') + '</div>';
+      el.innerHTML = '<div class="empty">' + (view.type === 'star' ? '收藏的文章里还没有合适的图。' : '这一组暂时没有合适的图。刷一下，或到设置里把过滤改成「中」。') + '</div>';
       return;
     }
-    var level = state.settings.imageFilter === 'medium' ? 'medium' : 'strict';
-    var slice = tiles.slice(0, shown);
-    el.innerHTML = slice.map(function (t, i) {
-      return '<figure class="tile" data-i="' + i + '">' +
-        '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(t.url) + '" alt="' + esc(t.title || '') + '">' +
-        '<figcaption>' + esc(feedTitleOf(t.feedId, t.feedTitle)) + (t.title ? ' · ' + esc(t.title) : '') + '</figcaption></figure>';
-    }).join('') + (tiles.length > shown ? '<div class="more" id="morePics" style="column-span:all">继续加载…</div>' : '');
-    Array.prototype.forEach.call(el.querySelectorAll('.tile'), function (fig) {
-      var img = fig.querySelector('img');
-      function done(ok) { if (!ok) fig.remove(); else fig.classList.add('show'); }
-      if (img.complete && img.naturalWidth) done(C.passesImageSize(img.naturalWidth, img.naturalHeight, level));
-      else {
-        img.onload = function () { done(C.passesImageSize(img.naturalWidth, img.naturalHeight, level)); };
-        img.onerror = function () { done(false); };
-      }
+    buildGalleryCols(galleryColCount());
+    loadGalleryBatch();
+  }
+  if (!window._rssGalleryResize) {
+    window._rssGalleryResize = true;
+    var rt;
+    window.addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () { if (mode === 'pics') relayoutGallery(); }, 120);
     });
-    var more = $('morePics');
-    if (more && window.IntersectionObserver) {
-      var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); shown += 60; renderGallery(); } });
-      io.observe(more);
-    } else if (more) more.onclick = function () { shown += 60; renderGallery(); };
   }
   $('gallery').addEventListener('click', function (e) {
     var fig = e.target.closest('.tile');
@@ -1370,7 +1484,7 @@ var RSSCore = (function () {
   });
   var picIndex = 0;
   function visibleTiles() {
-    return Array.prototype.map.call($('gallery').querySelectorAll('.tile.show'), function (f) { return tiles[+f.dataset.i]; }).filter(Boolean);
+    return placedTiles.slice();
   }
   function openPic(i) {
     var vis = visibleTiles();
@@ -1467,7 +1581,7 @@ var RSSCore = (function () {
   function setStatus(html) { var s = $('status'); s.innerHTML = html || ''; s.classList.toggle('show', !!html); }
   var penalty = {};
   async function refreshFeed(f) {
-    var r = await C.fetchFeed(f.url, { proxies: proxies(), preferred: f.route, timeoutMs: state.settings.timeoutMs, penalty: penalty });
+    var r = await C.fetchFeed(f.url, fetchOpts({ preferred: f.route }));
     var items = r.feed.items.map(function (it) { return Object.assign(it, { feedId: f.id }); });
     itemsByFeed[f.id] = C.mergeItems(itemsByFeed[f.id], items, state.settings.maxItems);
     f.route = r.route; f.error = ''; f.fetchedAt = Date.now();
@@ -1538,7 +1652,7 @@ var RSSCore = (function () {
     var gid = pickGroup($('addGroup'));
     $('addGo').disabled = true; $('addMsg').textContent = '正在查找订阅源…';
     try {
-      var r = await C.resolveFeed(u, { proxies: proxies(), timeoutMs: state.settings.timeoutMs });
+      var r = await C.resolveFeed(u, fetchOpts());
       if (state.feeds.some(function (f) { return C.normUrl(f.url) === C.normUrl(r.url); })) throw new Error('这个源已经订阅过了');
       var f = { id: C.uid('f'), url: r.url, title: r.feed.title, siteUrl: r.feed.siteUrl, groupId: gid, route: r.route, error: '', fetchedAt: Date.now() };
       state.feeds.push(f);
@@ -1616,11 +1730,11 @@ var RSSCore = (function () {
       '<p class="note">严：最短边要求宽至少 800 像素，面积至少 50 万像素；中：600 像素、30 万像素。横幅和长条图都会丢掉。</p></div>' +
       '<h4>抓取</h4><div class="box">' +
       '<div class="row"><label class="sw" style="flex:1"><span>自建代理</span></label></div>' +
-      '<input type="url" id="sCustom" placeholder="https://xxx/?url=" value="' + esc(s.customProxy || '') + '" autocomplete="off" spellcheck="false">' +
-      '<p class="note">填 Cloudflare Worker 等地址，格式 <code>https://xxx/?url=</code>。留空则跳过，只走下面的公共线路。自建代理会排在公共代理前面（仍先直连）。</p>' +
+      '<input type="url" id="sCustom" placeholder="' + esc(C.DEFAULT_CUSTOM_PROXY) + '" value="' + esc(s.customProxy || '') + '" autocomplete="off" spellcheck="false">' +
+      '<p class="note">默认已填自建代理，可改或清空。抓取顺序：上次成功的路线 → 自建代理 → 直连 → 公共代理。清空后不再自动填回。</p>' +
       '<div class="row"><label class="sw" style="flex:1"><span>同时抓取</span><span><input type="number" id="sConc" min="1" max="10" value="' + s.concurrency + '" style="width:70px"> 个</span></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>每条线路超时</span><span><input type="number" id="sTo" min="2" max="60" value="' + Math.round(s.timeoutMs / 1000) + '" style="width:70px"> 秒</span></label></div>' +
-      '<p class="note" style="margin-top:12px">代理线路，一行一个，从上往下轮换（总是先直连；每个源会记住上次成功的线路）。<code>{url}</code> 处填编码后的订阅地址，<code>{raw}</code> 填原样地址；行首写 <code>json:字段名</code> 表示代理返回 JSON，<code>rss2json</code> 表示用 rss2json 转换服务（只有最近 10 篇）。</p>' +
+      '<p class="note" style="margin-top:12px">公共代理线路，一行一个。每个源会记住上次成功的路线，下次优先走它。<code>{url}</code> 处填编码后的订阅地址，<code>{raw}</code> 填原样地址；行首写 <code>json:字段名</code> 表示代理返回 JSON，<code>rss2json</code> 表示用 rss2json 转换服务（只有最近 10 篇）。</p>' +
       '<textarea id="sProx" spellcheck="false">' + esc(s.proxies.join('\n')) + '</textarea>' +
       '<div class="row"><button class="btn ghost" id="sProxReset">恢复默认线路</button><span class="sp" style="flex:1"></span><button class="btn" id="sSave">保存设置</button></div></div>' +
       '<p class="note" style="margin-top:22px">数据只存在这台设备的浏览器里。换手机前记得备份 JSON。</p>';
@@ -1644,6 +1758,7 @@ var RSSCore = (function () {
       s.openMode = $('sOpen').value; s.pinnedFirstInAll = $('sBoost').checked;
       s.imageFilter = $('sImg').value === 'medium' ? 'medium' : 'strict';
       s.customProxy = $('sCustom').value.trim();
+      s.customProxyCleared = !s.customProxy;
       s.maxItems = Math.max(10, Math.min(2000, +$('sMax').value || 200));
       s.concurrency = Math.max(1, Math.min(10, +$('sConc').value || 4));
       s.timeoutMs = Math.max(2, Math.min(60, +$('sTo').value || 15)) * 1000;
