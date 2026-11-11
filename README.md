@@ -11,6 +11,7 @@
 - QuickMind 思维导图：<https://askmkmnn.github.io/tools/mind/>
 - 好用 App 清单：<https://askmkmnn.github.io/tools/apps/>
 - 大连水果月历：<https://askmkmnn.github.io/tools/fruit/>
+- RSS 阅读：<https://askmkmnn.github.io/tools/rss/>
 - Windows 工具：<https://askmkmnn.github.io/tools/win/>
   - 录屏批量压缩：<https://askmkmnn.github.io/tools/win/screen-compress/录屏批量压缩.zip>
 
