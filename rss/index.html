@@ -78,12 +78,13 @@ a{color:var(--accent)}
 .meta{margin-top:5px;font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;min-width:0}
 .meta .src{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:55%;cursor:pointer}
 .meta .src:hover{text-decoration:underline}
-.thumb{flex:none;width:96px;height:96px;border-radius:10px;object-fit:cover;background:var(--chip)}
+.thumb{flex:none;width:80px;height:80px;border-radius:10px;object-fit:cover;background:var(--chip)}
 .card.has-thumb{align-items:flex-start}
-.card.has-thumb .body{display:flex;flex-direction:column;max-height:96px;overflow:hidden}
-.card.has-thumb h3{font-size:15px;line-height:1.28;-webkit-line-clamp:2}
-.card.has-thumb p{margin:2px 0 0;font-size:13px;line-height:1.3;-webkit-line-clamp:1}
-.card.has-thumb .meta{margin-top:4px;flex:none}
+.card.has-thumb .body{display:flex;flex-direction:column;height:80px;min-height:80px;max-height:80px;overflow:hidden}
+.card.has-thumb h3{font-size:15px;line-height:1.28;-webkit-line-clamp:2;flex:none}
+.card.has-thumb .thumb-gap{flex:1 1 auto;min-height:0}
+.card.has-thumb p{margin:2px 0 0;font-size:13px;line-height:1.3;-webkit-line-clamp:1;flex:none}
+.card.has-thumb .meta{margin-top:3px;flex:none}
 .starb{border:0;background:none;padding:2px 4px;margin-left:auto;cursor:pointer;color:var(--muted);font-size:15px;line-height:1}
 .starb.on{color:var(--star)}
 .empty{text-align:center;color:var(--muted);padding:60px 20px}
@@ -170,7 +171,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 @media (min-width:820px){
   .list{padding:14px 20px 40px}
   .card{padding:13px 14px}
-  .thumb{width:96px;height:96px}
+  .thumb{width:80px;height:80px}
 }
 </style>
 </head>
@@ -288,7 +289,6 @@ var RSSCore = (function () {
     { title: 'Colossal', url: 'https://feeds.feedburner.com/colossal', group: '新闻+' },
     { title: 'Design Milk', url: 'https://feeds.feedburner.com/design-milk', group: '新闻+' },
     { title: 'Nautilus', url: 'https://nautil.us/feed/', group: '新闻+' },
-    { title: 'Buzzing', url: 'https://www.buzzing.cc/feed.xml', group: '新闻+' },
     { title: 'Product Hunt', url: 'https://www.producthunt.com/feed', group: '新闻+' },
     { title: 'V2EX', url: 'https://www.v2ex.com/index.xml', group: '新闻+' },
     { title: '9to5Google', url: 'https://9to5google.com/feed/', group: '科技' },
@@ -970,6 +970,24 @@ var RSSCore = (function () {
   function canonicalGroupName(name) {
     return String(name || '') === '杂志F' ? '杂志' : String(name || '');
   }
+  var DROPPED_FEED_URLS = ['https://www.buzzing.cc/feed.xml'];
+  function isDroppedFeedUrl(url) {
+    var k = feedKey(url);
+    var i;
+    for (i = 0; i < DROPPED_FEED_URLS.length; i++) {
+      if (feedKey(DROPPED_FEED_URLS[i]) === k) return true;
+    }
+    return false;
+  }
+  /* 一次性去掉已从默认列表移除的源（目前仅 Buzzing）。不删其他订阅，也不动收藏。可重复执行。 */
+  function migrateDroppedFeeds(state) {
+    if (!state || !state.feeds) return state;
+    var feeds = state.feeds, i;
+    for (i = feeds.length - 1; i >= 0; i--) {
+      if (isDroppedFeedUrl(feeds[i].url)) feeds.splice(i, 1);
+    }
+    return state;
+  }
   /* 把旧分组「杂志F」并入「杂志」：不删订阅、不动其他分组。可重复执行。 */
   function migrateGroups(state) {
     if (!state) return state;
@@ -1001,6 +1019,7 @@ var RSSCore = (function () {
   /* 把默认订阅并进现有状态（按网址/域名写法去重），不删除任何已有源，返回新增数量 */
   function mergeDefaults(state) {
     migrateGroups(state);
+    migrateDroppedFeeds(state);
     var added = 0;
     GROUP_ORDER.forEach(function (name) { ensureGroup(state, name); });
     DEFAULT_FEEDS.forEach(function (pf) {
@@ -1041,6 +1060,7 @@ var RSSCore = (function () {
       return { id: String(f.id || uid('f')), url: String(f.url || f.xmlUrl), title: String(f.title || ''), siteUrl: String(f.siteUrl || f.htmlUrl || ''), groupId: gids[gid] ? gid : '', route: String(f.route || '') };
     });
     migrateGroups({ groups: groups, feeds: feeds });
+    migrateDroppedFeeds({ feeds: feeds });
     var stars = (Array.isArray(data.stars) ? data.stars : []).filter(function (s) { return s && s.id; }).map(function (s) {
       return { id: String(s.id), feedId: String(s.feedId || ''), title: String(s.title || ''), link: String(s.link || ''), date: +s.date || 0, summary: String(s.summary || ''), content: String(s.content || ''), thumb: String(s.thumb || ''), author: String(s.author || ''), feedTitle: String(s.feedTitle || ''), enclosures: Array.isArray(s.enclosures) ? s.enclosures : [], base: String(s.base || s.link || ''), starredAt: +s.starredAt || 0 };
     });
@@ -1358,7 +1378,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns
@@ -1551,6 +1571,7 @@ var RSSCore = (function () {
     return '<article class="card' + (thumb ? ' has-thumb' : '') + '" data-i="' + i + '">' +
       (thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(thumb) + '" alt="" onerror="if(this.parentNode)this.parentNode.classList.remove(\'has-thumb\');this.remove()">' : '') +
       '<div class="body"><h3>' + esc(it.title) + '</h3>' +
+      (thumb ? '<div class="thumb-gap" aria-hidden="true"></div>' : '') +
       (it.summary ? '<p>' + esc(it.summary) + '</p>' : '') +
       '<div class="meta"><span class="src" data-feed="' + esc(it.feedId) + '">' + esc(f ? feedName(f) : (it.feedTitle || '')) + '</span><span>·</span><span>' + ago(it.date) + '</span>' +
       '<button class="starb' + (star ? ' on' : '') + '" data-star="' + i + '" aria-label="收藏">' + (star ? '★' : '☆') + '</button></div></div>' +
