@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "RSS 阅读",
-  "short_name": "RSS",
+  "name": "信息流",
+  "short_name": "信息流",
   "description": "自用 RSS 信息流：订阅、分组、收藏，断网也能看已抓到的文章",
   "lang": "zh-CN",
   "dir": "ltr",
