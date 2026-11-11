@@ -165,7 +165,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 @media (min-width:820px){
   .list{padding:14px 20px 40px}
   .card{padding:13px 14px}
-  .thumb{width:96px;height:72px}
+  .thumb{width:80px;height:80px}
 }
 </style>
 </head>
@@ -269,7 +269,7 @@ var RSSCore = (function () {
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false,
-    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto'
+    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true
   };
   var GROUP_ORDER = ['新闻+', '科技', '杂志', '杂志F', '设计', '其他', '推荐'];
   var DEFAULT_FEEDS = [
@@ -1018,6 +1018,7 @@ var RSSCore = (function () {
     settings.imageFilter = settings.imageFilter === 'medium' ? 'medium' : 'strict';
     settings.galleryCols = normalizeGalleryCols(settings.galleryCols);
     settings.proxyMode = normalizeProxyMode(settings.proxyMode);
+    settings.showListThumb = settings.showListThumb !== false && settings.showListThumb !== 'false' && settings.showListThumb !== 0;
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     return { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
   }
@@ -1186,6 +1187,51 @@ var RSSCore = (function () {
     });
     return out.slice(0, 4);
   }
+  /* 信息流缩略图：排除头像/图标/追踪像素，但不套用图流的 800px / 面积门槛。 */
+  function prefilterThumb(url, attrs) {
+    attrs = attrs || {};
+    var u = String(url || '').trim();
+    if (!u) return false;
+    var resolved = absUrl(u, attrs.base);
+    if (!safeUrl(resolved)) return false;
+    var cls = String(attrs.className || attrs['class'] || '');
+    if (IMAGE_REJECT.test(u) || IMAGE_REJECT.test(cls)) return false;
+    if (/^data:/i.test(u)) return false;
+    if (/\.svg(\?|#|$)/i.test(u) || /(?:^|[:/;])svg\+xml/i.test(attrs.type || '')) return false;
+    var w = parseInt(attrs.width, 10) || 0, h = parseInt(attrs.height, 10) || 0;
+    if ((w > 0 && w <= 2) || (h > 0 && h <= 2)) return false;
+    if (w > 0 && h > 0 && w * h <= 16) return false;
+    return true;
+  }
+  function itemListThumb(item) {
+    if (!item) return '';
+    var base = item.base || item.link || '';
+    var cands = [];
+    function add(url, attrs) {
+      if (!url) return;
+      var a = Object.assign({ base: base }, attrs || {});
+      var resolved = absUrl(url, a.base);
+      if (!prefilterThumb(resolved, a)) return;
+      cands.push(resolved);
+    }
+    (item.images || []).forEach(function (im) { add(im.url, im); });
+    (item.enclosures || []).forEach(function (e) {
+      if (e && e.url && (/^image\//.test(e.type || '') || /\.(jpe?g|png|gif|webp|avif)(\?|$)/i.test(e.url))) add(e.url, e);
+    });
+    imagesFromHtml(item.content || '', base).forEach(function (im) { add(im.url, im); });
+    imagesFromHtml(item.summary || '', base).forEach(function (im) { add(im.url, im); });
+    if (item.thumb) add(item.thumb, { kind: 'thumbnail' });
+    var seen = {}, i;
+    for (i = 0; i < cands.length; i++) {
+      var k = imageDedupeKey(cands[i]);
+      if (!k || seen[k]) continue;
+      return cands[i];
+    }
+    return '';
+  }
+  function stripHnPrefix(title) {
+    return String(title || '').replace(/^(?:show|ask|launch|tell)\s+hn\s*[:：]\s*/i, '');
+  }
   function gallery(state, itemsByFeed, view) {
     var articles = timeline(state, itemsByFeed, view);
     var seen = {}, tiles = [];
@@ -1278,7 +1324,7 @@ var RSSCore = (function () {
     mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
-    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns
+    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns
   };
 })();
 
@@ -1464,12 +1510,13 @@ var RSSCore = (function () {
   function cardHtml(it, i) {
     var f = feedById(it.feedId);
     var star = isStarred(it.id);
+    var thumb = state.settings.showListThumb !== false ? C.itemListThumb(it) : '';
     return '<article class="card" data-i="' + i + '">' +
+      (thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(thumb) + '" alt="" onerror="this.remove()">' : '') +
       '<div class="body"><h3>' + esc(it.title) + '</h3>' +
       (it.summary ? '<p>' + esc(it.summary) + '</p>' : '') +
       '<div class="meta"><span class="src" data-feed="' + esc(it.feedId) + '">' + esc(f ? feedName(f) : (it.feedTitle || '')) + '</span><span>·</span><span>' + ago(it.date) + '</span>' +
       '<button class="starb' + (star ? ' on' : '') + '" data-star="' + i + '" aria-label="收藏">' + (star ? '★' : '☆') + '</button></div></div>' +
-      (it.thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(it.thumb) + '" alt="" onerror="this.remove()">' : '') +
       '</article>';
   }
   function observeLazyImages(root) {
@@ -1621,8 +1668,9 @@ var RSSCore = (function () {
     fig.dataset.i = String(i);
     var nw = t.naturalWidth || t.width || 0, nh = t.naturalHeight || t.height || 0;
     if (nw && nh) fig.style.aspectRatio = nw + ' / ' + nh;
-    fig.innerHTML = '<img width="' + (nw || '') + '" height="' + (nh || '') + '" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(t.url) + '" alt="' + esc(t.title || '') + '">' +
-      '<figcaption>' + esc(t.title || '') + '</figcaption>';
+    var cap = C.stripHnPrefix(t.title || '');
+    fig.innerHTML = '<img width="' + (nw || '') + '" height="' + (nh || '') + '" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(t.url) + '" alt="' + esc(cap) + '">' +
+      '<figcaption>' + esc(cap) + '</figcaption>';
     cols[shortestCol(cols)].appendChild(fig);
   }
   function relayoutGallery() {
@@ -1744,9 +1792,9 @@ var RSSCore = (function () {
     var t = vis[picIndex];
     var f = feedById(t.feedId);
     $('pvSrc').textContent = f ? feedName(f) : (t.feedTitle || '');
-    $('pvTitle').textContent = t.title || '';
+    $('pvTitle').textContent = C.stripHnPrefix(t.title || '');
     $('pvImg').src = t.url;
-    $('pvImg').alt = t.title || '';
+    $('pvImg').alt = C.stripHnPrefix(t.title || '');
     $('pvOpen').href = t.link || '#';
     $('pvOpen').style.display = t.link ? '' : 'none';
   }
@@ -1969,6 +2017,7 @@ var RSSCore = (function () {
       '<label class="sw"><span>点文章时</span><select id="sOpen" style="width:auto"><option value="reader">在阅读页打开</option><option value="original">直接打开原文</option></select></label>' +
       '<div class="row"><label class="sw" style="flex:1"><span>「全部」里置顶分组排前面</span><input type="checkbox" id="sBoost"' + (s.pinnedFirstInAll ? ' checked' : '') + '></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>每个源最多保留</span><span><input type="number" id="sMax" min="10" max="2000" value="' + s.maxItems + '" style="width:90px"> 篇</span></label></div>' +
+      '<div class="row"><label class="sw" style="flex:1"><span>信息流显示缩略图</span><input type="checkbox" id="sListThumb"' + (s.showListThumb !== false ? ' checked' : '') + '></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>图流过滤强度</span><select id="sImg" style="width:auto"><option value="strict">严（默认）</option><option value="medium">中</option></select></label></div>' +
       '<p class="note">严：最短边要求宽至少 800 像素，面积至少 50 万像素；中：600 像素、30 万像素。横幅和长条图都会丢掉。</p></div>' +
       '<h4>抓取</h4><div class="box">' +
@@ -2019,6 +2068,7 @@ var RSSCore = (function () {
     $('sSave').onclick = function () {
       s.openMode = $('sOpen').value; s.pinnedFirstInAll = $('sBoost').checked;
       s.imageFilter = $('sImg').value === 'medium' ? 'medium' : 'strict';
+      s.showListThumb = $('sListThumb').checked;
       s.proxyMode = C.normalizeProxyMode(s.proxyMode);
       s.customProxy = $('sCustom').value.trim();
       s.customProxyCleared = !s.customProxy;
