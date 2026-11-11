@@ -290,9 +290,9 @@ var RSSCore = (function () {
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader',
-    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false
+    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false
   };
-  var GROUP_ORDER = ['新闻+', '科技', '杂志', '设计', '推荐'];
+  var GROUP_ORDER = ['新闻+', '设计', '杂志', '图流', '信息流', '科技'];
   var DEFAULT_FEEDS = [
     { title: 'NewsBot AI Reports', url: 'https://newsbot.justinyan.app/api/public/rss/reports.xml', group: '新闻+' },
     { title: '爱范儿', url: 'https://feedx.net/rss/ifanr.xml', group: '新闻+' },
@@ -328,30 +328,29 @@ var RSSCore = (function () {
     { title: 'Vogue', url: 'https://www.vogue.com/feed/rss', group: '杂志' },
     { title: 'ArchDaily | ArchDaily', url: 'https://www.archdaily.com/zh/cn.xml', group: '设计' },
     { title: 'but does it float', url: 'https://butdoesitfloat.com/rss', group: '设计' },
-    { title: 'TechCrunch', url: 'https://techcrunch.com/feed/', group: '推荐' },
-    { title: 'WIRED', url: 'https://www.wired.com/feed/rss', group: '推荐' },
-    { title: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', group: '推荐' },
-    { title: '量子位', url: 'https://www.qbitai.com/feed', group: '推荐' },
-    { title: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', group: '推荐' },
-    { title: 'Android Police', url: 'https://www.androidpolice.com/feed/', group: '推荐' },
-    { title: 'Engadget', url: 'https://www.engadget.com/rss.xml', group: '推荐' },
-    { title: 'Highsnobiety', url: 'https://www.highsnobiety.com/feed/', group: '推荐' },
-    { title: 'Hypebeast', url: 'https://hypebeast.com/feed', group: '推荐' },
-    { title: 'Business of Fashion', url: 'https://www.businessoffashion.com/feed', group: '推荐' },
-    { title: 'GQ', url: 'https://www.gq.com/feed/rss', group: '推荐' },
-    { title: 'Dezeen', url: 'https://www.dezeen.com/feed/', group: '推荐' },
-    { title: 'designboom', url: 'https://www.designboom.com/feed/', group: '推荐' },
-    { title: 'Architectural Digest', url: 'https://www.architecturaldigest.com/feed/rss', group: '推荐' },
-    { title: 'Hyperallergic', url: 'https://hyperallergic.com/feed/', group: '推荐' },
-    { title: '机核', url: 'https://www.gcores.com/rss', group: '推荐' },
-    { title: 'Polygon', url: 'https://www.polygon.com/rss/index.xml', group: '推荐' },
-    { title: 'IGN', url: 'https://feeds.ign.com/ign/all', group: '推荐' },
-    { title: 'Nintendo Life', url: 'https://www.nintendolife.com/feeds/latest', group: '推荐' },
-    { title: 'Hacker News', url: 'https://hnrss.org/frontpage', group: '推荐' },
-    { title: 'Solidot', url: 'https://www.solidot.org/index.rss', group: '推荐' },
-    { title: '开源中国', url: 'https://www.oschina.net/news/rss', group: '推荐' },
-    { title: 'LWN', url: 'https://lwn.net/headlines/rss', group: '推荐' },
-    { title: 'IT之家', url: 'https://www.ithome.com/rss/', group: '' }
+    { title: 'TechCrunch', url: 'https://techcrunch.com/feed/', group: '信息流' },
+    { title: 'WIRED', url: 'https://www.wired.com/feed/rss', group: '信息流' },
+    { title: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', group: '信息流' },
+    { title: '量子位', url: 'https://www.qbitai.com/feed', group: '信息流' },
+    { title: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', group: '信息流' },
+    { title: 'Android Police', url: 'https://www.androidpolice.com/feed/', group: '信息流' },
+    { title: 'Engadget', url: 'https://www.engadget.com/rss.xml', group: '信息流' },
+    { title: 'Highsnobiety', url: 'https://www.highsnobiety.com/feed/', group: '图流' },
+    { title: 'Hypebeast', url: 'https://hypebeast.com/feed', group: '图流' },
+    { title: 'Business of Fashion', url: 'https://www.businessoffashion.com/feed', group: '图流' },
+    { title: 'GQ', url: 'https://www.gq.com/feed/rss', group: '图流' },
+    { title: 'Dezeen', url: 'https://www.dezeen.com/feed/', group: '图流' },
+    { title: 'designboom', url: 'https://www.designboom.com/feed/', group: '图流' },
+    { title: 'Architectural Digest', url: 'https://www.architecturaldigest.com/feed/rss', group: '图流' },
+    { title: 'Hyperallergic', url: 'https://hyperallergic.com/feed/', group: '图流' },
+    { title: '机核', url: 'https://www.gcores.com/rss', group: '信息流' },
+    { title: 'Polygon', url: 'https://www.polygon.com/rss/index.xml', group: '信息流' },
+    { title: 'IGN', url: 'https://feeds.ign.com/ign/all', group: '信息流' },
+    { title: 'Nintendo Life', url: 'https://www.nintendolife.com/feeds/latest', group: '信息流' },
+    { title: 'Hacker News', url: 'https://hnrss.org/frontpage', group: '信息流' },
+    { title: 'Solidot', url: 'https://www.solidot.org/index.rss', group: '信息流' },
+    { title: '开源中国', url: 'https://www.oschina.net/news/rss', group: '信息流' },
+    { title: 'LWN', url: 'https://lwn.net/headlines/rss', group: '信息流' },
   ];
 
   function hash(s) {
@@ -1071,10 +1070,7 @@ var RSSCore = (function () {
         else if (g) rest.push(g.id);
       });
       if (pinned.length) state.navOrder = pinned.concat([NAV_ALL], rest);
-      else if ((state.groups || []).length) {
-        var ids = state.groups.map(function (g) { return g.id; });
-        state.navOrder = [ids[0], NAV_ALL].concat(ids.slice(1));
-      } else state.navOrder = [NAV_ALL];
+      else state.navOrder = defaultNavOrder(state);
     }
     (state.groups || []).forEach(function (g) {
       if (!g) return;
@@ -1146,11 +1142,156 @@ var RSSCore = (function () {
     state.settings.otherGroupMigrated = true;
     return state;
   }
+  var ITHOME_URL = 'https://www.ithome.com/rss/';
+  function isIthomeUrl(url) { return feedKey(url) === feedKey(ITHOME_URL); }
+  /* 一次性按网址去掉默认源 IT之家（http/www/尾斜杠也算）。已收藏文章保留。用 settings.ithomeMigrated 避免用户后来手动加回时再被删掉。 */
+  function applyIthomeMigration(state) {
+    if (!state) return state;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    if (state.settings.ithomeMigrated) return state;
+    var feeds = state.feeds || [], i;
+    for (i = feeds.length - 1; i >= 0; i--) {
+      if (isIthomeUrl(feeds[i].url)) feeds.splice(i, 1);
+    }
+    state.settings.ithomeMigrated = true;
+    return state;
+  }
+  var REC_PICS_URLS = [
+    'https://www.highsnobiety.com/feed/',
+    'https://hypebeast.com/feed',
+    'https://www.businessoffashion.com/feed',
+    'https://www.gq.com/feed/rss',
+    'https://www.dezeen.com/feed/',
+    'https://www.designboom.com/feed/',
+    'https://www.architecturaldigest.com/feed/rss',
+    'https://hyperallergic.com/feed/'
+  ];
+  var REC_FEED_URLS = [
+    'https://techcrunch.com/feed/',
+    'https://www.wired.com/feed/rss',
+    'https://www.technologyreview.com/feed/',
+    'https://www.qbitai.com/feed',
+    'https://feeds.macrumors.com/MacRumors-All',
+    'https://www.androidpolice.com/feed/',
+    'https://www.engadget.com/rss.xml',
+    'https://www.gcores.com/rss',
+    'https://www.polygon.com/rss/index.xml',
+    'https://feeds.ign.com/ign/all',
+    'https://www.nintendolife.com/feeds/latest',
+    'https://hnrss.org/frontpage',
+    'https://www.solidot.org/index.rss',
+    'https://www.oschina.net/news/rss',
+    'https://lwn.net/headlines/rss'
+  ];
+  function recSplitTarget(url) {
+    var k = feedKey(url), i;
+    for (i = 0; i < REC_PICS_URLS.length; i++) if (feedKey(REC_PICS_URLS[i]) === k) return '图流';
+    for (i = 0; i < REC_FEED_URLS.length; i++) if (feedKey(REC_FEED_URLS[i]) === k) return '信息流';
+    return '';
+  }
+  function navLabels(state) {
+    var map = {};
+    (state.groups || []).forEach(function (g) { if (g && g.id) map[g.id] = g.name; });
+    return (state.navOrder || []).map(function (k) {
+      if (isAllNavKey(k)) return '全部';
+      return map[k] || '';
+    });
+  }
+  function isLegacyDefaultNav(state) {
+    var labels = navLabels(state).filter(function (x) { return x; });
+    var a = labels.join('\t');
+    return a === '新闻+\t全部\t科技\t杂志\t设计\t推荐' || a === '新闻+\t全部\t科技\t杂志\t设计' || a === '新闻+\t全部\t设计\t杂志\t图流\t信息流\t科技';
+  }
+  /* 默认筛选条：新闻+、设计、杂志、图流、信息流、科技、全部；其余分组跟在后面。 */
+  function defaultNavOrder(state) {
+    var byName = {}, out = [];
+    (state.groups || []).forEach(function (g) { if (g && g.id && !byName[g.name]) byName[g.name] = g; });
+    GROUP_ORDER.forEach(function (name) { if (byName[name]) out.push(byName[name].id); });
+    out.push(NAV_ALL);
+    (state.groups || []).forEach(function (g) { if (g && g.id && out.indexOf(g.id) < 0) out.push(g.id); });
+    return out;
+  }
+  function findOrMakeGroup(state, name) {
+    if (!state.groups) state.groups = [];
+    var g = state.groups.find(function (x) { return x.name === name; });
+    if (!g) { g = makeGroup(name); state.groups.push(g); }
+    return g;
+  }
+  /* 把默认「推荐」拆成「图流」「信息流」：默认源按网址改组；空的「推荐」删掉。若用户自己加进「推荐」的非默认源还在，保留「推荐」分组（不把它们打散到未分组，以免丢掉用户自己的归类）。已改过的 showInFeed/showInPics 不覆盖。自定义 navOrder 把「推荐」换成 图流+信息流（在原位置，若保留推荐则跟在后面）；未自定义过则用新默认顺序。settings.recommendSplitMigrated 避免再跑一遍（例如用户后来把源挪到别的组）。 */
+  function applyRecommendSplit(state) {
+    if (!state) return state;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    if (state.settings.recommendSplitMigrated) return state;
+    var recIds = {}, recKept = [];
+    (state.groups || []).forEach(function (g) {
+      if (g && g.name === '推荐') recIds[g.id] = g;
+    });
+    var needPics = (state.feeds || []).some(function (f) { return recSplitTarget(f.url) === '图流'; });
+    var needFeed = (state.feeds || []).some(function (f) { return recSplitTarget(f.url) === '信息流'; });
+    var picsG = needPics ? findOrMakeGroup(state, '图流') : null;
+    var feedG = needFeed ? findOrMakeGroup(state, '信息流') : null;
+    (state.feeds || []).forEach(function (f) {
+      var t = recSplitTarget(f.url);
+      if (t === '图流' && picsG) f.groupId = picsG.id;
+      else if (t === '信息流' && feedG) f.groupId = feedG.id;
+    });
+    Object.keys(recIds).forEach(function (id) {
+      var has = (state.feeds || []).some(function (f) { return f.groupId === id; });
+      if (has) recKept.push(recIds[id]);
+    });
+    if (state.groups) {
+      var drop = {};
+      Object.keys(recIds).forEach(function (id) {
+        if (!recKept.some(function (g) { return g.id === id; })) drop[id] = 1;
+      });
+      for (var i = state.groups.length - 1; i >= 0; i--) {
+        if (drop[state.groups[i].id]) state.groups.splice(i, 1);
+      }
+    }
+    var hadNav = Array.isArray(state.navOrder) && state.navOrder.length;
+    if (hadNav && isLegacyDefaultNav(state)) {
+      state.navOrder = defaultNavOrder(state);
+    } else if (hadNav) {
+      var out = [], placed = false, seen = {};
+      state.navOrder.forEach(function (k) {
+        k = String(k || '');
+        if (recIds[k]) {
+          if (!placed) {
+            if (picsG && !seen[picsG.id]) { out.push(picsG.id); seen[picsG.id] = 1; }
+            if (feedG && !seen[feedG.id]) { out.push(feedG.id); seen[feedG.id] = 1; }
+            recKept.forEach(function (g) { if (!seen[g.id]) { out.push(g.id); seen[g.id] = 1; } });
+            placed = true;
+          }
+          return;
+        }
+        if (isAllNavKey(k)) k = NAV_ALL;
+        if (!seen[k]) { out.push(k); seen[k] = 1; }
+      });
+      if (!placed) {
+        var add = [];
+        if (picsG) add.push(picsG.id);
+        if (feedG) add.push(feedG.id);
+        recKept.forEach(function (g) { add.push(g.id); });
+        if (add.length) {
+          var ai = -1, j;
+          for (j = 0; j < out.length; j++) if (out[j] === NAV_ALL) { ai = j; break; }
+          if (ai < 0) out = out.concat(add);
+          else out = out.slice(0, ai).concat(add, out.slice(ai));
+        }
+      }
+      state.navOrder = out;
+    }
+    state.settings.recommendSplitMigrated = true;
+    if (state.navOrder && state.navOrder.length) normalizeNavOrder(state);
+    return state;
+  }
   /* 把默认订阅并进现有状态（按网址/域名写法去重），不删除任何已有源，返回新增数量 */
   function mergeDefaults(state) {
     migrateGroups(state);
     migrateDroppedFeeds(state);
     applyOtherGroupMigration(state);
+    applyIthomeMigration(state);
+    applyRecommendSplit(state);
     var added = 0;
     GROUP_ORDER.forEach(function (name) { ensureGroup(state, name); });
     DEFAULT_FEEDS.forEach(function (pf) {
@@ -1159,6 +1300,7 @@ var RSSCore = (function () {
       state.feeds.push({ id: uid('f'), url: pf.url, title: pf.title, siteUrl: pf.siteUrl || '', groupId: g ? g.id : '' });
       added++;
     });
+    if (!Array.isArray(state.navOrder) || !state.navOrder.length) state.navOrder = defaultNavOrder(state);
     applyNavOrder(state);
     return added;
   }
@@ -1212,8 +1354,12 @@ var RSSCore = (function () {
     settings.showListThumb = settings.showListThumb !== false && settings.showListThumb !== 'false' && settings.showListThumb !== 0;
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     applyOtherGroupMigration({ groups: groups, feeds: feeds, settings: settings });
-    var restored = { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
-    applyNavOrder(restored, data.navOrder);
+    var restored = { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0, navOrder: Array.isArray(data.navOrder) ? data.navOrder.slice() : [] };
+    applyIthomeMigration(restored);
+    applyRecommendSplit(restored);
+    applyNavOrder(restored, restored.navOrder);
+    if (isLegacyDefaultNav(restored)) restored.navOrder = defaultNavOrder(restored);
+    normalizeNavOrder(restored);
     return restored;
   }
 
@@ -1552,7 +1698,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX
