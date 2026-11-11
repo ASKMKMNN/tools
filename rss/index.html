@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="RSS 阅读">
+<meta name="apple-mobile-web-app-title" content="信息流">
 <meta name="description" content="自用 RSS 信息流：订阅、分组、收藏，断网也能看已抓到的文章">
 <meta name="theme-color" content="#f6f4f1" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1a1917" media="(prefers-color-scheme: dark)">
@@ -15,7 +15,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>RSS 阅读</title>
+<title>信息流</title>
 <script>
 (function(){var t=localStorage.getItem('user-theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.setAttribute('data-theme','dark');})();
 </script>
@@ -36,7 +36,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{overflow-x:clip}
 body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Noto Sans SC",sans-serif;
+  font-family:system-ui, sans-serif;
   font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;
   padding-left:var(--sal);padding-right:var(--sar)}
 button{font:inherit;color:inherit}
@@ -47,7 +47,7 @@ a{color:var(--accent)}
 /* 顶栏 + 筛选条（吸顶） */
 .top{position:sticky;top:0;z-index:20;background:var(--bg);padding-top:var(--sat);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;gap:6px;padding:10px 14px 4px}
-.bar h1{margin:0 auto 0 0;font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:21px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;min-width:0}
+.bar h1{margin:0 auto 0 0;font-size:21px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;min-width:0}
 .bar h1 img{width:26px;height:26px;border-radius:6px}
 .ib{border:1px solid var(--line);background:var(--card);border-radius:12px;height:36px;min-width:36px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:14px;white-space:nowrap}
 .ib svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -62,6 +62,9 @@ a{color:var(--accent)}
 .status{font-size:12px;color:var(--muted);padding:0 14px 8px;display:none}
 .status.show{display:block}
 .status .err{color:var(--danger)}
+.fresh{display:none;width:calc(100% - 28px);margin:0 14px 8px;border:0;background:var(--chip-on);color:var(--chip-on-text);border-radius:10px;padding:8px 12px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;text-align:center}
+.fresh.show{display:block}
+.batch-sent{height:1px;margin:0;padding:0;border:0;overflow:hidden}
 /* 下拉刷新 */
 .ptr{height:0;overflow:hidden;display:flex;align-items:flex-end;justify-content:center;color:var(--muted);font-size:13px;transition:height .2s}
 .ptr span{padding-bottom:8px}
@@ -90,7 +93,7 @@ a{color:var(--accent)}
 .sheet .head{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;gap:8px;padding:calc(10px + var(--sat)) 14px 10px;border-bottom:1px solid var(--line);z-index:2}
 .sheet .head .t{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .reader{max-width:680px;margin:0 auto;padding:18px 18px calc(48px + var(--sab))}
-.reader h2{font-family:Georgia,"Songti SC","Noto Serif SC",serif;font-size:23px;line-height:1.35;margin:0 0 8px;word-break:break-word}
+.reader h2{font-size:23px;line-height:1.35;margin:0 0 8px;word-break:break-word}
 .reader .meta{font-size:13px;margin-bottom:16px;flex-wrap:wrap}
 .content{font-size:17px;line-height:1.75;word-break:break-word;overflow-wrap:anywhere}
 .content img,.content video{max-width:100%;height:auto;border-radius:8px;display:block;margin:10px auto}
@@ -127,8 +130,17 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .toast.show{opacity:1}
 
 /* 信息流 / 图流 切换 */
-.modes{display:flex;padding:2px 14px 0}
-.mode{display:inline-flex;background:var(--chip);border-radius:12px;padding:2px;height:32px}
+.modes{display:flex;align-items:center;gap:8px;padding:2px 14px 0}
+.mode{display:inline-flex;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
+.seg{display:flex;flex-wrap:wrap;gap:2px;background:var(--chip);border-radius:12px;padding:2px}
+.seg button{flex:1 1 0;min-width:4.2em;border:0;background:transparent;color:var(--muted);border-radius:10px;padding:7px 8px;font:inherit;font-size:13px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.colctl{display:none;margin-left:auto;align-items:center;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
+.colctl.on{display:inline-flex}
+.colctl button{border:0;background:transparent;color:var(--text);border-radius:10px;height:28px;min-width:28px;padding:0 7px;font:inherit;font-size:16px;line-height:1;cursor:pointer}
+.colctl button:disabled{opacity:.35}
+.colctl #colAuto{min-width:36px;padding:0 6px;font-size:12px;font-weight:600;color:var(--muted)}
+.colctl #colAuto[data-manual="true"]{color:var(--text)}
 .mode button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:0 12px;font-size:13px;cursor:pointer}
 .mode button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
 /* 图流水流 */
@@ -161,9 +173,8 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 <header class="top" id="top">
   <div class="wrap">
     <div class="bar">
-      <h1><img src="icon-192.png" alt="">RSS 阅读</h1>
+      <h1><img src="icon-192.png" alt="">信息流</h1>
       <button class="ib" id="btnRefresh" title="刷新" aria-label="刷新"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-      <button class="ib" id="btnAdd" title="添加订阅" aria-label="添加订阅"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
       <button class="ib" id="btnTheme" title="主题" aria-label="切换主题"><span id="themeIcon">🌓</span></button>
       <button class="ib" id="btnSettings" title="订阅与设置" aria-label="订阅与设置"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </div>
@@ -172,9 +183,15 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
         <button type="button" id="modeFeed" aria-pressed="true">信息流</button>
         <button type="button" id="modePics" aria-pressed="false">图流</button>
       </div>
+      <div class="colctl" id="colctl" hidden>
+        <button type="button" id="colMinus" aria-label="减少列数">−</button>
+        <button type="button" id="colAuto" aria-label="列数，点按恢复自动" title="点按恢复自动">自动</button>
+        <button type="button" id="colPlus" aria-label="增加列数">+</button>
+      </div>
     </div>
     <nav class="chips" id="chips" aria-label="筛选"></nav>
     <div class="status" id="status"></div>
+    <button type="button" class="fresh" id="fresh" hidden>有 <span class="fresh-n">0</span> 条新内容</button>
   </div>
 </header>
 <div class="ptr" id="ptr"><span id="ptrText">下拉刷新</span></div>
@@ -252,7 +269,7 @@ var RSSCore = (function () {
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false,
-    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict'
+    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto'
   };
   var GROUP_ORDER = ['新闻+', '科技', '杂志', '杂志F', '设计', '其他', '推荐'];
   var DEFAULT_FEEDS = [
@@ -295,7 +312,6 @@ var RSSCore = (function () {
     { title: 'TechCrunch', url: 'https://techcrunch.com/feed/', group: '推荐' },
     { title: 'WIRED', url: 'https://www.wired.com/feed/rss', group: '推荐' },
     { title: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', group: '推荐' },
-    { title: '36氪', url: 'https://www.36kr.com/feed', group: '推荐' },
     { title: '量子位', url: 'https://www.qbitai.com/feed', group: '推荐' },
     { title: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', group: '推荐' },
     { title: 'Android Police', url: 'https://www.androidpolice.com/feed/', group: '推荐' },
@@ -707,9 +723,30 @@ var RSSCore = (function () {
     return c ? [c].concat(list) : list;
   }
   /* 线路顺序：上次成功的路线 → 自建代理 → 直连 → 公共代理 */
-  function routes(proxies, preferred, penalty, custom) {
+  function normalizeProxyMode(v) {
+    if (v === 'custom' || v === 'public' || v === 'direct') return v;
+    return 'auto';
+  }
+  function proxyModeLabel(mode) {
+    mode = normalizeProxyMode(mode);
+    return mode === 'custom' ? '只用自建代理' : mode === 'public' ? '只用公共代理' : mode === 'direct' ? '直连' : '自动';
+  }
+  function routes(proxies, preferred, penalty, custom, mode) {
+    mode = normalizeProxyMode(mode);
     var customRoute = parseProxy(normalizeCustomProxy(custom));
     var list = [];
+    if (mode === 'custom') {
+      if (customRoute) list.push(customRoute);
+      return list;
+    }
+    if (mode === 'direct') return [{ key: 'direct', mode: 'raw', direct: true }];
+    if (mode === 'public') {
+      (proxies || []).forEach(function (l) {
+        var p = parseProxy(l);
+        if (p) list.push(p);
+      });
+      return list;
+    }
     if (customRoute) list.push(customRoute);
     list.push({ key: 'direct', mode: 'raw', direct: true });
     (proxies || []).forEach(function (l) {
@@ -718,7 +755,7 @@ var RSSCore = (function () {
       if (customRoute && p.key === customRoute.key) return;
       list.push(p);
     });
-    // 本轮刷新里连续失败 3 次以上的线路挪到最后，少等超时
+    // 本轮刷新里连续失败 3 次以上的线路挪到最后，少等超时（仅自动模式）
     if (penalty) {
       var good = list.filter(function (r) { return (penalty[r.key] || 0) < 3; }), bad = list.filter(function (r) { return (penalty[r.key] || 0) >= 3; });
       list = good.concat(bad);
@@ -751,10 +788,14 @@ var RSSCore = (function () {
     var fetchImpl = opts.fetchImpl || (typeof fetch !== 'undefined' ? fetch.bind(globalThis) : null);
     var ms = opts.timeoutMs || 12000;
     var accept = opts.accept || function (t) { return looksLikeFeed(t); };
-    var list = routes(opts.proxies, opts.preferred, opts.penalty, opts.customProxy);
-    var pen = opts.penalty;
+    var proxyMode = normalizeProxyMode(opts.proxyMode);
+    var list = routes(opts.proxies, proxyMode === 'auto' ? opts.preferred : '', proxyMode === 'auto' ? opts.penalty : null, opts.customProxy, proxyMode);
+    var pen = proxyMode === 'auto' ? opts.penalty : null;
     if (opts.allowJsonAdapter === false) list = list.filter(function (r) { return r.mode !== 'rss2json'; });
     var attempts = [];
+    if (!list.length) {
+      throw new Error('当前模式：' + proxyModeLabel(proxyMode) + '。没有可用线路' + (proxyMode === 'custom' ? '（请先填写自建代理）' : ''));
+    }
     for (var i = 0; i < list.length; i++) {
       var r = list[i];
       var target = r.direct ? url : buildProxyUrl(r, url);
@@ -778,7 +819,7 @@ var RSSCore = (function () {
         attempts.push({ route: r.key, ok: false, error: (e && e.name === 'AbortError') ? '超时' : String(e && e.message || e) });
       }
     }
-    var err = new Error('所有线路都失败：' + attempts.map(function (a) { return routeLabel(a.route) + ' ' + a.error; }).join('；'));
+    var err = new Error('当前模式：' + proxyModeLabel(proxyMode) + '。所有线路都失败：' + attempts.map(function (a) { return routeLabel(a.route) + ' ' + a.error; }).join('；'));
     err.attempts = attempts;
     throw err;
   }
@@ -975,6 +1016,8 @@ var RSSCore = (function () {
     if (!settings.customProxyCleared && !String(settings.customProxy || '').trim()) settings.customProxy = DEFAULT_CUSTOM_PROXY;
     else settings.customProxy = String(settings.customProxy || '');
     settings.imageFilter = settings.imageFilter === 'medium' ? 'medium' : 'strict';
+    settings.galleryCols = normalizeGalleryCols(settings.galleryCols);
+    settings.proxyMode = normalizeProxyMode(settings.proxyMode);
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     return { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
   }
@@ -1183,19 +1226,59 @@ var RSSCore = (function () {
     });
     return cols;
   }
+  var FEED_PAGE = 50, PICS_PAGE = 20;
+  function pageSize(mode) { return mode === 'pics' ? PICS_PAGE : FEED_PAGE; }
+  /* 哨兵插在「最近一批」的中点，刷到一半就追加下一批。 */
+  function sentinelIndex(shown, batch) {
+    shown = Math.max(0, +shown || 0);
+    batch = Math.max(1, +batch || 1);
+    if (!shown) return 0;
+    var start = Math.max(0, shown - batch);
+    return start + Math.floor((shown - start) / 2);
+  }
+  function itemKey(it) { return (it && (it.id || it.url)) || ''; }
+  function countNewItems(prev, next) {
+    var seen = {}, n = 0;
+    (prev || []).forEach(function (it) { var k = itemKey(it); if (k) seen[k] = true; });
+    (next || []).forEach(function (it) { var k = itemKey(it); if (k && !seen[k]) n++; });
+    return n;
+  }
+  function normalizeGalleryCols(v) {
+    if (v == null || v === '' || v === 'auto') return 'auto';
+    var n = +v;
+    if (!isFinite(n)) return 'auto';
+    n = Math.round(n);
+    if (n < 1) return 'auto';
+    return Math.min(8, Math.max(1, n));
+  }
+  /* 手动列数上限：1–8，且列宽不小于约 120px。 */
+  function galleryMaxColumns(width, minColW, gap) {
+    width = +width || 0;
+    minColW = +minColW || 120;
+    gap = gap == null ? 3 : +gap;
+    var n = Math.floor((width + gap) / (minColW + gap));
+    return Math.max(1, Math.min(8, n || 1));
+  }
+  function resolveGalleryColumns(width, setting, colW, gap) {
+    var auto = galleryColumnCount(width, colW, gap);
+    var max = galleryMaxColumns(width, 120, gap);
+    var v = normalizeGalleryCols(setting);
+    if (v === 'auto') return Math.min(auto, max);
+    return Math.max(1, Math.min(max, v));
+  }
 
   return {
     SCHEMA: SCHEMA, DEFAULT_PROXIES: DEFAULT_PROXIES, DEFAULT_SETTINGS: DEFAULT_SETTINGS, DEFAULT_CUSTOM_PROXY: DEFAULT_CUSTOM_PROXY,
     DEFAULT_FEEDS: DEFAULT_FEEDS, GROUP_ORDER: GROUP_ORDER,
     hash: hash, uid: uid, absUrl: absUrl, escapeHtml: escapeHtml, stripTags: stripTags, parseDate: parseDate, decodeBytes: decodeBytes,
     parseXml: parseXml, parseFeed: parseFeed, fromRss2Json: fromRss2Json, sanitizeHtml: sanitizeHtml,
-    discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy,
+    discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
     mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
-    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn
+    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns
   };
 })();
 
@@ -1210,7 +1293,9 @@ var RSSCore = (function () {
   var state = { groups: [], feeds: [], stars: [], settings: Object.assign({}, C.DEFAULT_SETTINGS) };
   var itemsByFeed = {};
   var view = { type: 'all', id: '' };
-  var shown = 60, refreshing = false, mode = 'feed', tiles = [];
+  var shown = C.FEED_PAGE, refreshing = false, mode = 'feed', tiles = [];
+  var committedItems = null, committedTiles = null, pendingNew = 0;
+  var listIO = null, imgIO = null, galleryBatchStart = 0;
 
   /* ---------- 存储：配置放 localStorage，文章放 IndexedDB ---------- */
   var db = null;
@@ -1272,7 +1357,10 @@ var RSSCore = (function () {
   }
   function fullDate(t) { if (!t) return ''; var x = new Date(t); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return x.getFullYear() + '-' + p(x.getMonth() + 1) + '-' + p(x.getDate()) + ' ' + p(x.getHours()) + ':' + p(x.getMinutes()); }
   function feedById(id) { return state.feeds.find(function (f) { return f.id === id; }); }
-  function fetchOpts(extra) { return Object.assign({ proxies: state.settings.proxies, customProxy: state.settings.customProxy, timeoutMs: state.settings.timeoutMs, penalty: penalty }, extra || {}); }
+  function fetchOpts(extra) {
+    var auto = C.normalizeProxyMode(state.settings.proxyMode) === 'auto';
+    return Object.assign({ proxies: state.settings.proxies, customProxy: state.settings.customProxy, timeoutMs: state.settings.timeoutMs, penalty: auto ? penalty : null, proxyMode: state.settings.proxyMode }, extra || {}, auto ? {} : { preferred: '' });
+  }
   function groupById(id) { return state.groups.find(function (g) { return g.id === id; }); }
   function feedName(f) { return (f && (f.title || f.url.replace(/^https?:\/\//, ''))) || ''; }
   function isStarred(id) { return state.stars.some(function (s) { return s.id === id; }); }
@@ -1318,13 +1406,119 @@ var RSSCore = (function () {
     var on = $('chips').querySelector('[aria-pressed="true"]');
     if (on && on.scrollIntoView) try { on.scrollIntoView({ inline: 'nearest', block: 'nearest' }); } catch (e) { }
   }
-  function setView(v) { view = v; shown = 60; renderChips(); renderMain(); window.scrollTo(0, 0); }
+  function disconnectIO(io) { if (io) { try { io.disconnect(); } catch (e) {} } return null; }
+  function resetPaging() {
+    shown = C.pageSize(mode);
+    committedItems = null;
+    committedTiles = null;
+    pendingNew = 0;
+    showFresh(0);
+  }
+  function showFresh(n) {
+    var el = $('fresh');
+    if (!el) return;
+    if (n <= 0) { el.classList.remove('show'); el.hidden = true; return; }
+    var num = el.querySelector('.fresh-n');
+    if (num) num.textContent = n;
+    el.hidden = false;
+    el.classList.add('show');
+  }
+  function applyFresh() {
+    committedItems = null;
+    committedTiles = null;
+    pendingNew = 0;
+    showFresh(0);
+    shown = C.pageSize(mode);
+    renderMain();
+    window.scrollTo(0, 0);
+  }
+  function maybeParkNewContent() {
+    if (mode === 'pics') {
+      var liveT = C.gallery(state, itemsByFeed, view);
+      if (!committedTiles || !committedTiles.length) {
+        committedTiles = null;
+        shown = C.pageSize('pics');
+        pendingNew = 0; showFresh(0);
+        renderMain();
+        return;
+      }
+      var nt = C.countNewItems(committedTiles, liveT);
+      if (nt > 0) { pendingNew = nt; showFresh(nt); }
+      return;
+    }
+    var live = C.timeline(state, itemsByFeed, view);
+    if (!committedItems || !committedItems.length) {
+      committedItems = null;
+      shown = C.pageSize('feed');
+      pendingNew = 0; showFresh(0);
+      renderMain();
+      return;
+    }
+    var n = C.countNewItems(committedItems, live);
+    if (n > 0) { pendingNew = n; showFresh(n); }
+  }
+  function setView(v) { view = v; resetPaging(); renderChips(); renderMain(); window.scrollTo(0, 0); }
 
   /* ---------- 信息流 ---------- */
   var current = [];
-  function renderList() {
-    current = C.timeline(state, itemsByFeed, view);
+  function cardHtml(it, i) {
+    var f = feedById(it.feedId);
+    var star = isStarred(it.id);
+    return '<article class="card" data-i="' + i + '">' +
+      '<div class="body"><h3>' + esc(it.title) + '</h3>' +
+      (it.summary ? '<p>' + esc(it.summary) + '</p>' : '') +
+      '<div class="meta"><span class="src" data-feed="' + esc(it.feedId) + '">' + esc(f ? feedName(f) : (it.feedTitle || '')) + '</span><span>·</span><span>' + ago(it.date) + '</span>' +
+      '<button class="starb' + (star ? ' on' : '') + '" data-star="' + i + '" aria-label="收藏">' + (star ? '★' : '☆') + '</button></div></div>' +
+      (it.thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(it.thumb) + '" alt="" onerror="this.remove()">' : '') +
+      '</article>';
+  }
+  function observeLazyImages(root) {
+    imgIO = disconnectIO(imgIO);
+    if (!window.IntersectionObserver || !root) return;
+    imgIO = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        try { e.target.loading = 'eager'; } catch (err) {}
+        imgIO.unobserve(e.target);
+      });
+    }, { rootMargin: '100% 0px' });
+    Array.prototype.forEach.call(root.querySelectorAll('img[loading="lazy"]'), function (img) { imgIO.observe(img); });
+  }
+  function attachListSentinel() {
+    listIO = disconnectIO(listIO);
     var el = $('list');
+    var old = $('more');
+    if (old) old.remove();
+    if (shown >= current.length) return;
+    var mid = C.sentinelIndex(shown, C.pageSize('feed'));
+    var cards = el.querySelectorAll('.card');
+    var sent = document.createElement('div');
+    sent.id = 'more';
+    sent.className = 'batch-sent';
+    sent.setAttribute('aria-hidden', 'true');
+    if (cards[mid]) cards[mid].after(sent);
+    else if (cards.length) cards[cards.length - 1].after(sent);
+    else el.appendChild(sent);
+    function more() {
+      listIO = disconnectIO(listIO);
+      var from = el.querySelectorAll('.card').length;
+      shown = Math.min(current.length, shown + C.pageSize('feed'));
+      var html = current.slice(from, shown).map(function (it, i) { return cardHtml(it, from + i); }).join('');
+      sent.insertAdjacentHTML('beforebegin', html);
+      attachListSentinel();
+      observeLazyImages(el);
+    }
+    if (window.IntersectionObserver) {
+      listIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) more(); }, { rootMargin: '100% 0px' });
+      listIO.observe(sent);
+    } else sent.onclick = more;
+  }
+  function renderList() {
+    var live = C.timeline(state, itemsByFeed, view);
+    current = (committedItems && committedItems.length) ? committedItems : live;
+    if (!committedItems || !committedItems.length) committedItems = current.slice();
+    var el = $('list');
+    listIO = disconnectIO(listIO);
     if (!state.feeds.length && view.type !== 'star') {
       el.innerHTML = '<div class="empty"><div>还没有订阅</div><div class="btns"><button class="btn" id="eAdd">添加订阅</button><button class="btn ghost" id="eOpml">导入 OPML</button></div></div>';
       $('eAdd').onclick = openAdder; $('eOpml').onclick = function () { $('fileOpml').click(); };
@@ -1334,43 +1528,77 @@ var RSSCore = (function () {
       el.innerHTML = '<div class="empty">' + (view.type === 'star' ? '还没有收藏。点文章右下角的 ☆ 收藏。' : '这里暂时没有文章，点右上角刷新试试。') + '</div>';
       return;
     }
-    var html = current.slice(0, shown).map(function (it, i) {
-      var f = feedById(it.feedId);
-      var star = isStarred(it.id);
-      return '<article class="card" data-i="' + i + '">' +
-        '<div class="body"><h3>' + esc(it.title) + '</h3>' +
-        (it.summary ? '<p>' + esc(it.summary) + '</p>' : '') +
-        '<div class="meta"><span class="src" data-feed="' + esc(it.feedId) + '">' + esc(f ? feedName(f) : (it.feedTitle || '')) + '</span><span>·</span><span>' + ago(it.date) + '</span>' +
-        '<button class="starb' + (star ? ' on' : '') + '" data-star="' + i + '" aria-label="收藏">' + (star ? '★' : '☆') + '</button></div></div>' +
-        (it.thumb ? '<img class="thumb" loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(it.thumb) + '" alt="" onerror="this.remove()">' : '') +
-        '</article>';
-    }).join('');
-    if (current.length > shown) html += '<div class="more" id="more">继续加载…</div>';
-    el.innerHTML = html;
-    var more = $('more');
-    if (more && window.IntersectionObserver) {
-      var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); shown += 60; renderList(); } });
-      io.observe(more);
-    } else if (more) more.onclick = function () { shown += 60; renderList(); };
+    el.innerHTML = current.slice(0, shown).map(cardHtml).join('');
+    attachListSentinel();
+    observeLazyImages(el);
   }
   function setMode(next) {
     mode = next === 'pics' ? 'pics' : 'feed';
     $('modeFeed').setAttribute('aria-pressed', mode === 'feed');
     $('modePics').setAttribute('aria-pressed', mode === 'pics');
+    resetPaging();
     renderMain();
     window.scrollTo(0, 0);
   }
   $('modeFeed').onclick = function () { setMode('feed'); };
   $('modePics').onclick = function () { setMode('pics'); };
+  if ($('fresh')) $('fresh').onclick = applyFresh;
+  if ($('colMinus')) $('colMinus').onclick = function () {
+    setGalleryCols(Math.max(1, galleryColCount() - 1));
+  };
+  if ($('colPlus')) $('colPlus').onclick = function () {
+    setGalleryCols(Math.min(C.galleryMaxColumns(galleryWidth()), galleryColCount() + 1));
+  };
+  if ($('colAuto')) {
+    $('colAuto').onclick = function () {
+      if (C.normalizeGalleryCols(state.settings.galleryCols) === 'auto') return;
+      setGalleryCols('auto');
+    };
+    var hold;
+    $('colAuto').addEventListener('pointerdown', function () {
+      hold = setTimeout(function () { setGalleryCols('auto'); }, 550);
+    });
+    ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
+      $('colAuto').addEventListener(ev, function () { clearTimeout(hold); });
+    });
+  }
   function renderMain() {
     var wrap = document.querySelector('main.wrap');
     if (mode === 'pics') { if (wrap) wrap.classList.add('wide'); renderGallery(); }
     else { if (wrap) wrap.classList.remove('wide'); $('gallery').hidden = true; $('list').hidden = false; renderList(); }
+    syncColCtl();
   }
   var galleryGen = 0, placedTiles = [], galleryLoadFrom = 0, galleryIO = null;
-  function galleryColCount() {
+  function galleryWidth() {
     var el = $('gallery');
-    return C.galleryColumnCount(el ? el.clientWidth : window.innerWidth);
+    return el && el.clientWidth ? el.clientWidth : window.innerWidth;
+  }
+  function galleryColCount() {
+    return C.resolveGalleryColumns(galleryWidth(), state.settings.galleryCols);
+  }
+  function syncColCtl() {
+    var box = $('colctl');
+    if (!box) return;
+    var on = mode === 'pics';
+    box.hidden = !on;
+    box.classList.toggle('on', on);
+    if (!on) return;
+    var w = galleryWidth();
+    var max = C.galleryMaxColumns(w);
+    var v = C.normalizeGalleryCols(state.settings.galleryCols);
+    var cur = C.resolveGalleryColumns(w, v);
+    var auto = v === 'auto';
+    $('colAuto').textContent = auto ? '自动' : String(cur);
+    $('colAuto').setAttribute('data-manual', auto ? 'false' : 'true');
+    $('colAuto').title = auto ? ('当前自动 ' + cur + ' 列，点加减改为手动') : '点按或长按恢复自动列数';
+    $('colMinus').disabled = cur <= 1;
+    $('colPlus').disabled = cur >= max;
+  }
+  function setGalleryCols(next) {
+    state.settings.galleryCols = C.normalizeGalleryCols(next);
+    save();
+    syncColCtl();
+    if (mode === 'pics') relayoutGallery();
   }
   function buildGalleryCols(n) {
     var el = $('gallery');
@@ -1410,21 +1638,31 @@ var RSSCore = (function () {
     if (old) old.remove();
     if (galleryIO) { try { galleryIO.disconnect(); } catch (e) {} galleryIO = null; }
     if (galleryLoadFrom >= tiles.length) return;
+    var last = Math.max(1, placedTiles.length - galleryBatchStart);
+    var mid = C.sentinelIndex(placedTiles.length, last);
+    var figs = el.querySelectorAll('.tile.show');
     var more = document.createElement('div');
-    more.className = 'more';
+    more.className = 'batch-sent';
     more.id = 'morePics';
-    more.textContent = '继续加载…';
-    el.appendChild(more);
+    more.setAttribute('aria-hidden', 'true');
+    if (figs[mid]) figs[mid].after(more);
+    else el.appendChild(more);
+    function morePics() {
+      galleryIO = disconnectIO(galleryIO);
+      shown = Math.min(tiles.length, shown + C.pageSize('pics'));
+      loadGalleryBatch();
+    }
     if (window.IntersectionObserver) {
-      galleryIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { galleryIO.disconnect(); shown += 60; loadGalleryBatch(); } });
+      galleryIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) morePics(); }, { rootMargin: '100% 0px' });
       galleryIO.observe(more);
-    } else more.onclick = function () { shown += 60; loadGalleryBatch(); };
+    } else more.onclick = morePics;
   }
   function loadGalleryBatch() {
     var gen = galleryGen, level = state.settings.imageFilter === 'medium' ? 'medium' : 'strict';
     var from = galleryLoadFrom, to = Math.min(tiles.length, shown);
     if (from >= to) { attachGalleryMore(); return; }
     galleryLoadFrom = to;
+    galleryBatchStart = placedTiles.length;
     var batch = tiles.slice(from, to);
     var ready = new Array(batch.length);
     var cursor = 0;
@@ -1458,7 +1696,10 @@ var RSSCore = (function () {
     galleryGen++;
     placedTiles = [];
     galleryLoadFrom = 0;
-    tiles = C.gallery(state, itemsByFeed, view);
+    galleryBatchStart = 0;
+    var live = C.gallery(state, itemsByFeed, view);
+    tiles = (committedTiles && committedTiles.length) ? committedTiles : live;
+    if (!committedTiles || !committedTiles.length) committedTiles = tiles.slice();
     if (!state.feeds.length && view.type !== 'star') {
       el.innerHTML = '<div class="empty"><div>还没有订阅</div></div>';
       return;
@@ -1475,7 +1716,7 @@ var RSSCore = (function () {
     var rt;
     window.addEventListener('resize', function () {
       clearTimeout(rt);
-      rt = setTimeout(function () { if (mode === 'pics') relayoutGallery(); }, 120);
+      rt = setTimeout(function () { if (mode === 'pics') { syncColCtl(); relayoutGallery(); } }, 120);
     });
   }
   $('gallery').addEventListener('click', function (e) {
@@ -1596,17 +1837,20 @@ var RSSCore = (function () {
     if (!feeds.length) return;
     refreshing = true; $('btnRefresh').classList.add('spin'); penalty = {};
     var done = 0, failed = 0;
+    var hadContent = mode === 'pics' ? !!(placedTiles.length || (committedTiles && committedTiles.length)) : !!(current.length || (committedItems && committedItems.length));
     setStatus('正在刷新 0/' + feeds.length);
     await C.pool(feeds, state.settings.concurrency, async function (f) {
       try { await refreshFeed(f); } catch (e) { f.error = String(e.message || e).slice(0, 300); failed++; }
       done++;
       setStatus('正在刷新 ' + done + '/' + feeds.length + (failed ? ' · <span class="err">' + failed + ' 个失败</span>' : ''));
-      if (done % 4 === 0) renderMain();
+      if (done % 4 === 0 && !hadContent) maybeParkNewContent();
     });
-    save(); renderMain();
+    save();
+    if (hadContent) maybeParkNewContent();
+    else { committedItems = null; committedTiles = null; shown = C.pageSize(mode); renderMain(); }
     refreshing = false; $('btnRefresh').classList.remove('spin');
-    if (failed) setStatus('<span class="err">' + failed + ' 个源没抓到</span>，在「订阅与设置」里看原因');
-    else { setStatus(''); toast('已刷新 ' + feeds.length + ' 个源'); }
+    if (failed) setStatus('<span class="err">' + failed + ' 个源没抓到</span>（当前：' + C.proxyModeLabel(state.settings.proxyMode) + '），在「订阅与设置」里看原因');
+    else { setStatus(''); if (!pendingNew) toast('已刷新 ' + feeds.length + ' 个源'); }
     if ($('settings').classList.contains('open')) renderSettings();
   }
   $('btnRefresh').onclick = function () { refreshAll(); };
@@ -1645,7 +1889,6 @@ var RSSCore = (function () {
     $('addMsg').textContent = '填网站首页也行，会自动找页面里的订阅源。';
     openSheet('adder'); setTimeout(function () { $('addUrl').focus(); }, 50);
   }
-  $('btnAdd').onclick = openAdder;
   $('addGo').onclick = async function () {
     var u = $('addUrl').value.trim();
     if (!u) return;
@@ -1729,17 +1972,36 @@ var RSSCore = (function () {
       '<div class="row"><label class="sw" style="flex:1"><span>图流过滤强度</span><select id="sImg" style="width:auto"><option value="strict">严（默认）</option><option value="medium">中</option></select></label></div>' +
       '<p class="note">严：最短边要求宽至少 800 像素，面积至少 50 万像素；中：600 像素、30 万像素。横幅和长条图都会丢掉。</p></div>' +
       '<h4>抓取</h4><div class="box">' +
+      '<div class="row"><label class="sw" style="flex:1"><span>代理模式</span></label></div>' +
+      '<div class="seg" id="sProxyMode" role="radiogroup" aria-label="代理模式">' +
+        [['auto','自动'],['custom','只用自建'],['public','只用公共'],['direct','直连']].map(function (it) {
+          return '<button type="button" role="radio" data-mode="' + it[0] + '" aria-pressed="' + (C.normalizeProxyMode(s.proxyMode) === it[0]) + '">' + it[1] + '</button>';
+        }).join('') +
+      '</div>' +
+      '<p class="note">自动（默认）：上次成功 → 自建代理 → 直连 → 公共代理。其他模式只走所选方式，不会改走别的线路。切换后会清掉「上次成功」并立即刷新。</p>' +
       '<div class="row"><label class="sw" style="flex:1"><span>自建代理</span></label></div>' +
       '<input type="url" id="sCustom" placeholder="' + esc(C.DEFAULT_CUSTOM_PROXY) + '" value="' + esc(s.customProxy || '') + '" autocomplete="off" spellcheck="false">' +
-      '<p class="note">默认已填自建代理，可改或清空。抓取顺序：上次成功的路线 → 自建代理 → 直连 → 公共代理。清空后不再自动填回。</p>' +
+      '<p class="note">默认已填自建代理，可改或清空。清空后不再自动填回。</p>' +
       '<div class="row"><label class="sw" style="flex:1"><span>同时抓取</span><span><input type="number" id="sConc" min="1" max="10" value="' + s.concurrency + '" style="width:70px"> 个</span></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>每条线路超时</span><span><input type="number" id="sTo" min="2" max="60" value="' + Math.round(s.timeoutMs / 1000) + '" style="width:70px"> 秒</span></label></div>' +
-      '<p class="note" style="margin-top:12px">公共代理线路，一行一个。每个源会记住上次成功的路线，下次优先走它。<code>{url}</code> 处填编码后的订阅地址，<code>{raw}</code> 填原样地址；行首写 <code>json:字段名</code> 表示代理返回 JSON，<code>rss2json</code> 表示用 rss2json 转换服务（只有最近 10 篇）。</p>' +
+      '<p class="note" style="margin-top:12px">公共代理线路，一行一个。自动模式下，每个源会记住上次成功的路线，下次优先走它。<code>{url}</code> 处填编码后的订阅地址，<code>{raw}</code> 填原样地址；行首写 <code>json:字段名</code> 表示代理返回 JSON，<code>rss2json</code> 表示用 rss2json 转换服务（只有最近 10 篇）。</p>' +
       '<textarea id="sProx" spellcheck="false">' + esc(s.proxies.join('\n')) + '</textarea>' +
       '<div class="row"><button class="btn ghost" id="sProxReset">恢复默认线路</button><span class="sp" style="flex:1"></span><button class="btn" id="sSave">保存设置</button></div></div>' +
       '<p class="note" style="margin-top:22px">数据只存在这台设备的浏览器里。换手机前记得备份 JSON。</p>';
     $('sOpen').value = s.openMode;
     $('sImg').value = s.imageFilter === 'medium' ? 'medium' : 'strict';
+    Array.prototype.forEach.call(document.querySelectorAll('#sProxyMode [data-mode]'), function (btn) {
+      btn.onclick = function () {
+        var next = C.normalizeProxyMode(btn.getAttribute('data-mode'));
+        if (next === C.normalizeProxyMode(s.proxyMode)) return;
+        s.proxyMode = next;
+        state.feeds.forEach(function (f) { f.route = ''; });
+        save();
+        renderSettings();
+        toast('已切换为「' + C.proxyModeLabel(next) + '」，开始刷新');
+        refreshAll();
+      };
+    });
     $('sAdd').onclick = function () { history.back(); setTimeout(openAdder, 60); };
     $('sGroup').onclick = function () { var n = (prompt('新分组名称') || '').trim(); if (!n) return; if (state.groups.some(function (g) { return g.name === n; })) return toast('已有这个分组'); state.groups.push({ id: C.uid('g'), name: n, pinned: n === '新闻+' }); save(); renderSettings(); renderChips(); };
     $('sImpO').onclick = function () { $('fileOpml').click(); };
@@ -1757,6 +2019,7 @@ var RSSCore = (function () {
     $('sSave').onclick = function () {
       s.openMode = $('sOpen').value; s.pinnedFirstInAll = $('sBoost').checked;
       s.imageFilter = $('sImg').value === 'medium' ? 'medium' : 'strict';
+      s.proxyMode = C.normalizeProxyMode(s.proxyMode);
       s.customProxy = $('sCustom').value.trim();
       s.customProxyCleared = !s.customProxy;
       s.maxItems = Math.max(10, Math.min(2000, +$('sMax').value || 200));
