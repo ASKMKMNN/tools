@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kindler 局域网传书</title>
+    <link rel="icon" href="../icons/kindler.png" type="image/png">
+    <style>
+        :root {
+            color-scheme: light dark;
+            --bg: #f6f4f1;
+            --text: #1d1b18;
+            --muted: #5f5f66;
+            --card: #fffdfa;
+            --line: rgba(0, 0, 0, 0.06);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1917;
+                --text: #f0ece5;
+                --muted: #a49f97;
+                --card: #24221f;
+                --line: rgba(255, 255, 255, 0.06);
+            }
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body { overflow-x: clip; }
+        body { font-variant-numeric: tabular-nums; }
+        a:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 56px 20px 72px;
+        }
+
+        h1, h2 {
+            font-family: Georgia, "Songti SC", "Noto Serif SC", serif;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        h1 { margin: 0 0 12px; font-size: 32px; }
+        h2 { margin: 36px 0 14px; font-size: 21px; }
+
+        .lead {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7;
+            font-size: 16px;
+            max-width: 62ch;
+        }
+
+        p { line-height: 1.7; }
+
+        .box {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 20px 22px;
+        }
+
+        ul { margin: 0; padding-left: 20px; }
+        li { margin: 0 0 12px; line-height: 1.68; }
+        li:last-child { margin-bottom: 0; }
+
+        a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+
+        code {
+            font-family: "Cascadia Mono", Consolas, "Noto Sans Mono", monospace;
+            font-size: 0.92em;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 5px;
+            padding: 1px 5px;
+        }
+
+        .btn {
+            display: inline-block;
+            margin-top: 4px;
+            padding: 12px 22px;
+            border-radius: 14px;
+            background: var(--text);
+            color: var(--bg);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .btn:hover { opacity: 0.86; }
+
+        footer { margin-top: 44px; font-size: 14px; }
+        footer a { color: var(--muted); }
+
+        @media (min-width: 700px) {
+            main { padding: 72px 32px 96px; }
+            h1 { font-size: 38px; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Kindler 局域网传书</h1>
+        <p class="lead">一台电脑、同一个 Wi-Fi，把电子书直接送进 Kindle。不走邮箱推送、不用数据线，也不经过外网。准备好下面几样就能用。</p>
+
+        <h2>需要准备</h2>
+        <div class="box">
+            <ul>
+                <li><strong>Node.js LTS</strong>：<a href="https://nodejs.org/">官网下载</a>，Windows 选 .msi，一路 Next 即可。</li>
+                <li><strong>Kindler 本体</strong>：去<a href="https://github.com/cornradio/kindler">官方仓库</a>，<a href="https://github.com/cornradio/kindler/archive/refs/heads/master.zip">下载源码 zip</a>，或下仓库里那份<a href="https://raw.githubusercontent.com/cornradio/kindler/master/kindler_v1.0.0_2026-05-19T02-24-32.zip">现成打包 zip</a>。解压后目录里要有 <code>server.js</code> 和 <code>package.json</code>。</li>
+                <li><strong>依赖包</strong>：在解压出来的文件夹地址栏输 <code>cmd</code> 回车，跑一次 <code>npm install</code>。第一次要联网，之后不用管；两个 zip 都不含 <code>node_modules</code>。</li>
+                <li><strong>Calibre（可选）</strong>：<a href="https://calibre-ebook.com/zh_CN/download">官网下载</a>。只有要用网页里的「转换成 AZW3」按钮时才装，直接传 AZW3 可以跳过。</li>
+                <li><strong>电子书</strong>：自备，推荐 AZW3，文件名尽量用英文或拼音。</li>
+            </ul>
+        </div>
+
+        <h2>一键启动</h2>
+        <p>把 <a href="启动传书.bat" download="启动传书.bat">启动传书.bat</a> 放进 Kindler 文件夹，双击。黑框会显示 <code>http://192.168.x.x:3000</code>；电脑浏览器自动打开上传页，Kindle 浏览器输黑框里的地址就能下书。传完关掉黑框才结束服务，中途别关。</p>
+        <a class="btn" href="启动传书.bat" download="启动传书.bat">下载启动脚本</a>
+
+        <h2>完整说明</h2>
+        <p>避坑清单（虚拟网卡 IP、Kindle 必须完整输 <code>http://</code>、防火墙放行 Node.js、中文文件名）和逐字版部署步骤都在 <a href="https://github.com/ASKMKMNN/tools/blob/main/win/kindler/README.md">README</a> 里。</p>
+
+        <footer><a href="../../">返回小工具主页</a></footer>
+    </main>
+</body>
+</html>

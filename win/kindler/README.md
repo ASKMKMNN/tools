@@ -1,5 +1,18 @@
 # 📖 Kindle 局域网一键传书工具 (Kindler) 部署与使用指南
 
+## 🧰 需要准备的东西（都附链接）
+
+本目录只放说明和一键启动脚本，**不含 Kindler 源码**，按下表自己下载配齐即可。
+
+| 项目 | 哪里下 | 备注 |
+| --- | --- | --- |
+| Node.js LTS | [nodejs.org](https://nodejs.org/) | Windows 选 .msi，一路 Next |
+| Kindler 本体 | [官方仓库](https://github.com/cornradio/kindler) → [源码 zip](https://github.com/cornradio/kindler/archive/refs/heads/master.zip) | 也可下仓库里那份 [现成打包 zip](https://raw.githubusercontent.com/cornradio/kindler/master/kindler_v1.0.0_2026-05-19T02-24-32.zip)；解压后目录里要有 `server.js` 和 `package.json` |
+| 依赖包 | 不用手动下，`npm install` 自动装 | 两个 zip 都不含 `node_modules`，第一次要联网 |
+| 一键启动脚本 | [启动传书.bat](启动传书.bat)（本目录） | 放进 Kindler 文件夹，双击即用 |
+| Calibre（可选） | [calibre-ebook.com](https://calibre-ebook.com/zh_CN/download) | 只有要用网页里的「转换成 AZW3」按钮时才装；直接传 AZW3 可跳过 |
+| 电子书 | 自备 | 推荐 AZW3，文件名尽量用英文或拼音 |
+
 ## 📌 项目背景与初衷
 - **痛点**：亚马逊中国区服务退出，使用美区账号进行“邮箱推送”跨国延迟极高；使用 Calibre 开启内容服务器时，因本机存在虚拟网卡（代理软件/虚拟机）及防火墙设置，导致 Kindle 无法连接。
 - **目标**：寻找一个轻量级、不越狱、不走外网、完全依赖家庭局域网的本地传书方案。
