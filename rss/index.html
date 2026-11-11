@@ -59,7 +59,6 @@ a{color:var(--accent)}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;scroll-snap-align:start;border:0;background:var(--chip);color:var(--text);border-radius:999px;padding:6px 13px;font-size:14px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-text);font-weight:600}
-.chip .pin{font-size:11px;opacity:.75}
 .chip .x{margin-left:2px;opacity:.7}
 .status{font-size:12px;color:var(--muted);padding:0 14px 8px;display:none}
 .status.show{display:block}
@@ -252,7 +251,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
     <h4>批量导入</h4>
     <div class="box">
       <div class="row"><button class="btn ghost" id="impOpml" style="flex:1">导入 OPML（Inoreader 等导出的）</button></div>
-      <p class="note">文件夹会变成分组；名叫「新闻+」的文件夹自动置顶并作为打开时的默认页。</p>
+      <p class="note">文件夹会变成分组。最左侧分组即打开时的默认页，可在管理分组里调整顺序。</p>
     </div>
   </div>
 </section>
@@ -290,7 +289,7 @@ var RSSCore = (function () {
   var DEFAULT_CUSTOM_PROXY = 'https://rss-proxy.askmkmnn.workers.dev/?url=';
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
-    proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false,
+    proxies: DEFAULT_PROXIES.slice(), openMode: 'reader',
     customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false
   };
   var GROUP_ORDER = ['新闻+', '科技', '杂志', '设计', '推荐'];
@@ -946,8 +945,7 @@ var RSSCore = (function () {
     out.push('</body>', '</opml>');
     return out.join('\n');
   }
-  var AUTO_PIN = ['新闻+'];
-  /* 把 OPML 结果并进现有状态（按网址去重），返回新增数量 */
+  /* 把 OPML 结果并进现有状态（按网址去重），返回新增数量。文件夹不再自动排到最前。 */
   function mergeOPML(state, parsed) {
     migrateGroups(state);
     var added = 0;
@@ -955,8 +953,7 @@ var RSSCore = (function () {
       var name = canonicalGroupName(pg.name);
       if (!name) return;
       var g = state.groups.find(function (x) { return x.name === name; });
-      if (!g) { g = makeGroup(name, false); state.groups.push(g); }
-      if (AUTO_PIN.indexOf(name) >= 0) g.pinned = true;
+      if (!g) { g = makeGroup(name); state.groups.push(g); }
     });
     parsed.feeds.forEach(function (pf) {
       if (state.feeds.some(function (f) { return feedKey(f.url) === feedKey(pf.url); })) return;
@@ -965,6 +962,7 @@ var RSSCore = (function () {
       state.feeds.push({ id: uid('f'), url: pf.url, title: pf.title, siteUrl: pf.siteUrl, groupId: g ? g.id : '' });
       added++;
     });
+    applyNavOrder(state);
     return added;
   }
   function normUrl(u) { return String(u || '').trim().replace(/^http:/i, 'https:').replace(/\/+$/, '').toLowerCase(); }
@@ -1027,22 +1025,78 @@ var RSSCore = (function () {
     normalizeGroupVis(g);
     return mode === 'pics' ? g.showInPics : g.showInFeed;
   }
-  function makeGroup(name, pinned) {
-    return normalizeGroupVis({ id: uid('g'), name: String(name || ''), pinned: !!pinned });
+  var NAV_ALL = 'all';
+  function isAllNavKey(k) { return k === 'all' || k === '__all__'; }
+  function makeGroup(name) {
+    return normalizeGroupVis({ id: uid('g'), name: String(name || '') });
   }
   function hasUngrouped(state) {
     return (state.feeds || []).some(function (f) { return !f.groupId; });
   }
-  function moveGroup(state, id, dir) {
-    var groups = state.groups || [];
+  /* 规范化筛选条顺序：保留「全部」与已知分组，缺的补到末尾，并同步 groups 数组（不含全部）。 */
+  function normalizeNavOrder(state) {
+    if (!state) return state;
+    if (!state.groups) state.groups = [];
+    var have = {};
+    state.groups.forEach(function (g) { if (g && g.id) have[g.id] = g; });
+    var seen = {}, out = [];
+    (state.navOrder || []).forEach(function (k) {
+      k = String(k || '');
+      if (isAllNavKey(k)) {
+        if (!seen.all) { out.push(NAV_ALL); seen.all = 1; }
+        return;
+      }
+      if (have[k] && !seen[k]) { out.push(k); seen[k] = 1; }
+    });
+    if (!seen.all) {
+      if (out.length) out.splice(1, 0, NAV_ALL);
+      else out.push(NAV_ALL);
+    }
+    state.groups.forEach(function (g) { if (g && g.id && !seen[g.id]) { out.push(g.id); seen[g.id] = 1; } });
+    state.navOrder = out;
+    var ordered = [];
+    out.forEach(function (k) { if (k !== NAV_ALL && have[k]) ordered.push(have[k]); });
+    state.groups.length = 0;
+    ordered.forEach(function (g) { state.groups.push(g); });
+    return state;
+  }
+  /* 若已有 navOrder 则规范化；否则按旧 pinned 迁移（pinned 在前，接着全部，再其余），没有 pinned 时用「第一组、全部、其余」。最后丢掉 pinned 字段。 */
+  function applyNavOrder(state, rawNav) {
+    if (!state) return state;
+    if (Array.isArray(rawNav)) state.navOrder = rawNav.slice();
+    if (!Array.isArray(state.navOrder) || !state.navOrder.length) {
+      var pinned = [], rest = [];
+      (state.groups || []).forEach(function (g) {
+        if (g && (g.pinned || g.priority)) pinned.push(g.id);
+        else if (g) rest.push(g.id);
+      });
+      if (pinned.length) state.navOrder = pinned.concat([NAV_ALL], rest);
+      else if ((state.groups || []).length) {
+        var ids = state.groups.map(function (g) { return g.id; });
+        state.navOrder = [ids[0], NAV_ALL].concat(ids.slice(1));
+      } else state.navOrder = [NAV_ALL];
+    }
+    (state.groups || []).forEach(function (g) {
+      if (!g) return;
+      if ('pinned' in g) delete g.pinned;
+      if ('priority' in g) delete g.priority;
+    });
+    return normalizeNavOrder(state);
+  }
+  function moveNav(state, key, dir) {
+    applyNavOrder(state);
+    var nav = state.navOrder || [];
+    key = isAllNavKey(key) ? NAV_ALL : String(key || '');
     var i, j, tmp;
-    for (i = 0; i < groups.length; i++) if (groups[i].id === id) break;
-    if (i >= groups.length) return false;
+    for (i = 0; i < nav.length; i++) if (nav[i] === key) break;
+    if (i >= nav.length) return false;
     j = i + (dir < 0 ? -1 : 1);
-    if (j < 0 || j >= groups.length) return false;
-    tmp = groups[i]; groups[i] = groups[j]; groups[j] = tmp;
+    if (j < 0 || j >= nav.length) return false;
+    tmp = nav[i]; nav[i] = nav[j]; nav[j] = tmp;
+    normalizeNavOrder(state);
     return true;
   }
+  function moveGroup(state, id, dir) { return moveNav(state, id, dir); }
   function deleteGroup(state, id) {
     var groups = state.groups || [];
     var feeds = state.feeds || [];
@@ -1051,6 +1105,10 @@ var RSSCore = (function () {
     if (!g) return false;
     feeds.forEach(function (f) { if (f.groupId === g.id) f.groupId = ''; });
     for (i = groups.length - 1; i >= 0; i--) if (groups[i].id === g.id) groups.splice(i, 1);
+    if (Array.isArray(state.navOrder)) {
+      state.navOrder = state.navOrder.filter(function (k) { return k !== g.id; });
+    }
+    normalizeNavOrder(state);
     return true;
   }
   /* 把旧分组「杂志F」并入「杂志」：不删订阅、不动其他分组。可重复执行。 */
@@ -1077,8 +1135,7 @@ var RSSCore = (function () {
     name = canonicalGroupName(name);
     if (!name) return null;
     var g = state.groups.find(function (x) { return x.name === name; });
-    if (!g) { g = makeGroup(name, AUTO_PIN.indexOf(name) >= 0); state.groups.push(g); }
-    if (AUTO_PIN.indexOf(name) >= 0) g.pinned = true;
+    if (!g) { g = makeGroup(name); state.groups.push(g); }
     normalizeGroupVis(g);
     return g;
   }
@@ -1102,6 +1159,7 @@ var RSSCore = (function () {
       state.feeds.push({ id: uid('f'), url: pf.url, title: pf.title, siteUrl: pf.siteUrl || '', groupId: g ? g.id : '' });
       added++;
     });
+    applyNavOrder(state);
     return added;
   }
   function seedIfNeeded(state, savedRaw) {
@@ -1111,9 +1169,11 @@ var RSSCore = (function () {
 
   /* ---------- JSON 备份 ---------- */
   function makeBackup(state) {
+    applyNavOrder(state);
     return {
       app: 'rss-reader', schema: SCHEMA, exportedAt: new Date().toISOString(),
-      groups: (state.groups || []).map(function (g) { return { id: g.id, name: g.name, pinned: !!g.pinned, showInFeed: g.showInFeed !== false, showInPics: g.showInPics !== false }; }),
+      groups: (state.groups || []).map(function (g) { return { id: g.id, name: g.name, showInFeed: g.showInFeed !== false, showInPics: g.showInPics !== false }; }),
+      navOrder: (state.navOrder || []).slice(),
       feeds: (state.feeds || []).map(function (f) { return { id: f.id, url: f.url, title: f.title || '', siteUrl: f.siteUrl || '', groupId: f.groupId || '', route: f.route || '' }; }),
       stars: (state.stars || []).slice(),
       settings: Object.assign({}, state.settings)
@@ -1130,7 +1190,7 @@ var RSSCore = (function () {
     var gids = {}; groups.forEach(function (g) { gids[g.id] = 1; });
     var feeds = (Array.isArray(data.feeds) ? data.feeds : []).filter(function (f) { return f && (f.url || f.xmlUrl); }).map(function (f) {
       var gid = f.groupId || '';
-      if (!gids[gid] && f.group) { var g = groups.find(function (x) { return x.name === f.group; }); if (!g) { g = makeGroup(String(f.group), f.group === '新闻+'); groups.push(g); gids[g.id] = 1; } gid = g.id; }
+      if (!gids[gid] && f.group) { var g = groups.find(function (x) { return x.name === f.group; }); if (!g) { g = makeGroup(String(f.group)); groups.push(g); gids[g.id] = 1; } gid = g.id; }
       return { id: String(f.id || uid('f')), url: String(f.url || f.xmlUrl), title: String(f.title || ''), siteUrl: String(f.siteUrl || f.htmlUrl || ''), groupId: gids[gid] ? gid : '', route: String(f.route || '') };
     });
     migrateGroups({ groups: groups, feeds: feeds });
@@ -1152,7 +1212,9 @@ var RSSCore = (function () {
     settings.showListThumb = settings.showListThumb !== false && settings.showListThumb !== 'false' && settings.showListThumb !== 0;
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     applyOtherGroupMigration({ groups: groups, feeds: feeds, settings: settings });
-    return { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
+    var restored = { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
+    applyNavOrder(restored, data.navOrder);
+    return restored;
   }
 
   /* ---------- 时间线 ---------- */
@@ -1177,35 +1239,35 @@ var RSSCore = (function () {
       }
       (itemsByFeed[f.id] || []).forEach(function (it) { list.push(it); });
     });
-    var pinned = {};
-    state.groups.forEach(function (g) { if (g.pinned) pinned[g.id] = 1; });
-    var boost = view.type === 'all' && state.settings && state.settings.pinnedFirstInAll;
-    list.sort(function (a, b) {
-      if (boost) {
-        var pa = pinned[(feedMap[a.feedId] || {}).groupId] ? 1 : 0, pb = pinned[(feedMap[b.feedId] || {}).groupId] ? 1 : 0;
-        if (pa !== pb) return pb - pa;
-      }
-      return b.date - a.date;
-    });
+    list.sort(function (a, b) { return b.date - a.date; });
     return list;
   }
-  /* 顶部筛选条：置顶分组（按用户顺序）→ 全部 → 其余可见分组（按用户顺序）→ 有源时才出现未分组 → 收藏 */
+  /* 顶部筛选条：按 navOrder（含可排序的「全部」）→ 有源时才出现未分组 → 收藏。收藏和未分组固定在末尾。 */
   function chips(state, mode) {
     mode = mode === 'pics' ? 'pics' : 'feed';
-    var out = [];
-    function byUser(a, b) { return state.groups.indexOf(a) - state.groups.indexOf(b); }
-    state.groups.filter(function (g) { return g.pinned && groupVisible(g, mode); }).slice().sort(byUser).forEach(function (g) { out.push({ type: 'group', id: g.id, label: g.name, pinned: true }); });
-    out.push({ type: 'all', id: '', label: '全部' });
-    state.groups.filter(function (g) { return !g.pinned && groupVisible(g, mode); }).slice().sort(byUser).forEach(function (g) { out.push({ type: 'group', id: g.id, label: g.name }); });
+    applyNavOrder(state);
+    var out = [], map = {};
+    (state.groups || []).forEach(function (g) { map[g.id] = g; });
+    (state.navOrder || []).forEach(function (k) {
+      if (k === NAV_ALL) out.push({ type: 'all', id: '', label: '全部' });
+      else {
+        var g = map[k];
+        if (g && groupVisible(g, mode)) out.push({ type: 'group', id: g.id, label: g.name });
+      }
+    });
     if (hasUngrouped(state)) out.push({ type: 'ungrouped', id: '', label: '未分组' });
     out.push({ type: 'star', id: '', label: '收藏' });
     return out;
   }
   function defaultView(state, mode) {
-    mode = mode === 'pics' ? 'pics' : 'feed';
-    var pinned = state.groups.filter(function (x) { return x.pinned && groupVisible(x, mode); }).slice().sort(function (a, b) { return state.groups.indexOf(a) - state.groups.indexOf(b); });
-    var g = pinned[0];
-    return g ? { type: 'group', id: g.id } : { type: 'all', id: '' };
+    var list = chips(state, mode);
+    var i, c;
+    for (i = 0; i < list.length; i++) {
+      c = list[i];
+      if (c.type === 'star' || c.type === 'ungrouped') continue;
+      return { type: c.type, id: c.id || '' };
+    }
+    return { type: 'all', id: '' };
   }
 
   /* ---------- 图流：抽图、预筛、去重、尺寸判定 ---------- */
@@ -1490,7 +1552,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, moveGroup: moveGroup, deleteGroup: deleteGroup, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX
@@ -1505,7 +1567,7 @@ var RSSCore = (function () {
   var C = RSSCore;
   var LS_KEY = 'rss-reader-state';
   var $ = function (id) { return document.getElementById(id); };
-  var state = { groups: [], feeds: [], stars: [], settings: Object.assign({}, C.DEFAULT_SETTINGS) };
+  var state = { groups: [], feeds: [], stars: [], navOrder: [], settings: Object.assign({}, C.DEFAULT_SETTINGS) };
   var itemsByFeed = {};
   var view = { type: 'all', id: '' };
   var shown = C.FEED_PAGE, refreshing = false, mode = 'feed', tiles = [];
@@ -1552,7 +1614,7 @@ var RSSCore = (function () {
       // 运行状态（错误、最后抓取时间）也留着
       var extra = {}; (d.feeds || []).forEach(function (f) { extra[f.id] = f; });
       r.feeds.forEach(function (f) { var x = extra[f.id] || {}; f.error = x.error || ''; f.fetchedAt = x.fetchedAt || 0; });
-      state.groups = r.groups; state.feeds = r.feeds; state.stars = r.stars; state.settings = r.settings;
+      state.groups = r.groups; state.feeds = r.feeds; state.stars = r.stars; state.settings = r.settings; state.navOrder = r.navOrder || [];
       return true;
     } catch (e) { console.warn(e); return false; }
   }
@@ -1614,7 +1676,7 @@ var RSSCore = (function () {
     $('chips').innerHTML = list.map(function (c, i) {
       var on = sameView(c, view);
       return '<button class="chip" data-i="' + i + '" aria-pressed="' + on + '">' +
-        (c.type === 'star' ? '★ ' : '') + esc(c.label) + (c.pinned ? ' <span class="pin">置顶</span>' : '') + (c.temp ? ' <span class="x">×</span>' : '') + '</button>';
+        (c.type === 'star' ? '★ ' : '') + esc(c.label) + (c.temp ? ' <span class="x">×</span>' : '') + '</button>';
     }).join('');
     Array.prototype.forEach.call($('chips').children, function (b) {
       b.onclick = function () {
@@ -2187,7 +2249,7 @@ var RSSCore = (function () {
     var name = (prompt('新分组名称') || '').trim();
     if (!name) return '';
     var g = state.groups.find(function (x) { return x.name === name; });
-    if (!g) { g = C.makeGroup(name, name === '新闻+'); state.groups.push(g); }
+    if (!g) { g = C.makeGroup(name); state.groups.push(g); C.applyNavOrder(state); }
     return g.id;
   }
   function openAdder() {
@@ -2256,14 +2318,24 @@ var RSSCore = (function () {
   }
   function renderGroupMan() {
     var un = state.feeds.filter(function (f) { return !f.groupId; }).length;
+    C.applyNavOrder(state);
     var html = '<div class="row"><button class="btn" id="gAdd" style="flex:1">新建分组</button></div>' +
-      '<p class="note">可调整顺序、重命名、删除。删分组时里面的源会移到「未分组」，不会丢掉。每个分组可选择是否在信息流或图流里显示，默认都开。</p>';
-    state.groups.forEach(function (g, i) {
+      '<p class="note">最左侧分组即打开时的默认页，可在这里调整顺序。「全部」也可以排序；「收藏」和「未分组」固定在筛选条末尾。删分组时里面的源会移到「未分组」，不会丢掉。每个分组可选择是否在信息流或图流里显示，默认都开。</p>';
+    var nav = state.navOrder || [];
+    nav.forEach(function (k, i) {
+      var updn = '<button class="mini" data-nup="' + esc(k) + '" ' + (i === 0 ? 'disabled' : '') + '>上移</button>' +
+        '<button class="mini" data-ndn="' + esc(k) + '" ' + (i === nav.length - 1 ? 'disabled' : '') + '>下移</button>';
+      if (k === C.NAV_ALL) {
+        html += '<div class="gitem virtual" data-nav="all"><div class="gtitle"><span class="gn">全部</span>' + updn + '</div>' +
+          '<p class="note">筛选条里的「全部」。移到最左即为打开时的默认页。</p></div>';
+        return;
+      }
+      var g = groupById(k);
+      if (!g) return;
       C.normalizeGroupVis(g);
       html += '<div class="gitem" data-gid="' + esc(g.id) + '">' +
-        '<div class="gtitle"><span class="gn">' + esc(g.name) + (g.pinned ? ' <span class="badge">置顶</span>' : '') + '</span>' +
-        '<button class="mini" data-gup="' + esc(g.id) + '" ' + (i === 0 ? 'disabled' : '') + '>上移</button>' +
-        '<button class="mini" data-gdn="' + esc(g.id) + '" ' + (i === state.groups.length - 1 ? 'disabled' : '') + '>下移</button>' +
+        '<div class="gtitle"><span class="gn">' + esc(g.name) + '</span>' +
+        updn +
         '<button class="mini" data-gren="' + esc(g.id) + '">改名</button>' +
         '<button class="mini" data-gdel="' + esc(g.id) + '">删除</button></div>' +
         '<div class="gsws">' +
@@ -2280,12 +2352,13 @@ var RSSCore = (function () {
       var n = (prompt('新分组名称') || '').trim();
       if (!n) return;
       if (state.groups.some(function (g) { return g.name === n; })) return toast('已有这个分组');
-      state.groups.push(C.makeGroup(n, n === '新闻+'));
+      state.groups.push(C.makeGroup(n));
+      C.applyNavOrder(state);
       save(); renderGroupMan(); renderChips();
     };
     var b = $('grpBody');
-    b.querySelectorAll('[data-gup]').forEach(function (x) { x.onclick = function () { if (C.moveGroup(state, x.dataset.gup, -1)) { save(); renderGroupMan(); renderChips(); } }; });
-    b.querySelectorAll('[data-gdn]').forEach(function (x) { x.onclick = function () { if (C.moveGroup(state, x.dataset.gdn, 1)) { save(); renderGroupMan(); renderChips(); } }; });
+    b.querySelectorAll('[data-nup]').forEach(function (x) { x.onclick = function () { if (C.moveNav(state, x.dataset.nup, -1)) { maybeFixView(); save(); renderGroupMan(); renderChips(); renderMain(); } }; });
+    b.querySelectorAll('[data-ndn]').forEach(function (x) { x.onclick = function () { if (C.moveNav(state, x.dataset.ndn, 1)) { maybeFixView(); save(); renderGroupMan(); renderChips(); renderMain(); } }; });
     b.querySelectorAll('[data-gren]').forEach(function (x) { x.onclick = function () {
       var g = groupById(x.dataset.gren); if (!g) return;
       var n = (prompt('分组名称', g.name) || '').trim();
@@ -2311,11 +2384,11 @@ var RSSCore = (function () {
   /* ---------- 订阅与设置 ---------- */
   function renderSettings() {
     var s = state.settings;
-    var groupsHtml = state.groups.slice().sort(function (a, b) { return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0); }).concat([{ id: '', name: '未分组' }]).map(function (g) {
+    var groupsHtml = state.groups.slice().concat([{ id: '', name: '未分组' }]).map(function (g) {
       var fs = state.feeds.filter(function (f) { return (f.groupId || '') === g.id; });
       if (!g.id && !fs.length) return '';
-      return '<div class="gh"><span>' + esc(g.name) + '</span>' + (g.pinned ? '<span class="badge">置顶</span>' : '') + '<span class="badge">' + fs.length + '</span><span class="sp"></span>' +
-        (g.id ? '<button class="mini" data-gpin="' + esc(g.id) + '">' + (g.pinned ? '取消置顶' : '置顶') + '</button><button class="mini" data-gren="' + esc(g.id) + '">改名</button><button class="mini" data-gdel="' + esc(g.id) + '">删除</button>' : '') + '</div>' +
+      return '<div class="gh"><span>' + esc(g.name) + '</span><span class="badge">' + fs.length + '</span><span class="sp"></span>' +
+        (g.id ? '<button class="mini" data-gren="' + esc(g.id) + '">改名</button><button class="mini" data-gdel="' + esc(g.id) + '">删除</button>' : '') + '</div>' +
         '<div class="box"><ul class="fl">' + (fs.length ? fs.map(function (f) {
           var n = (itemsByFeed[f.id] || []).length;
           return '<li><div class="n"><b>' + esc(feedName(f)) + '</b><small>' + esc(f.url) + '</small>' +
@@ -2330,10 +2403,9 @@ var RSSCore = (function () {
       '<h4>导入导出</h4><div class="box"><div class="row"><button class="btn ghost" id="sImpO" style="flex:1">导入 OPML</button><button class="btn ghost" id="sExpO" style="flex:1">导出 OPML</button></div>' +
       '<div class="row"><button class="btn ghost" id="sExpJ" style="flex:1">备份 JSON</button><button class="btn ghost" id="sImpJ" style="flex:1">从 JSON 恢复</button></div>' +
       '<div class="row"><button class="btn ghost" id="sRestore" style="flex:1">恢复默认订阅</button></div>' +
-      '<p class="note">「恢复默认订阅」只补回缺失的默认源，不会删你已有的订阅。JSON 备份包含订阅、分组、置顶、收藏的文章和设置；文章列表本身恢复后会重新抓。</p></div>' +
+      '<p class="note">「恢复默认订阅」只补回缺失的默认源，不会删你已有的订阅。JSON 备份包含订阅、分组、筛选条顺序、收藏的文章和设置；文章列表本身恢复后会重新抓。</p></div>' +
       '<h4>阅读</h4><div class="box">' +
       '<label class="sw"><span>点文章时</span><select id="sOpen" style="width:auto"><option value="reader">在阅读页打开</option><option value="original">直接打开原文</option></select></label>' +
-      '<div class="row"><label class="sw" style="flex:1"><span>「全部」里置顶分组排前面</span><input type="checkbox" id="sBoost"' + (s.pinnedFirstInAll ? ' checked' : '') + '></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>每个源最多保留</span><span><input type="number" id="sMax" min="10" max="2000" value="' + s.maxItems + '" style="width:90px"> 篇</span></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>信息流显示缩略图</span><input type="checkbox" id="sListThumb"' + (s.showListThumb !== false ? ' checked' : '') + '></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>图流过滤强度</span><select id="sImg" style="width:auto"><option value="strict">严（默认）</option><option value="medium">中</option></select></label></div>' +
@@ -2384,7 +2456,7 @@ var RSSCore = (function () {
     };
     $('sProxReset').onclick = function () { $('sProx').value = C.DEFAULT_PROXIES.join('\n'); };
     $('sSave').onclick = function () {
-      s.openMode = $('sOpen').value; s.pinnedFirstInAll = $('sBoost').checked;
+      s.openMode = $('sOpen').value;
       s.imageFilter = $('sImg').value === 'medium' ? 'medium' : 'strict';
       s.showListThumb = $('sListThumb').checked;
       s.proxyMode = C.normalizeProxyMode(s.proxyMode);
@@ -2398,7 +2470,6 @@ var RSSCore = (function () {
       save(); renderMain(); toast('设置已保存');
     };
     var b = $('setBody');
-    b.querySelectorAll('[data-gpin]').forEach(function (x) { x.onclick = function () { var g = groupById(x.dataset.gpin); g.pinned = !g.pinned; save(); renderSettings(); renderChips(); }; });
     b.querySelectorAll('[data-gren]').forEach(function (x) { x.onclick = function () { var g = groupById(x.dataset.gren); var n = (prompt('分组名称', g.name) || '').trim(); if (n) { g.name = n; save(); renderSettings(); renderChips(); } }; });
     b.querySelectorAll('[data-gdel]').forEach(function (x) { x.onclick = function () {
       var g = groupById(x.dataset.gdel); if (!confirm('删除分组「' + g.name + '」？里面的源会移到「未分组」，不会删掉。')) return;
