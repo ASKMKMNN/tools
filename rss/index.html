@@ -124,6 +124,32 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .note{font-size:12.5px;color:var(--muted);margin:6px 0 0}
 .toast{position:fixed;left:50%;bottom:calc(20px + var(--sab));transform:translateX(-50%);background:var(--chip-on);color:var(--chip-on-text);padding:9px 16px;border-radius:12px;font-size:14px;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
+
+/* 信息流 / 图流 切换 */
+.modes{display:flex;padding:2px 14px 0}
+.mode{display:inline-flex;background:var(--chip);border-radius:12px;padding:2px;height:32px}
+.mode button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:0 12px;font-size:13px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* 图流水流 */
+.masonry{padding:10px 12px calc(28px + var(--sab));column-count:2;column-gap:8px}
+.masonry[hidden],.list[hidden]{display:none}
+.tile{break-inside:avoid;margin:0 0 8px;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;display:none;width:100%;padding:0;text-align:left;color:inherit}
+.tile.show{display:inline-block}
+.tile img{width:100%;height:auto;display:block;background:var(--chip);vertical-align:middle}
+.tile figcaption{margin:0;padding:7px 9px 8px;font-size:12px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* 大图浏览 */
+.pv-stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:calc(100dvh - 70px - var(--sat) - var(--sab));padding:8px 12px calc(24px + var(--sab));touch-action:pan-y}
+.pv-stage img{max-width:100%;max-height:calc(100dvh - 90px - var(--sat) - var(--sab));object-fit:contain;border-radius:8px;background:var(--chip)}
+.pv-nav{position:absolute;top:50%;transform:translateY(-50%);border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:999px;width:40px;height:40px;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;opacity:.9}
+.pv-nav.prev{left:8px}
+.pv-nav.next{right:8px}
+.pv-cap{text-align:center;font-size:13px;color:var(--muted);padding:0 16px 8px}
+@media (min-width:820px){
+  .masonry{column-count:3;padding:14px 20px 40px}
+}
+@media (min-width:1100px){
+  .masonry{column-count:4}
+}
 @media (min-width:820px){
   .list{padding:14px 20px 40px}
   .card{padding:13px 14px}
@@ -141,12 +167,18 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
       <button class="ib" id="btnTheme" title="主题" aria-label="切换主题"><span id="themeIcon">🌓</span></button>
       <button class="ib" id="btnSettings" title="订阅与设置" aria-label="订阅与设置"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </div>
+    <div class="modes">
+      <div class="mode" role="tablist" aria-label="视图">
+        <button type="button" id="modeFeed" aria-pressed="true">信息流</button>
+        <button type="button" id="modePics" aria-pressed="false">图流</button>
+      </div>
+    </div>
     <nav class="chips" id="chips" aria-label="筛选"></nav>
     <div class="status" id="status"></div>
   </div>
 </header>
 <div class="ptr" id="ptr"><span id="ptrText">下拉刷新</span></div>
-<main class="wrap"><div class="list" id="list"></div></main>
+<main class="wrap"><div class="list" id="list"></div><div class="masonry" id="gallery" hidden></div></main>
 
 <section class="sheet" id="reader" aria-label="阅读">
   <div class="head">
@@ -185,6 +217,19 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
     </div>
   </div>
 </section>
+<section class="sheet" id="picview" aria-label="看图">
+  <div class="head">
+    <button class="ib" data-close="picview" aria-label="返回"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <div class="t" id="pvSrc"></div>
+    <a class="ib" id="pvOpen" target="_blank" rel="noopener noreferrer" style="text-decoration:none">原文</a>
+  </div>
+  <div class="pv-cap" id="pvTitle"></div>
+  <div class="pv-stage" id="pvStage">
+    <button class="pv-nav prev" id="pvPrev" aria-label="上一张">‹</button>
+    <img id="pvImg" alt="">
+    <button class="pv-nav next" id="pvNext" aria-label="下一张">›</button>
+  </div>
+</section>
 <input type="file" id="fileOpml" accept=".opml,.xml,text/xml,application/xml" hidden>
 <input type="file" id="fileJson" accept=".json,application/json" hidden>
 <div class="toast" id="toast"></div>
@@ -205,8 +250,73 @@ var RSSCore = (function () {
   ];
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
-    proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false
+    proxies: DEFAULT_PROXIES.slice(), openMode: 'reader', pinnedFirstInAll: false,
+    customProxy: '', imageFilter: 'strict'
   };
+  var GROUP_ORDER = ['新闻+', '科技', '杂志', '杂志F', '设计', '其他', '推荐'];
+  var DEFAULT_FEEDS = [
+    { title: 'NewsBot AI Reports', url: 'https://newsbot.justinyan.app/api/public/rss/reports.xml', group: '新闻+' },
+    { title: '爱范儿', url: 'https://feedx.net/rss/ifanr.xml', group: '新闻+' },
+    { title: 'The Verge -  All Posts', url: 'https://www.theverge.com/rss/index.xml', group: '新闻+' },
+    { title: 'Vox -  All', url: 'https://www.vox.com/rss/index.xml', group: '新闻+' },
+    { title: 'TOAST - TOAST Magazine', url: 'https://www.toa.st/blogs/magazine.atom', group: '新闻+' },
+    { title: 'Wallpaper* News Feed', url: 'https://feeds.feedburner.com/Wallpaperfeed', group: '新闻+' },
+    { title: 'PORT Magazine', url: 'https://www.port-magazine.com/feed/', group: '新闻+' },
+    { title: 'Colossal', url: 'https://feeds.feedburner.com/colossal', group: '新闻+' },
+    { title: 'Design Milk', url: 'https://feeds.feedburner.com/design-milk', group: '新闻+' },
+    { title: 'Nautilus', url: 'https://nautil.us/feed/', group: '新闻+' },
+    { title: 'Buzzing', url: 'https://www.buzzing.cc/feed.xml', group: '新闻+' },
+    { title: 'Product Hunt', url: 'https://www.producthunt.com/feed', group: '新闻+' },
+    { title: 'V2EX', url: 'https://www.v2ex.com/index.xml', group: '新闻+' },
+    { title: '9to5Google', url: 'https://9to5google.com/feed/', group: '科技' },
+    { title: '9to5Mac', url: 'https://9to5mac.com/feed/', group: '科技' },
+    { title: 'NASA', url: 'https://www.nasa.gov/feed/', group: '科技' },
+    { title: '少数派', url: 'https://sspai.com/feed', group: '科技' },
+    { title: 'Input', url: 'https://www.inverse.com/input/rss', group: '科技' },
+    { title: 'Engadget 中文版 RSS Feed', url: 'https://syndication.yahooapis.com/syndication/2.0/feed/646465b6b0d54', group: '科技' },
+    { title: 'Dazed', url: 'https://www.dazeddigital.com/rss', group: '杂志' },
+    { title: 'i-d.co', url: 'https://i-d.co/feed/', group: '杂志' },
+    { title: 'culturedmag.com', url: 'https://culturedmag.com/feed/', group: '杂志' },
+    { title: 'Lodestars Anthology - Lodestars Anthology', url: 'https://lodestarsanthology.co.uk/blog?format=rss', group: '杂志' },
+    { title: 'PALM REPORT', url: 'https://palmreport.poolsuite.net/rss/', group: '杂志' },
+    { title: 'BRUTUS.jp | ブルータスのウェブ', url: 'https://brutus.jp/feed/', group: '杂志' },
+    { title: 'Ideal Magazine', url: 'https://idealmagazine.co.uk/feed/', group: '杂志' },
+    { title: 'Ribs And Dust Aus - Lookbook', url: 'https://ribsanddust.com/blogs/lookbook.atom', group: '杂志F' },
+    { title: "Harper's BAZAAR tw", url: 'https://www.harpersbazaar.com/tw/rss/default.xml', group: '杂志F' },
+    { title: 'Vogue Taiwan', url: 'https://www.vogue.com.tw/feed/rss', group: '杂志F' },
+    { title: 'ELLE China', url: 'https://www.ellechina.com/rss/default.xml', group: '杂志F' },
+    { title: "Harper's BAZAAR", url: 'https://www.harpersbazaar.com/rss/default.xml', group: '杂志F' },
+    { title: 'ELLE', url: 'https://www.elle.com/rss/default.xml', group: '杂志F' },
+    { title: 'Vogue', url: 'https://www.vogue.com/feed/rss', group: '杂志F' },
+    { title: 'ArchDaily | ArchDaily', url: 'https://www.archdaily.com/zh/cn.xml', group: '设计' },
+    { title: 'but does it float', url: 'https://butdoesitfloat.com/rss', group: '设计' },
+    { title: 'Taiwan 2.0', url: 'https://taiwan.chtsai.org/feed/', group: '其他' },
+    { title: 'TechCrunch', url: 'https://techcrunch.com/feed/', group: '推荐' },
+    { title: 'WIRED', url: 'https://www.wired.com/feed/rss', group: '推荐' },
+    { title: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', group: '推荐' },
+    { title: '36氪', url: 'https://www.36kr.com/feed', group: '推荐' },
+    { title: '量子位', url: 'https://www.qbitai.com/feed', group: '推荐' },
+    { title: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', group: '推荐' },
+    { title: 'Android Police', url: 'https://www.androidpolice.com/feed/', group: '推荐' },
+    { title: 'Engadget', url: 'https://www.engadget.com/rss.xml', group: '推荐' },
+    { title: 'Highsnobiety', url: 'https://www.highsnobiety.com/feed/', group: '推荐' },
+    { title: 'Hypebeast', url: 'https://hypebeast.com/feed', group: '推荐' },
+    { title: 'Business of Fashion', url: 'https://www.businessoffashion.com/feed', group: '推荐' },
+    { title: 'GQ', url: 'https://www.gq.com/feed/rss', group: '推荐' },
+    { title: 'Dezeen', url: 'https://www.dezeen.com/feed/', group: '推荐' },
+    { title: 'designboom', url: 'https://www.designboom.com/feed/', group: '推荐' },
+    { title: 'Architectural Digest', url: 'https://www.architecturaldigest.com/feed/rss', group: '推荐' },
+    { title: 'Hyperallergic', url: 'https://hyperallergic.com/feed/', group: '推荐' },
+    { title: '机核', url: 'https://www.gcores.com/rss', group: '推荐' },
+    { title: 'Polygon', url: 'https://www.polygon.com/rss/index.xml', group: '推荐' },
+    { title: 'IGN', url: 'https://feeds.ign.com/ign/all', group: '推荐' },
+    { title: 'Nintendo Life', url: 'https://www.nintendolife.com/feeds/latest', group: '推荐' },
+    { title: 'Hacker News', url: 'https://hnrss.org/frontpage', group: '推荐' },
+    { title: 'Solidot', url: 'https://www.solidot.org/index.rss', group: '推荐' },
+    { title: '开源中国', url: 'https://www.oschina.net/news/rss', group: '推荐' },
+    { title: 'LWN', url: 'https://lwn.net/headlines/rss', group: '推荐' },
+    { title: 'IT之家', url: 'https://www.ithome.com/rss/', group: '' }
+  ];
 
   function hash(s) {
     var h1 = 0x811c9dc5, h2 = 5381;
@@ -303,35 +413,58 @@ var RSSCore = (function () {
   }
 
   function mediaOf(item, base) {
-    var thumb = '', enclosures = [];
+    var thumb = '', enclosures = [], images = [];
+    function addImage(url, w, h, kind) {
+      if (!url) return '';
+      url = absUrl(url, base);
+      images.push({ url: url, width: +w || 0, height: +h || 0, kind: kind || '' });
+      return url;
+    }
     var groups = [item].concat(kids(item, ['media:group']));
     groups.forEach(function (g) {
-      kids(g, ['media:thumbnail']).forEach(function (t) { if (!thumb && t.getAttribute('url')) thumb = absUrl(t.getAttribute('url'), base); });
+      kids(g, ['media:thumbnail']).forEach(function (t) {
+        if (t.getAttribute('url')) {
+          var u = addImage(t.getAttribute('url'), t.getAttribute('width'), t.getAttribute('height'), 'thumbnail');
+          if (!thumb) thumb = u;
+        }
+      });
       kids(g, ['media:content']).forEach(function (c) {
         var u = c.getAttribute('url'), ty = c.getAttribute('type') || '', md = c.getAttribute('medium') || '';
         if (!u) return;
-        if (md === 'image' || /^image\//.test(ty) || (!ty && !md && /\.(jpe?g|png|gif|webp|avif)(\?|$)/i.test(u))) { if (!thumb) thumb = absUrl(u, base); }
-        else enclosures.push({ url: absUrl(u, base), type: ty || md, length: +c.getAttribute('fileSize') || 0 });
+        if (md === 'image' || /^image\//.test(ty) || (!ty && !md && /\.(jpe?g|png|gif|webp|avif)(\?|$)/i.test(u))) {
+          var iu = addImage(u, c.getAttribute('width'), c.getAttribute('height'), 'content');
+          if (!thumb) thumb = iu;
+        } else enclosures.push({ url: absUrl(u, base), type: ty || md, length: +c.getAttribute('fileSize') || 0 });
         var t2 = kid(c, ['media:thumbnail']);
-        if (!thumb && t2 && t2.getAttribute('url')) thumb = absUrl(t2.getAttribute('url'), base);
+        if (t2 && t2.getAttribute('url')) {
+          var tu = addImage(t2.getAttribute('url'), t2.getAttribute('width'), t2.getAttribute('height'), 'thumbnail');
+          if (!thumb) thumb = tu;
+        }
       });
     });
     kids(item, ['enclosure']).forEach(function (e) {
       var u = e.getAttribute('url'), ty = e.getAttribute('type') || '';
       if (!u) return;
-      if (/^image\//.test(ty) || (!ty && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(u))) { if (!thumb) thumb = absUrl(u, base); }
-      else enclosures.push({ url: absUrl(u, base), type: ty, length: +e.getAttribute('length') || 0 });
+      if (/^image\//.test(ty) || (!ty && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(u))) {
+        var iu = addImage(u, e.getAttribute('width'), e.getAttribute('height'), 'enclosure');
+        if (!thumb) thumb = iu;
+      } else enclosures.push({ url: absUrl(u, base), type: ty, length: +e.getAttribute('length') || 0 });
     });
-    // Atom enclosure
     kids(item, ['link']).forEach(function (l) {
       if (l.getAttribute('rel') === 'enclosure' && l.getAttribute('href')) {
-        var ty = l.getAttribute('type') || '', u = absUrl(l.getAttribute('href'), base);
-        if (/^image\//.test(ty)) { if (!thumb) thumb = u; } else enclosures.push({ url: u, type: ty, length: +l.getAttribute('length') || 0 });
+        var ty = l.getAttribute('type') || '', href = l.getAttribute('href');
+        if (/^image\//.test(ty) || (!ty && /\.(jpe?g|png|gif|webp)(\?|$)/i.test(href))) {
+          var iu = addImage(href, l.getAttribute('width'), l.getAttribute('height'), 'enclosure');
+          if (!thumb) thumb = iu;
+        } else enclosures.push({ url: absUrl(href, base), type: ty, length: +l.getAttribute('length') || 0 });
       }
     });
     var it = kid(item, ['itunes:image']);
-    if (!thumb && it && it.getAttribute('href')) thumb = absUrl(it.getAttribute('href'), base);
-    return { thumb: thumb, enclosures: enclosures };
+    if (it && it.getAttribute('href')) {
+      var iu = addImage(it.getAttribute('href'), it.getAttribute('width'), it.getAttribute('height'), 'thumbnail');
+      if (!thumb) thumb = iu;
+    }
+    return { thumb: thumb, enclosures: enclosures, images: images };
   }
 
   function atomText(el) {
@@ -374,6 +507,7 @@ var RSSCore = (function () {
     else o.summary = stripTags(o.summary).slice(0, 240);
     if (!o.thumb) o.thumb = firstImg(o.content, o.link || feedUrl);
     if (!o.title) o.title = o.summary.slice(0, 60) || '（无标题）';
+    if (!Array.isArray(o.images)) o.images = [];
     delete o.guid;
     return o;
   }
@@ -401,7 +535,7 @@ var RSSCore = (function () {
           author: au ? txt(kid(au, ['name'])) || txt(au) : '',
           date: parseDate(txt(kid(e, ['published'])) || txt(kid(e, ['updated'])) || txt(kid(e, ['issued'])) || txt(kid(e, ['dc:date']))),
           content: content || summary, summary: summary,
-          thumb: m.thumb, enclosures: m.enclosures, base: eb
+          thumb: m.thumb, enclosures: m.enclosures, images: m.images, base: eb
         }, feedUrl));
       });
     } else if (rn === 'rss' || rn === 'rdf') {
@@ -431,7 +565,7 @@ var RSSCore = (function () {
           author: txt(kid(it, ['dc:creator'])) || txt(kid(it, ['author'])),
           date: parseDate(txt(kid(it, ['pubDate'])) || txt(kid(it, ['dc:date'])) || txt(kid(it, ['published'])) || txt(kid(it, ['updated']))),
           content: content || desc, summary: desc,
-          thumb: m.thumb, enclosures: m.enclosures, base: link || cbase
+          thumb: m.thumb, enclosures: m.enclosures, images: m.images, base: link || cbase
         }, feedUrl));
       });
     } else {
@@ -454,7 +588,7 @@ var RSSCore = (function () {
           title: stripTags(it.title || ''), link: absUrl(it.link, f.link || feedUrl), guid: it.guid || '',
           author: it.author || '', date: parseDate((it.pubDate || '').replace(' ', 'T') + (/[zZ+]/.test(it.pubDate || '') ? '' : 'Z')) || parseDate(it.pubDate),
           content: it.content || it.description || '', summary: it.description || '',
-          thumb: thumb, enclosures: enc, base: it.link || feedUrl
+          thumb: thumb, enclosures: enc, images: thumb ? [{ url: thumb, width: 0, height: 0, kind: 'content' }] : [], base: it.link || feedUrl
         }, feedUrl);
       })
     };
@@ -553,6 +687,19 @@ var RSSCore = (function () {
     if (t.indexOf('{url}') >= 0) return t.replace('{url}', encodeURIComponent(target));
     if (t.indexOf('{raw}') >= 0) return t.replace('{raw}', target);
     return t + encodeURIComponent(target);
+  }
+  /* 自建代理排在公共代理前面；地址由设置填入，留空则跳过。用户写 https://xxx/?url= 时自动补上 {url}。 */
+  function withCustomProxy(proxies, custom) {
+    var list = (proxies || []).slice();
+    var c = String(custom || '').trim();
+    if (!c) return list;
+    if (c.indexOf('{url}') < 0 && c.indexOf('{raw}') < 0) {
+      if (/[?&]url=$/i.test(c) || /url=$/i.test(c)) c += '{url}';
+      else if (/[?&]$/.test(c)) c += 'url={url}';
+      else if (c.indexOf('?') >= 0) c += '&url={url}';
+      else c += '?url={url}';
+    }
+    return [c].concat(list);
   }
   function routes(proxies, preferred, penalty) {
     var list = [{ key: 'direct', mode: 'raw', direct: true }];
@@ -732,7 +879,7 @@ var RSSCore = (function () {
       if (AUTO_PIN.indexOf(pg.name) >= 0) g.pinned = true;
     });
     parsed.feeds.forEach(function (pf) {
-      if (state.feeds.some(function (f) { return normUrl(f.url) === normUrl(pf.url); })) return;
+      if (state.feeds.some(function (f) { return feedKey(f.url) === feedKey(pf.url); })) return;
       var g = pf.group ? state.groups.find(function (x) { return x.name === pf.group; }) : null;
       state.feeds.push({ id: uid('f'), url: pf.url, title: pf.title, siteUrl: pf.siteUrl, groupId: g ? g.id : '' });
       added++;
@@ -740,6 +887,43 @@ var RSSCore = (function () {
     return added;
   }
   function normUrl(u) { return String(u || '').trim().replace(/^http:/i, 'https:').replace(/\/+$/, '').toLowerCase(); }
+  /* 去重键：https、去掉 www、去掉末尾斜杠，避免同一源因写法不同被加两次。不用纯域名，以免 feedburner 上不同源被误并。 */
+  function feedKey(u) {
+    var s = String(u || '').trim();
+    try {
+      var x = new URL(s);
+      var host = (x.hostname || '').replace(/^www\./i, '').toLowerCase();
+      var path = (x.pathname || '').replace(/\/+$/, '');
+      return 'https://' + host + path + (x.search || '');
+    } catch (e) { return normUrl(u); }
+  }
+  function groupRank(name) {
+    var i = GROUP_ORDER.indexOf(name);
+    return i < 0 ? GROUP_ORDER.length : i;
+  }
+  function ensureGroup(state, name) {
+    if (!name) return null;
+    var g = state.groups.find(function (x) { return x.name === name; });
+    if (!g) { g = { id: uid('g'), name: name, pinned: AUTO_PIN.indexOf(name) >= 0 }; state.groups.push(g); }
+    if (AUTO_PIN.indexOf(name) >= 0) g.pinned = true;
+    return g;
+  }
+  /* 把默认订阅并进现有状态（按网址/域名写法去重），不删除任何已有源，返回新增数量 */
+  function mergeDefaults(state) {
+    var added = 0;
+    GROUP_ORDER.forEach(function (name) { ensureGroup(state, name); });
+    DEFAULT_FEEDS.forEach(function (pf) {
+      if (state.feeds.some(function (f) { return feedKey(f.url) === feedKey(pf.url); })) return;
+      var g = pf.group ? ensureGroup(state, pf.group) : null;
+      state.feeds.push({ id: uid('f'), url: pf.url, title: pf.title, siteUrl: pf.siteUrl || '', groupId: g ? g.id : '' });
+      added++;
+    });
+    return added;
+  }
+  function seedIfNeeded(state, savedRaw) {
+    if (savedRaw) return 0;
+    return mergeDefaults(state);
+  }
 
   /* ---------- JSON 备份 ---------- */
   function makeBackup(state) {
@@ -773,6 +957,8 @@ var RSSCore = (function () {
     settings.timeoutMs = Math.max(2000, Math.min(60000, +settings.timeoutMs || DEFAULT_SETTINGS.timeoutMs));
     settings.concurrency = Math.max(1, Math.min(10, +settings.concurrency || DEFAULT_SETTINGS.concurrency));
     if (!Array.isArray(settings.proxies)) settings.proxies = DEFAULT_PROXIES.slice();
+    settings.customProxy = String(settings.customProxy || '');
+    settings.imageFilter = settings.imageFilter === 'medium' ? 'medium' : 'strict';
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     return { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0 };
   }
@@ -802,28 +988,176 @@ var RSSCore = (function () {
     });
     return list;
   }
-  /* 顶部筛选条：置顶分组 → 全部 → 其他分组 → 收藏 */
+  /* 顶部筛选条：置顶分组（新闻+ 优先）→ 全部 → 其余分组按推荐顺序 → 收藏 */
   function chips(state) {
     var out = [];
-    state.groups.filter(function (g) { return g.pinned; }).forEach(function (g) { out.push({ type: 'group', id: g.id, label: g.name, pinned: true }); });
+    function byOrder(a, b) {
+      var d = groupRank(a.name) - groupRank(b.name);
+      return d || state.groups.indexOf(a) - state.groups.indexOf(b);
+    }
+    state.groups.filter(function (g) { return g.pinned; }).slice().sort(byOrder).forEach(function (g) { out.push({ type: 'group', id: g.id, label: g.name, pinned: true }); });
     out.push({ type: 'all', id: '', label: '全部' });
-    state.groups.filter(function (g) { return !g.pinned; }).forEach(function (g) { out.push({ type: 'group', id: g.id, label: g.name }); });
+    state.groups.filter(function (g) { return !g.pinned; }).slice().sort(byOrder).forEach(function (g) { out.push({ type: 'group', id: g.id, label: g.name }); });
     out.push({ type: 'star', id: '', label: '收藏' });
     return out;
   }
   function defaultView(state) {
-    var g = state.groups.find(function (x) { return x.pinned; });
+    var pinned = state.groups.filter(function (x) { return x.pinned; }).slice().sort(function (a, b) { return groupRank(a.name) - groupRank(b.name); });
+    var g = pinned[0];
     return g ? { type: 'group', id: g.id } : { type: 'all', id: '' };
+  }
+
+  /* ---------- 图流：抽图、预筛、去重、尺寸判定 ---------- */
+  var IMAGE_REJECT = /avatar|\bicon\b|logo|emoji|sprite|badge|button|pixel|tracking|gravatar|feedburner|doubleclick|\bads\b|spacer|1x1|\bblank\b/i;
+  var SIZE_PARAM = /^(w|h|width|height|fit|crop|resize|quality|q|auto|format|fm|dpr|s|sz|size|or|cs|rs|cw|ch|w_|h_)$/i;
+  function parseSrcset(srcset) {
+    return String(srcset || '').split(',').map(function (part) {
+      var bits = part.trim().split(/\s+/);
+      if (!bits[0]) return null;
+      var desc = bits[1] || '';
+      var w = 0, d = 0;
+      if (/^\d+w$/i.test(desc)) w = parseInt(desc, 10);
+      else if (/^\d+(\.\d+)?x$/i.test(desc)) d = parseFloat(desc);
+      else d = 1;
+      return { url: bits[0], width: w, density: d };
+    }).filter(Boolean);
+  }
+  function largestSrcsetUrl(srcset, base) {
+    var list = parseSrcset(srcset);
+    if (!list.length) return '';
+    list.sort(function (a, b) {
+      if (a.width || b.width) return (b.width || 0) - (a.width || 0);
+      return (b.density || 0) - (a.density || 0);
+    });
+    return absUrl(list[0].url, base);
+  }
+  function prefilterImage(url, attrs) {
+    attrs = attrs || {};
+    var u = String(url || '').trim();
+    if (!u) return false;
+    var resolved = absUrl(u, attrs.base);
+    if (!safeUrl(resolved)) return false;
+    var cls = String(attrs.className || attrs['class'] || '');
+    if (IMAGE_REJECT.test(u) || IMAGE_REJECT.test(cls)) return false;
+    if (/^data:/i.test(u)) return false;
+    if (/\.svg(\?|#|$)/i.test(u) || /(?:^|[:/;])svg\+xml/i.test(attrs.type || '')) return false;
+    var w = parseInt(attrs.width, 10) || 0, h = parseInt(attrs.height, 10) || 0;
+    var isGif = /\.gif(\?|#|$)/i.test(u) || /image\/gif/i.test(attrs.type || '');
+    if (isGif && Math.max(w, h) < 800 && w * h < 500000) return false;
+    var hasW = w > 0, hasH = h > 0;
+    if ((hasW && w < 600) || (hasH && h < 600)) return false;
+    return true;
+  }
+  function passesImageSize(nw, nh, level) {
+    var minW = level === 'medium' ? 600 : 800;
+    var minArea = level === 'medium' ? 300000 : 500000;
+    nw = +nw || 0; nh = +nh || 0;
+    if (nw < minW || !nh || nw * nh < minArea) return false;
+    var r = nw / nh;
+    if (r > 3 || r < 1 / 3) return false;
+    return true;
+  }
+  function imageDedupeKey(u) {
+    var s = String(u || '').trim();
+    try {
+      var x = new URL(s);
+      var host = (x.hostname || '').replace(/^www\./i, '').toLowerCase();
+      var path = x.pathname || '';
+      path = path.replace(/[-_]\d{2,5}x\d{2,5}(?=\.[a-z0-9]+$)/i, '');
+      path = path.replace(/[-_]\d{2,5}w(?=\.[a-z0-9]+$)/i, '');
+      var keep = [];
+      x.searchParams.forEach(function (v, k) {
+        if (!SIZE_PARAM.test(k) && !/^\d+x\d+$/i.test(k)) keep.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+      });
+      keep.sort();
+      return 'https://' + host + path.replace(/\/+$/, '') + (keep.length ? '?' + keep.join('&') : '');
+    } catch (e) {
+      return s.split('?')[0].replace(/[-_]\d{2,5}x\d{2,5}(?=\.[a-z0-9]+$)/i, '').replace(/\/+$/, '').toLowerCase();
+    }
+  }
+  function imagesFromHtml(html, base) {
+    if (!html) return [];
+    var doc = new DOMParser().parseFromString('<body>' + html, 'text/html');
+    var out = [];
+    doc.querySelectorAll('img').forEach(function (img) {
+      var srcset = img.getAttribute('srcset') || '';
+      var src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('data-original') || '';
+      var parsed = parseSrcset(srcset);
+      var url = srcset ? (largestSrcsetUrl(srcset, base) || absUrl(src, base)) : absUrl(src, base);
+      var w = parseInt(img.getAttribute('width') || '0', 10) || 0, h = parseInt(img.getAttribute('height') || '0', 10) || 0;
+      if (!w && parsed.length) w = parsed.slice().sort(function (a, b) { return (b.width || 0) - (a.width || 0); })[0].width || 0;
+      out.push({ url: url, width: w, height: h, className: img.getAttribute('class') || '', type: '', kind: 'html', base: base });
+    });
+    doc.querySelectorAll('source[srcset]').forEach(function (s) {
+      var url = largestSrcsetUrl(s.getAttribute('srcset') || '', base);
+      var parsed = parseSrcset(s.getAttribute('srcset') || '');
+      var w = parsed.length ? parsed.slice().sort(function (a, b) { return (b.width || 0) - (a.width || 0); })[0].width || 0 : 0;
+      if (url) out.push({ url: url, width: w, height: 0, className: '', type: s.getAttribute('type') || '', kind: 'html', base: base });
+    });
+    return out;
+  }
+  function collectItemImages(item) {
+    var base = item.base || item.link || '';
+    var primary = [], thumbs = [];
+    function push(list, im) {
+      if (!im || !im.url) return;
+      if (!prefilterImage(im.url, im)) return;
+      list.push(im);
+    }
+    (item.images || []).forEach(function (im) {
+      push(im.kind === 'thumbnail' ? thumbs : primary, Object.assign({ base: base }, im));
+    });
+    (item.enclosures || []).forEach(function (e) {
+      if (e && e.url && /^image\//.test(e.type || '')) push(primary, { url: e.url, width: 0, height: 0, type: e.type || '', kind: 'enclosure', base: base });
+    });
+    imagesFromHtml(item.content || '', base).forEach(function (im) { push(primary, im); });
+    imagesFromHtml(item.summary || '', base).forEach(function (im) { push(primary, im); });
+    if (item.thumb) {
+      var already = primary.concat(thumbs).some(function (x) { return imageDedupeKey(x.url) === imageDedupeKey(item.thumb); });
+      if (!already) push(thumbs, { url: item.thumb, width: 0, height: 0, kind: 'thumbnail', base: base });
+    }
+    var list = primary.length ? primary : thumbs;
+    var seen = {}, out = [];
+    list.sort(function (a, b) { return (b.width || 0) - (a.width || 0); });
+    list.forEach(function (im) {
+      var k = imageDedupeKey(im.url);
+      if (!k || seen[k]) return;
+      seen[k] = 1;
+      out.push(im);
+    });
+    return out.slice(0, 4);
+  }
+  function gallery(state, itemsByFeed, view) {
+    var articles = timeline(state, itemsByFeed, view);
+    var seen = {}, tiles = [];
+    articles.forEach(function (it) {
+      collectItemImages(it).forEach(function (im) {
+        var k = imageDedupeKey(im.url);
+        if (!k || seen[k]) return;
+        seen[k] = 1;
+        tiles.push({
+          url: im.url, width: im.width || 0, height: im.height || 0,
+          id: it.id, feedId: it.feedId, title: it.title || '', link: it.link || '',
+          date: it.date || 0, feedTitle: it.feedTitle || ''
+        });
+      });
+    });
+    tiles.sort(function (a, b) { return b.date - a.date; });
+    return tiles;
   }
 
   return {
     SCHEMA: SCHEMA, DEFAULT_PROXIES: DEFAULT_PROXIES, DEFAULT_SETTINGS: DEFAULT_SETTINGS,
+    DEFAULT_FEEDS: DEFAULT_FEEDS, GROUP_ORDER: GROUP_ORDER,
     hash: hash, uid: uid, absUrl: absUrl, escapeHtml: escapeHtml, stripTags: stripTags, parseDate: parseDate, decodeBytes: decodeBytes,
     parseXml: parseXml, parseFeed: parseFeed, fromRss2Json: fromRss2Json, sanitizeHtml: sanitizeHtml,
-    discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel,
+    discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
-    parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl,
-    makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView
+    parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
+    mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
+    parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
+    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, gallery: gallery
   };
 })();
 
@@ -838,7 +1172,7 @@ var RSSCore = (function () {
   var state = { groups: [], feeds: [], stars: [], settings: Object.assign({}, C.DEFAULT_SETTINGS) };
   var itemsByFeed = {};
   var view = { type: 'all', id: '' };
-  var shown = 60, refreshing = false;
+  var shown = 60, refreshing = false, mode = 'feed', tiles = [];
 
   /* ---------- 存储：配置放 localStorage，文章放 IndexedDB ---------- */
   var db = null;
@@ -874,14 +1208,15 @@ var RSSCore = (function () {
   function load() {
     try {
       var raw = localStorage.getItem(LS_KEY);
-      if (!raw) return;
+      if (!raw) return false;
       var d = JSON.parse(raw);
       var r = C.restoreBackup(d);
       // 运行状态（错误、最后抓取时间）也留着
       var extra = {}; (d.feeds || []).forEach(function (f) { extra[f.id] = f; });
       r.feeds.forEach(function (f) { var x = extra[f.id] || {}; f.error = x.error || ''; f.fetchedAt = x.fetchedAt || 0; });
       state.groups = r.groups; state.feeds = r.feeds; state.stars = r.stars; state.settings = r.settings;
-    } catch (e) { console.warn(e); }
+      return true;
+    } catch (e) { console.warn(e); return false; }
   }
 
   /* ---------- 小工具 ---------- */
@@ -899,6 +1234,7 @@ var RSSCore = (function () {
   }
   function fullDate(t) { if (!t) return ''; var x = new Date(t); var p = function (n) { return (n < 10 ? '0' : '') + n; }; return x.getFullYear() + '-' + p(x.getMonth() + 1) + '-' + p(x.getDate()) + ' ' + p(x.getHours()) + ':' + p(x.getMinutes()); }
   function feedById(id) { return state.feeds.find(function (f) { return f.id === id; }); }
+  function proxies() { return C.withCustomProxy(state.settings.proxies, state.settings.customProxy); }
   function groupById(id) { return state.groups.find(function (g) { return g.id === id; }); }
   function feedName(f) { return (f && (f.title || f.url.replace(/^https?:\/\//, ''))) || ''; }
   function isStarred(id) { return state.stars.some(function (s) { return s.id === id; }); }
@@ -944,7 +1280,7 @@ var RSSCore = (function () {
     var on = $('chips').querySelector('[aria-pressed="true"]');
     if (on && on.scrollIntoView) try { on.scrollIntoView({ inline: 'nearest', block: 'nearest' }); } catch (e) { }
   }
-  function setView(v) { view = v; shown = 60; renderChips(); renderList(); window.scrollTo(0, 0); }
+  function setView(v) { view = v; shown = 60; renderChips(); renderMain(); window.scrollTo(0, 0); }
 
   /* ---------- 信息流 ---------- */
   var current = [];
@@ -979,6 +1315,104 @@ var RSSCore = (function () {
       io.observe(more);
     } else if (more) more.onclick = function () { shown += 60; renderList(); };
   }
+  function setMode(next) {
+    mode = next === 'pics' ? 'pics' : 'feed';
+    $('modeFeed').setAttribute('aria-pressed', mode === 'feed');
+    $('modePics').setAttribute('aria-pressed', mode === 'pics');
+    renderMain();
+    window.scrollTo(0, 0);
+  }
+  $('modeFeed').onclick = function () { setMode('feed'); };
+  $('modePics').onclick = function () { setMode('pics'); };
+  function renderMain() {
+    if (mode === 'pics') renderGallery();
+    else { $('gallery').hidden = true; $('list').hidden = false; renderList(); }
+  }
+  function renderGallery() {
+    $('list').hidden = true;
+    var el = $('gallery');
+    el.hidden = false;
+    tiles = C.gallery(state, itemsByFeed, view);
+    var feedTitleOf = function (id, fallback) { var f = feedById(id); return f ? feedName(f) : (fallback || ''); };
+    if (!state.feeds.length && view.type !== 'star') {
+      el.innerHTML = '<div class="empty" style="column-span:all"><div>还没有订阅</div></div>';
+      return;
+    }
+    if (!tiles.length) {
+      el.innerHTML = '<div class="empty" style="column-span:all">' + (view.type === 'star' ? '收藏的文章里还没有合适的图。' : '这一组暂时没有合适的图。刷一下，或到设置里把过滤改成「中」。') + '</div>';
+      return;
+    }
+    var level = state.settings.imageFilter === 'medium' ? 'medium' : 'strict';
+    var slice = tiles.slice(0, shown);
+    el.innerHTML = slice.map(function (t, i) {
+      return '<figure class="tile" data-i="' + i + '">' +
+        '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="' + esc(t.url) + '" alt="' + esc(t.title || '') + '">' +
+        '<figcaption>' + esc(feedTitleOf(t.feedId, t.feedTitle)) + (t.title ? ' · ' + esc(t.title) : '') + '</figcaption></figure>';
+    }).join('') + (tiles.length > shown ? '<div class="more" id="morePics" style="column-span:all">继续加载…</div>' : '');
+    Array.prototype.forEach.call(el.querySelectorAll('.tile'), function (fig) {
+      var img = fig.querySelector('img');
+      function done(ok) { if (!ok) fig.remove(); else fig.classList.add('show'); }
+      if (img.complete && img.naturalWidth) done(C.passesImageSize(img.naturalWidth, img.naturalHeight, level));
+      else {
+        img.onload = function () { done(C.passesImageSize(img.naturalWidth, img.naturalHeight, level)); };
+        img.onerror = function () { done(false); };
+      }
+    });
+    var more = $('morePics');
+    if (more && window.IntersectionObserver) {
+      var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { io.disconnect(); shown += 60; renderGallery(); } });
+      io.observe(more);
+    } else if (more) more.onclick = function () { shown += 60; renderGallery(); };
+  }
+  $('gallery').addEventListener('click', function (e) {
+    var fig = e.target.closest('.tile');
+    if (fig) openPic(+fig.dataset.i);
+  });
+  var picIndex = 0;
+  function visibleTiles() {
+    return Array.prototype.map.call($('gallery').querySelectorAll('.tile.show'), function (f) { return tiles[+f.dataset.i]; }).filter(Boolean);
+  }
+  function openPic(i) {
+    var vis = visibleTiles();
+    var t = tiles[i];
+    if (!t) return;
+    var idx = vis.findIndex(function (x) { return x === t || (x && x.url === t.url); });
+    picIndex = idx < 0 ? 0 : idx;
+    showPic();
+    openSheet('picview');
+  }
+  function showPic() {
+    var vis = visibleTiles();
+    if (!vis.length) return;
+    if (picIndex < 0) picIndex = vis.length - 1;
+    if (picIndex >= vis.length) picIndex = 0;
+    var t = vis[picIndex];
+    var f = feedById(t.feedId);
+    $('pvSrc').textContent = f ? feedName(f) : (t.feedTitle || '');
+    $('pvTitle').textContent = t.title || '';
+    $('pvImg').src = t.url;
+    $('pvImg').alt = t.title || '';
+    $('pvOpen').href = t.link || '#';
+    $('pvOpen').style.display = t.link ? '' : 'none';
+  }
+  $('pvPrev').onclick = function (e) { e.stopPropagation(); picIndex--; showPic(); };
+  $('pvNext').onclick = function (e) { e.stopPropagation(); picIndex++; showPic(); };
+  (function () {
+    var x0 = null;
+    $('pvStage').addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    $('pvStage').addEventListener('touchend', function (e) {
+      if (x0 == null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (dx > 50) { picIndex--; showPic(); }
+      else if (dx < -50) { picIndex++; showPic(); }
+      x0 = null;
+    });
+  })();
+  document.addEventListener('keydown', function (e) {
+    if (!$('picview').classList.contains('open')) return;
+    if (e.key === 'ArrowLeft') { picIndex--; showPic(); }
+    if (e.key === 'ArrowRight') { picIndex++; showPic(); }
+  });
   $('list').addEventListener('click', function (e) {
     var s = e.target.closest('[data-star]');
     if (s) { e.stopPropagation(); toggleStar(current[+s.dataset.star]); return; }
@@ -992,7 +1426,7 @@ var RSSCore = (function () {
     var i = state.stars.findIndex(function (s) { return s.id === it.id; });
     if (i >= 0) state.stars.splice(i, 1);
     else { var f = feedById(it.feedId); state.stars.push(Object.assign({}, it, { feedTitle: f ? feedName(f) : (it.feedTitle || ''), starredAt: Date.now() })); }
-    save(); renderList(); if (openIt && openIt.id === it.id) syncReaderStar();
+    save(); renderMain(); if (openIt && openIt.id === it.id) syncReaderStar();
   }
 
   /* ---------- 阅读页 ---------- */
@@ -1025,7 +1459,7 @@ var RSSCore = (function () {
     $(id).classList.add('open'); document.body.style.overflow = 'hidden';
     if (history.state !== id) history.pushState(id, '');
   }
-  function closeSheets() { ['reader', 'settings', 'adder'].forEach(function (s) { $(s).classList.remove('open'); }); document.body.style.overflow = ''; }
+  function closeSheets() { ['reader', 'settings', 'adder', 'picview'].forEach(function (s) { $(s).classList.remove('open'); }); document.body.style.overflow = ''; }
   document.querySelectorAll('[data-close]').forEach(function (b) { b.onclick = function () { if (history.state) history.back(); else closeSheets(); }; });
   window.addEventListener('popstate', function () { closeSheets(); });
 
@@ -1033,7 +1467,7 @@ var RSSCore = (function () {
   function setStatus(html) { var s = $('status'); s.innerHTML = html || ''; s.classList.toggle('show', !!html); }
   var penalty = {};
   async function refreshFeed(f) {
-    var r = await C.fetchFeed(f.url, { proxies: state.settings.proxies, preferred: f.route, timeoutMs: state.settings.timeoutMs, penalty: penalty });
+    var r = await C.fetchFeed(f.url, { proxies: proxies(), preferred: f.route, timeoutMs: state.settings.timeoutMs, penalty: penalty });
     var items = r.feed.items.map(function (it) { return Object.assign(it, { feedId: f.id }); });
     itemsByFeed[f.id] = C.mergeItems(itemsByFeed[f.id], items, state.settings.maxItems);
     f.route = r.route; f.error = ''; f.fetchedAt = Date.now();
@@ -1053,9 +1487,9 @@ var RSSCore = (function () {
       try { await refreshFeed(f); } catch (e) { f.error = String(e.message || e).slice(0, 300); failed++; }
       done++;
       setStatus('正在刷新 ' + done + '/' + feeds.length + (failed ? ' · <span class="err">' + failed + ' 个失败</span>' : ''));
-      if (done % 4 === 0) renderList();
+      if (done % 4 === 0) renderMain();
     });
-    save(); renderList();
+    save(); renderMain();
     refreshing = false; $('btnRefresh').classList.remove('spin');
     if (failed) setStatus('<span class="err">' + failed + ' 个源没抓到</span>，在「订阅与设置」里看原因');
     else { setStatus(''); toast('已刷新 ' + feeds.length + ' 个源'); }
@@ -1104,7 +1538,7 @@ var RSSCore = (function () {
     var gid = pickGroup($('addGroup'));
     $('addGo').disabled = true; $('addMsg').textContent = '正在查找订阅源…';
     try {
-      var r = await C.resolveFeed(u, { proxies: state.settings.proxies, timeoutMs: state.settings.timeoutMs });
+      var r = await C.resolveFeed(u, { proxies: proxies(), timeoutMs: state.settings.timeoutMs });
       if (state.feeds.some(function (f) { return C.normUrl(f.url) === C.normUrl(r.url); })) throw new Error('这个源已经订阅过了');
       var f = { id: C.uid('f'), url: r.url, title: r.feed.title, siteUrl: r.feed.siteUrl, groupId: gid, route: r.route, error: '', fetchedAt: Date.now() };
       state.feeds.push(f);
@@ -1112,7 +1546,7 @@ var RSSCore = (function () {
       idbPut(f.id, itemsByFeed[f.id]); save();
       $('addUrl').value = '';
       toast('已添加：' + feedName(f) + '（' + r.feed.items.length + ' 篇）');
-      history.back(); renderChips(); renderList();
+      history.back(); renderChips(); renderMain();
     } catch (e) { $('addMsg').textContent = '没加上：' + (e.message || e); }
     $('addGo').disabled = false;
   };
@@ -1124,7 +1558,7 @@ var RSSCore = (function () {
     var added = C.mergeOPML(state, parsed);
     save();
     view = C.defaultView(state);
-    renderChips(); renderList();
+    renderChips(); renderMain();
     toast('导入 ' + added + ' 个源' + (parsed.feeds.length - added ? '，' + (parsed.feeds.length - added) + ' 个已存在' : ''));
     if (added) refreshAll(state.feeds.slice(before));
     return added;
@@ -1145,7 +1579,7 @@ var RSSCore = (function () {
         state.feeds.forEach(function (f) { idbDel(f.id); });
         itemsByFeed = {};
         state.groups = r.groups; state.feeds = r.feeds; state.stars = r.stars; state.settings = r.settings;
-        save(); view = C.defaultView(state); renderChips(); renderList(); renderSettings();
+        save(); view = C.defaultView(state); renderChips(); renderMain(); renderSettings();
         toast('已恢复，开始抓取'); refreshAll();
       } catch (e) { toast('恢复失败：' + e.message, 3500); }
     });
@@ -1172,12 +1606,18 @@ var RSSCore = (function () {
       '<h4>订阅（' + state.feeds.length + '）</h4>' + (groupsHtml || '<p class="note">还没有订阅。</p>') +
       '<h4>导入导出</h4><div class="box"><div class="row"><button class="btn ghost" id="sImpO" style="flex:1">导入 OPML</button><button class="btn ghost" id="sExpO" style="flex:1">导出 OPML</button></div>' +
       '<div class="row"><button class="btn ghost" id="sExpJ" style="flex:1">备份 JSON</button><button class="btn ghost" id="sImpJ" style="flex:1">从 JSON 恢复</button></div>' +
-      '<p class="note">JSON 备份包含订阅、分组、置顶、收藏的文章和设置；文章列表本身恢复后会重新抓。</p></div>' +
+      '<div class="row"><button class="btn ghost" id="sRestore" style="flex:1">恢复默认订阅</button></div>' +
+      '<p class="note">「恢复默认订阅」只补回缺失的默认源，不会删你已有的订阅。JSON 备份包含订阅、分组、置顶、收藏的文章和设置；文章列表本身恢复后会重新抓。</p></div>' +
       '<h4>阅读</h4><div class="box">' +
       '<label class="sw"><span>点文章时</span><select id="sOpen" style="width:auto"><option value="reader">在阅读页打开</option><option value="original">直接打开原文</option></select></label>' +
       '<div class="row"><label class="sw" style="flex:1"><span>「全部」里置顶分组排前面</span><input type="checkbox" id="sBoost"' + (s.pinnedFirstInAll ? ' checked' : '') + '></label></div>' +
-      '<div class="row"><label class="sw" style="flex:1"><span>每个源最多保留</span><span><input type="number" id="sMax" min="10" max="2000" value="' + s.maxItems + '" style="width:90px"> 篇</span></label></div></div>' +
+      '<div class="row"><label class="sw" style="flex:1"><span>每个源最多保留</span><span><input type="number" id="sMax" min="10" max="2000" value="' + s.maxItems + '" style="width:90px"> 篇</span></label></div>' +
+      '<div class="row"><label class="sw" style="flex:1"><span>图流过滤强度</span><select id="sImg" style="width:auto"><option value="strict">严（默认）</option><option value="medium">中</option></select></label></div>' +
+      '<p class="note">严：最短边要求宽至少 800 像素，面积至少 50 万像素；中：600 像素、30 万像素。横幅和长条图都会丢掉。</p></div>' +
       '<h4>抓取</h4><div class="box">' +
+      '<div class="row"><label class="sw" style="flex:1"><span>自建代理</span></label></div>' +
+      '<input type="url" id="sCustom" placeholder="https://xxx/?url=" value="' + esc(s.customProxy || '') + '" autocomplete="off" spellcheck="false">' +
+      '<p class="note">填 Cloudflare Worker 等地址，格式 <code>https://xxx/?url=</code>。留空则跳过，只走下面的公共线路。自建代理会排在公共代理前面（仍先直连）。</p>' +
       '<div class="row"><label class="sw" style="flex:1"><span>同时抓取</span><span><input type="number" id="sConc" min="1" max="10" value="' + s.concurrency + '" style="width:70px"> 个</span></label></div>' +
       '<div class="row"><label class="sw" style="flex:1"><span>每条线路超时</span><span><input type="number" id="sTo" min="2" max="60" value="' + Math.round(s.timeoutMs / 1000) + '" style="width:70px"> 秒</span></label></div>' +
       '<p class="note" style="margin-top:12px">代理线路，一行一个，从上往下轮换（总是先直连；每个源会记住上次成功的线路）。<code>{url}</code> 处填编码后的订阅地址，<code>{raw}</code> 填原样地址；行首写 <code>json:字段名</code> 表示代理返回 JSON，<code>rss2json</code> 表示用 rss2json 转换服务（只有最近 10 篇）。</p>' +
@@ -1185,21 +1625,31 @@ var RSSCore = (function () {
       '<div class="row"><button class="btn ghost" id="sProxReset">恢复默认线路</button><span class="sp" style="flex:1"></span><button class="btn" id="sSave">保存设置</button></div></div>' +
       '<p class="note" style="margin-top:22px">数据只存在这台设备的浏览器里。换手机前记得备份 JSON。</p>';
     $('sOpen').value = s.openMode;
+    $('sImg').value = s.imageFilter === 'medium' ? 'medium' : 'strict';
     $('sAdd').onclick = function () { history.back(); setTimeout(openAdder, 60); };
     $('sGroup').onclick = function () { var n = (prompt('新分组名称') || '').trim(); if (!n) return; if (state.groups.some(function (g) { return g.name === n; })) return toast('已有这个分组'); state.groups.push({ id: C.uid('g'), name: n, pinned: n === '新闻+' }); save(); renderSettings(); renderChips(); };
     $('sImpO').onclick = function () { $('fileOpml').click(); };
     $('sExpO').onclick = function () { download('rss-subscriptions-' + stamp() + '.opml', C.buildOPML(state), 'text/x-opml'); };
     $('sExpJ').onclick = function () { download('rss-backup-' + stamp() + '.json', JSON.stringify(C.makeBackup(state), null, 2), 'application/json'); };
     $('sImpJ').onclick = function () { $('fileJson').click(); };
+    $('sRestore').onclick = function () {
+      var before = state.feeds.length;
+      var added = C.mergeDefaults(state);
+      save(); renderSettings(); renderChips(); renderMain();
+      if (added) { toast('已补回 ' + added + ' 个默认源'); refreshAll(state.feeds.slice(before)); }
+      else toast('默认订阅都在了');
+    };
     $('sProxReset').onclick = function () { $('sProx').value = C.DEFAULT_PROXIES.join('\n'); };
     $('sSave').onclick = function () {
       s.openMode = $('sOpen').value; s.pinnedFirstInAll = $('sBoost').checked;
+      s.imageFilter = $('sImg').value === 'medium' ? 'medium' : 'strict';
+      s.customProxy = $('sCustom').value.trim();
       s.maxItems = Math.max(10, Math.min(2000, +$('sMax').value || 200));
       s.concurrency = Math.max(1, Math.min(10, +$('sConc').value || 4));
       s.timeoutMs = Math.max(2, Math.min(60, +$('sTo').value || 15)) * 1000;
       s.proxies = $('sProx').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
       state.feeds.forEach(function (f) { if (itemsByFeed[f.id] && itemsByFeed[f.id].length > s.maxItems) { itemsByFeed[f.id] = itemsByFeed[f.id].slice(0, s.maxItems); idbPut(f.id, itemsByFeed[f.id]); } });
-      save(); renderList(); toast('设置已保存');
+      save(); renderMain(); toast('设置已保存');
     };
     var b = $('setBody');
     b.querySelectorAll('[data-gpin]').forEach(function (x) { x.onclick = function () { var g = groupById(x.dataset.gpin); g.pinned = !g.pinned; save(); renderSettings(); renderChips(); }; });
@@ -1209,7 +1659,7 @@ var RSSCore = (function () {
       state.feeds.forEach(function (f) { if (f.groupId === g.id) f.groupId = ''; });
       state.groups = state.groups.filter(function (y) { return y !== g; });
       if (view.type === 'group' && view.id === g.id) view = C.defaultView(state);
-      save(); renderSettings(); renderChips(); renderList();
+      save(); renderSettings(); renderChips(); renderMain();
     }; });
     b.querySelectorAll('[data-fedit]').forEach(function (x) { x.onclick = function () { editFeed(feedById(x.dataset.fedit)); }; });
   }
@@ -1218,25 +1668,31 @@ var RSSCore = (function () {
     li.style.flexWrap = 'wrap';
     li.innerHTML = '<div style="width:100%;display:grid;gap:8px"><input type="text" id="eT" value="' + esc(f.title) + '" placeholder="名称"><input type="url" id="eU" value="' + esc(f.url) + '"><select id="eG">' + groupOptions(f.groupId) + '</select>' +
       '<div class="row"><button class="btn danger" id="eDel">取消订阅</button><span style="flex:1"></span><button class="btn ghost" id="eNow">抓一次</button><button class="btn" id="eOk">保存</button></div></div>';
-    $('eOk').onclick = function () { f.title = $('eT').value.trim(); var nu = $('eU').value.trim(); if (nu && nu !== f.url) { f.url = nu; f.route = ''; } f.groupId = pickGroup($('eG')); save(); renderSettings(); renderChips(); renderList(); };
+    $('eOk').onclick = function () { f.title = $('eT').value.trim(); var nu = $('eU').value.trim(); if (nu && nu !== f.url) { f.url = nu; f.route = ''; } f.groupId = pickGroup($('eG')); save(); renderSettings(); renderChips(); renderMain(); };
     $('eNow').onclick = function () { $('eNow').disabled = true; refreshAll([f]); };
-    $('eDel').onclick = function () { if (!confirm('取消订阅「' + feedName(f) + '」？收藏的文章会保留。')) return; state.feeds = state.feeds.filter(function (y) { return y !== f; }); delete itemsByFeed[f.id]; idbDel(f.id); if (view.type === 'feed' && view.id === f.id) view = C.defaultView(state); save(); renderSettings(); renderChips(); renderList(); };
+    $('eDel').onclick = function () { if (!confirm('取消订阅「' + feedName(f) + '」？收藏的文章会保留。')) return; state.feeds = state.feeds.filter(function (y) { return y !== f; }); delete itemsByFeed[f.id]; idbDel(f.id); if (view.type === 'feed' && view.id === f.id) view = C.defaultView(state); save(); renderSettings(); renderChips(); renderMain(); };
   }
   $('btnSettings').onclick = function () { renderSettings(); openSheet('settings'); };
 
   /* ---------- 启动 ---------- */
   async function boot() {
     applyTheme();
-    load();
+    var had = load();
+    var seeded = false;
+    if (!had) {
+      C.mergeDefaults(state);
+      save();
+      seeded = true;
+    }
     db = await openDB();
     itemsByFeed = await idbAll();
     view = C.defaultView(state);
-    renderChips(); renderList();
+    renderChips(); renderMain();
     var stale = state.feeds.some(function (f) { return !f.fetchedAt || Date.now() - f.fetchedAt > 30 * 60 * 1000; });
-    if (stale && navigator.onLine !== false) refreshAll();
+    if ((seeded || stale) && navigator.onLine !== false) refreshAll();
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function () { });
   }
-  window.RSSApp = { state: function () { return state; }, items: function () { return itemsByFeed; }, importOPMLText: importOPMLText, refreshAll: refreshAll, setView: setView, openItem: function (i) { openItem(current[i]); }, ready: boot() };
+  window.RSSApp = { state: function () { return state; }, items: function () { return itemsByFeed; }, importOPMLText: importOPMLText, refreshAll: refreshAll, restoreDefaults: function () { var before = state.feeds.length; var added = C.mergeDefaults(state); if (added) { save(); renderChips(); renderMain(); } return added; }, setView: setView, setMode: setMode, openPic: openPic, openItem: function (i) { openItem(current[i]); }, ready: boot() };
 })();
 
 </script>
