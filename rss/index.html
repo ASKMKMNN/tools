@@ -91,6 +91,12 @@ a{color:var(--accent)}
 .empty{text-align:center;color:var(--muted);padding:60px 20px}
 .empty .btns{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
 .more{text-align:center;color:var(--muted);font-size:13px;padding:10px}
+.endline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 12px;padding:18px 16px 10px;color:var(--muted);font-size:13px;line-height:1.45;text-align:center;font-family:inherit}
+.endline-text{min-width:0}
+.endline-refresh{border:1px solid var(--line);background:var(--card);color:var(--text);border-radius:12px;min-height:44px;min-width:44px;padding:10px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.endline-refresh:disabled{opacity:.55;cursor:default}
+.endline-refresh:not(:disabled):active{transform:scale(.98)}
+#gallery>.endline{width:100%}
 .btn{border:0;background:var(--chip-on);color:var(--chip-on-text);border-radius:12px;padding:10px 16px;font-size:15px;font-weight:600;cursor:pointer}
 .btn.ghost{background:var(--chip);color:var(--text)}
 .btn.danger{background:none;color:var(--danger);border:1px solid var(--line)}
@@ -325,7 +331,8 @@ var RSSCore = (function () {
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader',
-    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false
+    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false,
+    lastRefreshAt: 0
   };
   var GROUP_ORDER = ['新闻+', '设计', '杂志', '图流', '信息流', '科技'];
   var DEFAULT_FEEDS = [
@@ -1409,6 +1416,7 @@ var RSSCore = (function () {
     settings.galleryCols = normalizeGalleryCols(settings.galleryCols);
     settings.proxyMode = normalizeProxyMode(settings.proxyMode);
     settings.showListThumb = settings.showListThumb !== false && settings.showListThumb !== 'false' && settings.showListThumb !== 0;
+    settings.lastRefreshAt = Math.max(0, +settings.lastRefreshAt || 0);
     Object.keys(settings).forEach(function (k) { if (!(k in DEFAULT_SETTINGS)) delete settings[k]; });
     applyOtherGroupMigration({ groups: groups, feeds: feeds, settings: settings });
     var restored = { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0, navOrder: Array.isArray(data.navOrder) ? data.navOrder.slice() : [] };
@@ -1688,6 +1696,54 @@ var RSSCore = (function () {
     var start = Math.max(0, shown - batch);
     return start + Math.floor((shown - start) / 2);
   }
+  /* 哨兵是否该立刻触发：在视口（含 100% 预加载边距）内，或已经滚过它。
+     用来兜底「最后一批不满一批 / 快速滑到底」时 IntersectionObserver 首帧报未相交、漏加载。 */
+  function sentinelShouldFire(top, vh, marginRatio) {
+    top = +top;
+    vh = +vh || 0;
+    if (!isFinite(top)) return false;
+    var margin = (marginRatio == null ? 1 : +marginRatio) * vh;
+    return top < vh + margin;
+  }
+  var AUTO_REFRESH_MS = 15 * 60 * 1000;
+  var AUTO_REFRESH_THROTTLE_MS = 2000;
+  function latestRefreshAt(feeds, lastRefreshAt) {
+    var t = Math.max(0, +lastRefreshAt || 0);
+    (feeds || []).forEach(function (f) {
+      var x = +((f && f.fetchedAt) || 0);
+      if (x > t) t = x;
+    });
+    return t;
+  }
+  /* 回前台 / 冷启动是否该自动刷新：离线、正在刷新、有弹层、距上次尝试不足节流间隔则否；
+     从未成功刷新，或最近一次成功刷新（各源 fetchedAt 最大值与 lastRefreshAt 取大）距今超过阈值则是。 */
+  function shouldAutoRefresh(p) {
+    p = p || {};
+    if (p.online === false) return false;
+    if (p.refreshing) return false;
+    if (p.sheetOpen) return false;
+    var now = +p.now;
+    if (!isFinite(now)) now = Date.now();
+    var throttle = p.throttleMs != null ? Math.max(0, +p.throttleMs) : AUTO_REFRESH_THROTTLE_MS;
+    var lastAttempt = +p.lastAttemptAt || 0;
+    if (lastAttempt && now - lastAttempt < throttle) return false;
+    var threshold = p.thresholdMs != null ? Math.max(0, +p.thresholdMs) : AUTO_REFRESH_MS;
+    var latest = latestRefreshAt(p.feeds, p.lastRefreshAt);
+    if (!latest) return true;
+    return now - latest > threshold;
+  }
+  function pad2(n) { n = Math.floor(+n || 0); return (n < 10 ? '0' : '') + n; }
+  /* 到底提示用的上次刷新时间：今天只显示 HH:MM，否则 M月D日 HH:MM，用运行环境本地时区。 */
+  function formatEndRefreshTime(t, now) {
+    t = +t;
+    if (!t) return '';
+    now = now != null ? +now : Date.now();
+    var d = new Date(t);
+    var n = new Date(now);
+    var hm = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
+    if (d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth() && d.getDate() === n.getDate()) return hm;
+    return (d.getMonth() + 1) + '月' + d.getDate() + '日 ' + hm;
+  }
   function itemKey(it) { return (it && (it.id || it.url)) || ''; }
   function countNewItems(prev, next) {
     var seen = {}, n = 0;
@@ -1758,7 +1814,8 @@ var RSSCore = (function () {
     canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
-    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX
+    passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX,
+    AUTO_REFRESH_MS: AUTO_REFRESH_MS, AUTO_REFRESH_THROTTLE_MS: AUTO_REFRESH_THROTTLE_MS, latestRefreshAt: latestRefreshAt, shouldAutoRefresh: shouldAutoRefresh, formatEndRefreshTime: formatEndRefreshTime, sentinelShouldFire: sentinelShouldFire
   };
 })();
 
@@ -1777,6 +1834,7 @@ var RSSCore = (function () {
   var committedItems = null, committedTiles = null, pendingNew = 0;
   var listIO = null, imgIO = null, galleryBatchStart = 0;
   var batchSel = { on: false, ids: {} };
+  var lastAutoAttempt = 0;
 
   /* ---------- 存储：配置放 localStorage，文章放 IndexedDB ---------- */
   var db = null;
@@ -1987,12 +2045,51 @@ var RSSCore = (function () {
       try { p.style.lineClamp = String(n); } catch (err) {}
     });
   }
+  function endHintText() {
+    if (view.type === 'star') return '已经到底了';
+    var t = C.latestRefreshAt(state.feeds, state.settings.lastRefreshAt);
+    return t ? ('已经到底了 · 上次刷新 ' + C.formatEndRefreshTime(t)) : '已经到底了';
+  }
+  function renderEndHint(root, count) {
+    if (!root) return;
+    var oldHint = root.querySelector('.endline');
+    if (oldHint) oldHint.remove();
+    if (!count) return;
+    var el = document.createElement('div');
+    el.className = 'endline';
+    el.setAttribute('role', 'status');
+    var html = '<span class="endline-text">' + esc(endHintText()) + '</span>';
+    if (view.type !== 'star') {
+      html += '<button type="button" class="endline-refresh"' + (refreshing ? ' disabled' : '') + '>' + (refreshing ? '正在刷新…' : '刷新') + '</button>';
+    }
+    el.innerHTML = html;
+    root.appendChild(el);
+    var btn = el.querySelector('.endline-refresh');
+    if (btn) btn.onclick = function () { refreshAll(); };
+  }
+  function pokeBatchSentinels() {
+    ['more', 'morePics'].forEach(function (id) {
+      var el = $(id);
+      if (!el || typeof el.onclick !== 'function') return;
+      if (C.sentinelShouldFire(el.getBoundingClientRect().top, window.innerHeight, 1)) el.onclick();
+    });
+  }
+  function syncEndHint() {
+    document.querySelectorAll('.endline').forEach(function (el) {
+      var text = el.querySelector('.endline-text');
+      if (text) text.textContent = endHintText();
+      var btn = el.querySelector('.endline-refresh');
+      if (!btn) return;
+      btn.disabled = !!refreshing;
+      btn.textContent = refreshing ? '正在刷新…' : '刷新';
+    });
+  }
   function attachListSentinel() {
     listIO = disconnectIO(listIO);
     var el = $('list');
     var old = $('more');
     if (old) old.remove();
-    if (shown >= current.length) return;
+    if (shown >= current.length) { renderEndHint(el, current.length); return; }
     var mid = C.sentinelIndex(shown, C.pageSize('feed'));
     var cards = el.querySelectorAll('.card');
     var sent = document.createElement('div');
@@ -2003,7 +2100,9 @@ var RSSCore = (function () {
     else if (cards.length) cards[cards.length - 1].after(sent);
     else el.appendChild(sent);
     function more() {
+      if (!sent.isConnected) return;
       listIO = disconnectIO(listIO);
+      sent.onclick = null;
       var from = el.querySelectorAll('.card').length;
       shown = Math.min(current.length, shown + C.pageSize('feed'));
       var html = current.slice(from, shown).map(function (it, i) { return cardHtml(it, from + i); }).join('');
@@ -2012,10 +2111,12 @@ var RSSCore = (function () {
       observeLazyImages(el);
       fitThumbCards(el);
     }
-    if (window.IntersectionObserver) {
+    sent.onclick = more;
+    if (C.sentinelShouldFire(sent.getBoundingClientRect().top, window.innerHeight, 1)) more();
+    else if (window.IntersectionObserver) {
       listIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) more(); }, { rootMargin: '100% 0px' });
       listIO.observe(sent);
-    } else sent.onclick = more;
+    }
   }
   function renderList() {
     var live = C.timeline(state, itemsByFeed, view, mode);
@@ -2143,25 +2244,37 @@ var RSSCore = (function () {
     var old = $('morePics');
     if (old) old.remove();
     if (galleryIO) { try { galleryIO.disconnect(); } catch (e) {} galleryIO = null; }
-    if (galleryLoadFrom >= tiles.length) return;
+    if (galleryLoadFrom >= tiles.length) { renderEndHint(el, tiles.length); return; }
     var last = Math.max(1, placedTiles.length - galleryBatchStart);
-    var mid = C.sentinelIndex(placedTiles.length, last);
-    var figs = el.querySelectorAll('.tile.show');
+    var start = Math.max(0, placedTiles.length - last);
+    var batchFigs = [];
+    for (var bi = start; bi < placedTiles.length; bi++) {
+      var t = placedTiles[bi];
+      var fi = tiles.indexOf(t);
+      var fig = fi >= 0 ? el.querySelector('.tile.show[data-i="' + fi + '"]') : null;
+      if (fig) batchFigs.push(fig);
+    }
+    batchFigs.sort(function (a, b) { return a.getBoundingClientRect().top - b.getBoundingClientRect().top; });
+    var midFig = batchFigs.length ? batchFigs[Math.floor(batchFigs.length / 2)] : null;
     var more = document.createElement('div');
     more.className = 'batch-sent';
     more.id = 'morePics';
     more.setAttribute('aria-hidden', 'true');
-    if (figs[mid]) figs[mid].after(more);
+    if (midFig) midFig.after(more);
     else el.appendChild(more);
     function morePics() {
+      if (!more.isConnected) return;
       galleryIO = disconnectIO(galleryIO);
+      more.onclick = null;
       shown = Math.min(tiles.length, shown + C.pageSize('pics'));
       loadGalleryBatch();
     }
-    if (window.IntersectionObserver) {
+    more.onclick = morePics;
+    if (C.sentinelShouldFire(more.getBoundingClientRect().top, window.innerHeight, 1)) morePics();
+    else if (window.IntersectionObserver) {
       galleryIO = new IntersectionObserver(function (es) { if (es[0].isIntersecting) morePics(); }, { rootMargin: '100% 0px' });
       galleryIO.observe(more);
-    } else more.onclick = morePics;
+    }
   }
   function loadGalleryBatch() {
     var gen = galleryGen, level = state.settings.imageFilter === 'medium' ? 'medium' : 'strict';
@@ -2359,19 +2472,22 @@ var RSSCore = (function () {
     var feeds = only || state.feeds;
     if (!feeds.length) return;
     refreshing = true; $('btnRefresh').classList.add('spin'); penalty = {};
-    var done = 0, failed = 0;
+    syncEndHint();
+    var done = 0, failed = 0, ok = 0;
     var hadContent = mode === 'pics' ? !!(placedTiles.length || (committedTiles && committedTiles.length)) : !!(current.length || (committedItems && committedItems.length));
     setStatus('正在刷新 0/' + feeds.length);
     await C.pool(feeds, state.settings.concurrency, async function (f) {
-      try { await refreshFeed(f); } catch (e) { f.error = String(e.message || e).slice(0, 300); failed++; }
+      try { await refreshFeed(f); ok++; } catch (e) { f.error = String(e.message || e).slice(0, 300); failed++; }
       done++;
       setStatus('正在刷新 ' + done + '/' + feeds.length + (failed ? ' · <span class="err">' + failed + ' 个失败</span>' : ''));
       if (done % 4 === 0 && !hadContent) maybeParkNewContent();
     });
+    if (ok) state.settings.lastRefreshAt = Date.now();
     save();
     if (hadContent) maybeParkNewContent();
     else { committedItems = null; committedTiles = null; shown = C.pageSize(mode); renderMain(); }
     refreshing = false; $('btnRefresh').classList.remove('spin');
+    syncEndHint();
     if (failed) setStatus('<span class="err">' + failed + ' 个源没抓到</span>（当前：' + C.proxyModeLabel(state.settings.proxyMode) + '），在「订阅与设置」里看原因');
     else { setStatus(''); if (!pendingNew) toast('已刷新 ' + feeds.length + ' 个源'); }
     if ($('settings').classList.contains('open')) renderSettings();
@@ -2424,6 +2540,7 @@ var RSSCore = (function () {
       var next = C.headerScrollStep(st, y);
       st.y = next.y; st.lastY = next.lastY; st.acc = next.acc;
       if (next.hidden !== st.hidden) apply(next.hidden);
+      pokeBatchSentinels();
     }
     function onScroll() {
       if (ticking) return;
@@ -2814,10 +2931,32 @@ var RSSCore = (function () {
     itemsByFeed = await idbAll();
     view = C.defaultView(state, mode);
     renderChips(); renderMain();
-    var stale = state.feeds.some(function (f) { return !f.fetchedAt || Date.now() - f.fetchedAt > 30 * 60 * 1000; });
-    if ((seeded || stale) && navigator.onLine !== false) refreshAll();
+    var stale = C.shouldAutoRefresh({
+      now: Date.now(), feeds: state.feeds, lastRefreshAt: state.settings.lastRefreshAt,
+      online: navigator.onLine, refreshing: refreshing, sheetOpen: false, lastAttemptAt: 0
+    });
+    if ((seeded || stale) && navigator.onLine !== false) {
+      lastAutoAttempt = Date.now();
+      refreshAll();
+    }
     if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(function () { });
   }
+  function maybeResumeRefresh() {
+    if (!C.shouldAutoRefresh({
+      now: Date.now(), feeds: state.feeds, lastRefreshAt: state.settings.lastRefreshAt,
+      online: navigator.onLine, refreshing: refreshing,
+      sheetOpen: !!document.querySelector('.sheet.open'),
+      lastAttemptAt: lastAutoAttempt
+    })) return;
+    lastAutoAttempt = Date.now();
+    refreshAll();
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') maybeResumeRefresh();
+  });
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) maybeResumeRefresh();
+  });
   window.RSSApp = { state: function () { return state; }, items: function () { return itemsByFeed; }, importOPMLText: importOPMLText, refreshAll: refreshAll, restoreDefaults: function () { var before = state.feeds.length; var added = C.mergeDefaults(state); if (added) { save(); renderChips(); renderMain(); } return added; }, setView: setView, setMode: setMode, openPic: openPic, openItem: function (i) { openItem(current[i]); }, ready: boot() };
 })();
 
