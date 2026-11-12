@@ -179,6 +179,29 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .card{padding:13px 14px}
   .thumb{width:80px;height:80px}
 }
+
+.subhead{margin:22px 0 8px;align-items:center;gap:8px}
+.subhead h4{margin:0;flex:1}
+.subhead .btn{min-height:44px;padding:10px 14px}
+.fcheck{flex:none;width:44px;height:44px;margin:0 0 0 -6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.fcheck input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.fl li.pickable{cursor:pointer;min-height:44px}
+.mini.gsel{min-height:44px;padding:8px 12px;font-size:13px}
+.batchbar{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;align-items:center;gap:8px;padding:10px 14px calc(10px + var(--sab));padding-left:max(14px,var(--sal));padding-right:max(14px,var(--sar));background:var(--card);border-top:1px solid var(--line);box-shadow:var(--shadow)}
+.batchbar[hidden]{display:none}
+.batchbar-n{flex:1;min-width:0;font-weight:600;font-size:14px}
+.batchbar .btn{min-height:44px;padding:10px 14px}
+.batchbar .btn:disabled{opacity:.4;cursor:default}
+#settings.selecting .panel{padding-bottom:calc(96px + var(--sab))}
+.mpick{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center}
+.mpick[hidden]{display:none}
+.mpick-bg{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.mpick-card{position:relative;width:100%;max-width:520px;max-height:min(70vh,560px);overflow:auto;background:var(--card);color:var(--text);border-radius:16px 16px 0 0;padding:6px 8px calc(12px + var(--sab));box-shadow:var(--shadow)}
+.mpick-title{font-weight:600;font-size:16px;padding:12px 14px 8px}
+.mpick-list button{display:block;width:100%;text-align:left;min-height:44px;padding:12px 14px;border:0;background:transparent;border-radius:10px;font:inherit;color:inherit;cursor:pointer}
+.mpick-list button:active,.mpick-list button:hover{background:var(--chip)}
+.mpick-list button.mpick-new{color:var(--accent);font-weight:600}
+.mpick-list button.mpick-cancel{margin-top:4px;text-align:center;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -226,6 +249,11 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
     <div class="t">订阅与设置</div>
   </div>
   <div class="panel" id="setBody"></div>
+  <div class="batchbar" id="batchBar" hidden>
+    <span class="batchbar-n" id="batchCount">已选 0 个</span>
+    <button type="button" class="btn" id="batchMove">移动到…</button>
+    <button type="button" class="btn ghost" id="batchCancel">取消</button>
+  </div>
 </section>
 
 <section class="sheet" id="groupman" aria-label="管理分组">
@@ -270,6 +298,13 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 </section>
 <input type="file" id="fileOpml" accept=".opml,.xml,text/xml,application/xml" hidden>
 <input type="file" id="fileJson" accept=".json,application/json" hidden>
+<div class="mpick" id="movePick" hidden>
+  <div class="mpick-bg" id="movePickBg"></div>
+  <div class="mpick-card" role="dialog" aria-label="移动到">
+    <div class="mpick-title">移动到…</div>
+    <div class="mpick-list" id="movePickList"></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1107,6 +1142,28 @@ var RSSCore = (function () {
     normalizeNavOrder(state);
     return true;
   }
+  /* 把若干订阅源一次移到目标分组。groupId 为空表示未分组。空选择不改状态；不存在的 id 忽略；已在目标组的源保持原样（不算错）。不改收藏、不增删源或分组。返回实际处理到的源数量。 */
+  function moveFeeds(state, feedIds, groupId) {
+    if (!state || !Array.isArray(state.feeds)) return 0;
+    var want = {};
+    (Array.isArray(feedIds) ? feedIds : []).forEach(function (id) {
+      if (id != null && String(id) !== '') want[String(id)] = 1;
+    });
+    if (!Object.keys(want).length) return 0;
+    var target = groupId == null ? '' : String(groupId);
+    if (target) {
+      var found = false, groups = state.groups || [], i;
+      for (i = 0; i < groups.length; i++) if (groups[i] && String(groups[i].id) === target) { found = true; break; }
+      if (!found) return 0;
+    }
+    var n = 0;
+    state.feeds.forEach(function (f) {
+      if (!f || !want[String(f.id)]) return;
+      f.groupId = target;
+      n++;
+    });
+    return n;
+  }
   /* 把旧分组「杂志F」并入「杂志」：不删订阅、不动其他分组。可重复执行。 */
   function migrateGroups(state) {
     if (!state) return state;
@@ -1698,7 +1755,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX
@@ -1719,6 +1776,7 @@ var RSSCore = (function () {
   var shown = C.FEED_PAGE, refreshing = false, mode = 'feed', tiles = [];
   var committedItems = null, committedTiles = null, pendingNew = 0;
   var listIO = null, imgIO = null, galleryBatchStart = 0;
+  var batchSel = { on: false, ids: {} };
 
   /* ---------- 存储：配置放 localStorage，文章放 IndexedDB ---------- */
   var db = null;
@@ -2273,6 +2331,7 @@ var RSSCore = (function () {
     if (history.state !== id) history.pushState(id, '');
   }
   function closeSheets() {
+    exitBatchMode(false);
     ['reader', 'settings', 'adder', 'picview', 'groupman'].forEach(function (s) { $(s).classList.remove('open'); });
     document.body.style.overflow = '';
     var y = savedScrollY;
@@ -2530,22 +2589,30 @@ var RSSCore = (function () {
   /* ---------- 订阅与设置 ---------- */
   function renderSettings() {
     var s = state.settings;
+    var setScroll = $('settings').scrollTop;
     var groupsHtml = state.groups.slice().concat([{ id: '', name: '未分组' }]).map(function (g) {
       var fs = state.feeds.filter(function (f) { return (f.groupId || '') === g.id; });
       if (!g.id && !fs.length) return '';
-      return '<div class="gh"><span>' + esc(g.name) + '</span><span class="badge">' + fs.length + '</span><span class="sp"></span>' +
-        (g.id ? '<button class="mini" data-gren="' + esc(g.id) + '">改名</button><button class="mini" data-gdel="' + esc(g.id) + '">删除</button>' : '') + '</div>' +
+      var headBtns = batchSel.on
+        ? (fs.length ? '<button type="button" class="mini gsel" data-gsel="' + esc(g.id) + '">全选本组</button>' : '')
+        : (g.id ? '<button class="mini" data-gren="' + esc(g.id) + '">改名</button><button class="mini" data-gdel="' + esc(g.id) + '">删除</button>' : '');
+      return '<div class="gh"><span>' + esc(g.name) + '</span><span class="badge">' + fs.length + '</span><span class="sp"></span>' + headBtns + '</div>' +
         '<div class="box"><ul class="fl">' + (fs.length ? fs.map(function (f) {
           var n = (itemsByFeed[f.id] || []).length;
-          return '<li><div class="n"><b>' + esc(feedName(f)) + '</b><small>' + esc(f.url) + '</small>' +
+          var check = batchSel.on
+            ? '<label class="fcheck"><input type="checkbox" data-fcheck="' + esc(f.id) + '"' + (batchSel.ids[f.id] ? ' checked' : '') + ' aria-label="选择 ' + esc(feedName(f)) + '"></label>'
+            : '';
+          var edit = batchSel.on ? '' : '<button class="mini" data-fedit="' + esc(f.id) + '">⋯</button>';
+          var badge = batchSel.on ? '' : (f.error ? '<span class="badge err">失败</span>' : f.fetchedAt ? '<span class="badge ok" title="' + esc(C.routeLabel(f.route || 'direct')) + '">' + n + ' 篇 · ' + esc(C.routeLabel(f.route || 'direct')) + '</span>' : '<span class="badge">未抓取</span>');
+          return '<li' + (batchSel.on ? ' class="pickable"' : '') + '>' + check + '<div class="n"><b>' + esc(feedName(f)) + '</b><small>' + esc(f.url) + '</small>' +
             (f.error ? '<small style="color:var(--danger);white-space:normal">' + esc(f.error) + '</small>' : '') + '</div>' +
-            (f.error ? '<span class="badge err">失败</span>' : f.fetchedAt ? '<span class="badge ok" title="' + esc(C.routeLabel(f.route || 'direct')) + '">' + n + ' 篇 · ' + esc(C.routeLabel(f.route || 'direct')) + '</span>' : '<span class="badge">未抓取</span>') +
-            '<button class="mini" data-fedit="' + esc(f.id) + '">⋯</button></li>';
+            badge + edit + '</li>';
         }).join('') : '<li><div class="n"><small>空分组</small></div></li>') + '</ul></div>';
     }).join('');
     $('setBody').innerHTML =
       '<div class="row"><button class="btn" id="sAdd" style="flex:1">添加订阅</button><button class="btn ghost" id="sGroups">管理分组</button></div>' +
-      '<h4>订阅（' + state.feeds.length + '）</h4>' + (groupsHtml || '<p class="note">还没有订阅。</p>') +
+      '<div class="row subhead"><h4>订阅（' + state.feeds.length + '）</h4>' + (batchSel.on ? '' : '<button type="button" class="btn ghost" id="sBatch">批量移动</button>') + '</div>' +
+      (groupsHtml || '<p class="note">还没有订阅。</p>') +
       '<h4>导入导出</h4><div class="box"><div class="row"><button class="btn ghost" id="sImpO" style="flex:1">导入 OPML</button><button class="btn ghost" id="sExpO" style="flex:1">导出 OPML</button></div>' +
       '<div class="row"><button class="btn ghost" id="sExpJ" style="flex:1">备份 JSON</button><button class="btn ghost" id="sImpJ" style="flex:1">从 JSON 恢复</button></div>' +
       '<div class="row"><button class="btn ghost" id="sRestore" style="flex:1">恢复默认订阅</button></div>' +
@@ -2623,7 +2690,98 @@ var RSSCore = (function () {
       if (view.type === 'group' && view.id === g.id) view = C.defaultView(state, mode);
       save(); renderSettings(); renderChips(); renderMain();
     }; });
-    b.querySelectorAll('[data-fedit]').forEach(function (x) { x.onclick = function () { editFeed(feedById(x.dataset.fedit)); }; });
+    b.querySelectorAll('[data-fedit]').forEach(function (x) { x.onclick = function () { if (batchSel.on) return; editFeed(feedById(x.dataset.fedit)); }; });
+    b.querySelectorAll('[data-gsel]').forEach(function (x) { x.onclick = function () {
+      var gid = x.getAttribute('data-gsel') || '';
+      var fs = state.feeds.filter(function (f) { return (f.groupId || '') === gid; });
+      var allOn = fs.length && fs.every(function (f) { return batchSel.ids[f.id]; });
+      fs.forEach(function (f) { if (allOn) delete batchSel.ids[f.id]; else batchSel.ids[f.id] = 1; });
+      fs.forEach(function (f) {
+        var cb = b.querySelector('input[data-fcheck="' + CSS.escape(f.id) + '"]');
+        if (cb) cb.checked = !allOn;
+      });
+      updateBatchBar();
+    }; });
+    b.querySelectorAll('input[data-fcheck]').forEach(function (cb) {
+      cb.onchange = function () {
+        var id = cb.getAttribute('data-fcheck');
+        if (cb.checked) batchSel.ids[id] = 1; else delete batchSel.ids[id];
+        updateBatchBar();
+      };
+    });
+    if (batchSel.on) {
+      b.querySelectorAll('li.pickable').forEach(function (li) {
+        li.onclick = function (e) {
+          if (e.target.closest('input,button,label')) return;
+          var cb = li.querySelector('input[data-fcheck]');
+          if (!cb) return;
+          cb.checked = !cb.checked;
+          if (cb.onchange) cb.onchange();
+        };
+      });
+    }
+    var sBatch = $('sBatch');
+    if (sBatch) sBatch.onclick = function () { batchSel.on = true; batchSel.ids = {}; renderSettings(); };
+    updateBatchBar();
+    $('settings').scrollTop = setScroll;
+  }
+  function batchSelectedIds() {
+    return Object.keys(batchSel.ids).filter(function (k) { return batchSel.ids[k]; });
+  }
+  function updateBatchBar() {
+    var n = batchSelectedIds().length;
+    $('settings').classList.toggle('selecting', !!batchSel.on);
+    $('batchBar').hidden = !batchSel.on;
+    $('batchCount').textContent = '已选 ' + n + ' 个';
+    $('batchMove').disabled = n === 0;
+  }
+  function hideMovePick() { $('movePick').hidden = true; }
+  function exitBatchMode(rerender) {
+    batchSel.on = false;
+    batchSel.ids = {};
+    hideMovePick();
+    $('settings').classList.remove('selecting');
+    if ($('batchBar')) $('batchBar').hidden = true;
+    if (rerender && $('settings').classList.contains('open')) renderSettings();
+  }
+  function openMovePick() {
+    if (!batchSel.on || !batchSelectedIds().length) return;
+    var html = state.groups.map(function (g) {
+      return '<button type="button" data-mg="' + esc(g.id) + '">' + esc(g.name) + '</button>';
+    }).join('') +
+      '<button type="button" data-mg="">未分组</button>' +
+      '<button type="button" class="mpick-new" data-mg="__new">新建分组…</button>' +
+      '<button type="button" class="mpick-cancel" id="movePickCancel">取消</button>';
+    $('movePickList').innerHTML = html;
+    $('movePick').hidden = false;
+    $('movePickList').querySelectorAll('[data-mg]').forEach(function (x) {
+      x.onclick = function () { applyBatchMoveTo(x.getAttribute('data-mg')); };
+    });
+    $('movePickCancel').onclick = function () { hideMovePick(); };
+  }
+  function applyBatchMoveTo(key) {
+    var ids = batchSelectedIds();
+    if (!ids.length) return;
+    var groupId = '', groupName = '未分组';
+    if (key === '__new') {
+      var name = (prompt('新分组名称') || '').trim();
+      if (!name) return;
+      var g = state.groups.find(function (x) { return x.name === name; });
+      if (!g) { g = C.makeGroup(name); state.groups.push(g); C.applyNavOrder(state); }
+      groupId = g.id; groupName = g.name;
+    } else if (key) {
+      var dest = groupById(key);
+      if (!dest) return;
+      groupId = dest.id; groupName = dest.name;
+    }
+    var n = C.moveFeeds(state, ids, groupId);
+    if (!n) return;
+    save();
+    exitBatchMode(false);
+    renderSettings();
+    renderChips();
+    renderMain();
+    toast('已移动 ' + n + ' 个源到「' + groupName + '」');
   }
   function editFeed(f) {
     var li = document.querySelector('[data-fedit="' + f.id + '"]').closest('li');
@@ -2634,7 +2792,11 @@ var RSSCore = (function () {
     $('eNow').onclick = function () { $('eNow').disabled = true; refreshAll([f]); };
     $('eDel').onclick = function () { if (!confirm('取消订阅「' + feedName(f) + '」？收藏的文章会保留。')) return; state.feeds = state.feeds.filter(function (y) { return y !== f; }); delete itemsByFeed[f.id]; idbDel(f.id); if (view.type === 'feed' && view.id === f.id) view = C.defaultView(state, mode); save(); renderSettings(); renderChips(); renderMain(); };
   }
-  $('btnSettings').onclick = function () { renderSettings(); openSheet('settings'); };
+  $('btnSettings').onclick = function () { exitBatchMode(false); renderSettings(); openSheet('settings'); };
+  $('batchCancel').onclick = function () { exitBatchMode(true); };
+  $('batchMove').onclick = function () { openMovePick(); };
+  $('movePickBg').onclick = function () { hideMovePick(); };
+
 
   /* ---------- 启动 ---------- */
   async function boot() {
