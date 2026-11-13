@@ -15,6 +15,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
+<meta name="app-version" content="v1.11">
 <title>信息流</title>
 <script>
 (function(){var t=localStorage.getItem('user-theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.setAttribute('data-theme','dark');})();
@@ -49,13 +50,16 @@ a{color:var(--accent)}
 .top.is-hidden{transform:translate3d(0,-100%,0);pointer-events:none}
 .top-spacer{height:0;flex:none;pointer-events:none}
 .bar{display:flex;align-items:center;gap:6px;padding:10px 14px 4px}
-.bar h1{margin:0 auto 0 0;font-size:21px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;min-width:0}
-.bar h1 img{width:26px;height:26px;border-radius:6px}
+.bar h1{margin:0 auto 0 0;font-size:21px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.bar h1 img{width:26px;height:26px;border-radius:6px;flex:none}
+.bar h1 .title-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btnMode{min-width:auto;padding:0 8px;font-size:13px;font-weight:600;flex:none}
 .ib{border:1px solid var(--line);background:var(--card);border-radius:12px;height:36px;min-width:36px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-size:14px;white-space:nowrap}
 .ib svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .ib.spin svg{animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.chips{display:flex;gap:6px;overflow-x:auto;padding:6px 14px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.navrow{display:flex;align-items:center;gap:6px;padding:6px 10px 10px 0;min-width:0}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:0 0 0 14px;flex:1;min-width:0;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;scroll-snap-align:start;border:0;background:var(--chip);color:var(--text);border-radius:999px;padding:6px 13px;font-size:14px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
 .chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-text);font-weight:600}
@@ -159,20 +163,36 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .toast{position:fixed;left:50%;bottom:calc(20px + var(--sab));transform:translateX(-50%);background:var(--chip-on);color:var(--chip-on-text);padding:9px 16px;border-radius:12px;font-size:14px;z-index:99;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90vw;text-align:center}
 .toast.show{opacity:1}
 
-/* 信息流 / 图流 切换 */
-.modes{display:flex;align-items:center;gap:8px;padding:2px 14px 0}
-.mode{display:inline-flex;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
 .seg{display:flex;flex-wrap:wrap;gap:2px;background:var(--chip);border-radius:12px;padding:2px}
 .seg button{flex:1 1 0;min-width:4.2em;border:0;background:transparent;color:var(--muted);border-radius:10px;padding:7px 8px;font:inherit;font-size:13px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.colctl{display:none;margin-left:auto;align-items:center;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
+.colctl{display:none;margin:0 4px 0 0;align-items:center;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
 .colctl.on{display:inline-flex}
 .colctl button{border:0;background:transparent;color:var(--text);border-radius:10px;height:28px;min-width:28px;padding:0 7px;font:inherit;font-size:16px;line-height:1;cursor:pointer}
 .colctl button:disabled{opacity:.35}
 .colctl #colAuto{min-width:36px;padding:0 6px;font-size:12px;font-weight:600;color:var(--muted)}
 .colctl #colAuto[data-manual="true"]{color:var(--text)}
-.mode button{border:0;background:transparent;color:var(--muted);border-radius:10px;padding:0 12px;font-size:13px;cursor:pointer}
-.mode button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.gmode{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.gmode label{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--chip);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;min-height:36px}
+.gmode input{accent-color:var(--accent)}
+.verbox .ver{margin:0 0 8px;font-size:14px}
+.verbox details{border-top:1px solid var(--line);padding-top:8px}
+.verbox summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none}
+.verbox summary::-webkit-details-marker{display:none}
+.verbox summary:after{content:' ▾';color:var(--muted);font-weight:400}
+.verbox details[open] summary:after{content:' ▴'}
+.verbox ol{margin:8px 0 0;padding:0;list-style:none}
+.verbox li{margin:0 0 10px;font-size:13px;color:var(--text);line-height:1.45}
+.verbox li .vd{color:var(--muted);font-size:12px;margin-left:6px;font-weight:400}
+@media (max-width:420px){
+  .bar{gap:4px;padding:8px 10px 4px}
+  .bar h1{font-size:18px;gap:6px}
+  .ib{height:32px;min-width:32px;padding:0 7px}
+  #btnMode{padding:0 7px;font-size:12px}
+}
+@media (max-width:360px){
+  .bar h1 .title-text{display:none}
+}
 /* 图流水流 */
 .masonry{padding:8px 8px calc(28px + var(--sab))}
 .masonry-cols{display:flex;align-items:flex-start;gap:3px}
@@ -226,23 +246,20 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 <header class="top" id="top">
   <div class="wrap">
     <div class="bar">
-      <h1><img src="icon-192.png" alt="">信息流</h1>
+      <h1><img src="icon-192.png" alt=""><span class="title-text">信息流</span></h1>
+      <button class="ib" id="btnMode" type="button" title="当前为信息流，点按切换到图流" aria-label="当前为信息流，点按切换到图流" aria-pressed="false">信息流</button>
       <button class="ib" id="btnRefresh" title="刷新" aria-label="刷新"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <button class="ib" id="btnTheme" title="主题" aria-label="切换主题"><span id="themeIcon">🌓</span></button>
       <button class="ib" id="btnSettings" title="订阅与设置" aria-label="订阅与设置"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     </div>
-    <div class="modes">
-      <div class="mode" role="tablist" aria-label="视图">
-        <button type="button" id="modeFeed" aria-pressed="true">信息流</button>
-        <button type="button" id="modePics" aria-pressed="false">图流</button>
-      </div>
+    <div class="navrow">
+      <nav class="chips" id="chips" aria-label="筛选"></nav>
       <div class="colctl" id="colctl" hidden>
         <button type="button" id="colMinus" aria-label="减少列数">−</button>
         <button type="button" id="colAuto" aria-label="列数，点按恢复自动" title="点按恢复自动">自动</button>
         <button type="button" id="colPlus" aria-label="增加列数">+</button>
       </div>
     </div>
-    <nav class="chips" id="chips" aria-label="筛选"></nav>
     <div class="status" id="status"></div>
     <button type="button" class="fresh" id="fresh" hidden>有 <span class="fresh-n">0</span> 条新内容</button>
   </div>
@@ -338,6 +355,21 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 var RSSCore = (function () {
   'use strict';
   var SCHEMA = 1;
+  var APP_VERSION = 'v1.11';
+  /* 对外版本一律 v1.x；旧版 v1–v10 对应 v1.1–v1.10（v6.1→v1.6.1）。设置页「更新记录」展示 v1.2–v1.11。 */
+  var APP_CHANGELOG = [
+    { version: 'v1.11', date: '2026-11-13', text: '去掉顶部「信息流/图流」总开关。每个分组改为信息流、图流或不显示；右上角可切换当前分组并记住，加列按钮只在图流时出现。旧的双开关节一次性按规则迁移，不改订阅和收藏。' },
+    { version: 'v1.10', date: '2026-11-12', text: '修图流分组刷新后整屏空白：图片探测 8 秒超时，并补上加载中与空状态。点分组即刷新该组，60 秒节流。设置页拆成订阅、分组、其他三个标签。' },
+    { version: 'v1.9', date: '2026-11-12', text: '回到前台超过 15 分钟会自动刷新；列表底部显示「已经到底了」和上次刷新时间。修了分批哨兵被滑过漏加载的问题。' },
+    { version: 'v1.8', date: '2026-11-12', text: '设置里增加批量移动：可勾选或整组全选，一次挪到已有分组、未分组或新建分组。' },
+    { version: 'v1.7', date: '2026-11-12', text: '默认顺序改为新闻+、设计、杂志、图流、信息流、科技、全部。「推荐」拆成「图流」和「信息流」，并去掉默认源 IT之家。' },
+    { version: 'v1.6.1', date: '2026-11-11', text: '完全取消把分组固定到最前的做法。筛选条按你在管理分组里排的顺序显示，「全部」也可以排序。' },
+    { version: 'v1.6', date: '2026-11-11', text: '下滑收起顶栏，上滑再出来。图流点图进入阅读页。设置里可管理分组。打开时默认看最左侧分组。' },
+    { version: 'v1.5', date: '2026-11-11', text: '信息流缩略图改为 80×80，与右侧文字对齐。「杂志F」并入「杂志」，默认「新闻+」去掉 Buzzing。' },
+    { version: 'v1.4', date: '2026-11-11', text: '信息流列表加上缩略图（设置里可关）。图流标题会去掉 Show/Ask 等 HN 前缀。' },
+    { version: 'v1.3', date: '2026-11-11', text: '工具改名「信息流」，去掉衬线字体。信息流和图流改为分批加载，图流可加减列，并增加代理模式。' },
+    { version: 'v1.2', date: '2026-11-11', text: '上线图流视图：瀑布流布局，按尺寸过滤小图和图标，并预填自建代理。' }
+  ];
   var DEFAULT_PROXIES = [
     'https://api.allorigins.win/raw?url={url}',
     'json:contents https://api.allorigins.win/get?url={url}',
@@ -352,7 +384,7 @@ var RSSCore = (function () {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader',
     customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false,
-    lastRefreshAt: 0, settingsTab: 'feeds'
+    lastRefreshAt: 0, settingsTab: 'feeds', groupDisplayMigrated: false, allDisplayMode: 'feed', ungroupedDisplayMode: 'feed', starDisplayMode: 'feed'
   };
   var GROUP_ORDER = ['新闻+', '设计', '杂志', '图流', '信息流', '科技'];
   var DEFAULT_FEEDS = [
@@ -1075,21 +1107,102 @@ var RSSCore = (function () {
     }
     return state;
   }
+  var PICS_DEFAULT_GROUP_NAMES = { '杂志': 1, '设计': 1, '图流': 1 };
+  function defaultDisplayModeForName(name) {
+    return PICS_DEFAULT_GROUP_NAMES[canonicalGroupName(name)] ? 'pics' : 'feed';
+  }
+  function legacyFlagOn(v) {
+    return v !== false && v !== 0 && v !== 'false';
+  }
+  function normalizeDisplayModeValue(v) {
+    return v === 'pics' || v === 'hidden' || v === 'feed' ? v : '';
+  }
+  function normalizeViewDisplayMode(v) {
+    return v === 'pics' ? 'pics' : 'feed';
+  }
+  function syncGroupDisplayFlags(g) {
+    if (!g) return g;
+    var m = normalizeDisplayModeValue(g.displayMode) || defaultDisplayModeForName(g.name);
+    g.displayMode = m;
+    g.showInFeed = m === 'feed';
+    g.showInPics = m === 'pics';
+    return g;
+  }
+  /* 旧双开关 → 三态：只开信息流 / 只开图流 / 都关=隐藏 / 都开或缺字段=按分组名默认（杂志、设计、图流=图流，其余=信息流）。已有 displayMode 的不改。 */
+  function migrateGroupDisplayMode(g) {
+    if (!g) return g;
+    if (normalizeDisplayModeValue(g.displayMode)) return syncGroupDisplayFlags(g);
+    var feed = legacyFlagOn(g.showInFeed), pics = legacyFlagOn(g.showInPics);
+    if (feed && !pics) g.displayMode = 'feed';
+    else if (pics && !feed) g.displayMode = 'pics';
+    else if (!feed && !pics) g.displayMode = 'hidden';
+    else g.displayMode = defaultDisplayModeForName(g.name);
+    return syncGroupDisplayFlags(g);
+  }
+  function applyGroupDisplayMigration(state) {
+    if (!state) return state;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    (state.groups || []).forEach(migrateGroupDisplayMode);
+    state.settings.groupDisplayMigrated = true;
+    state.settings.allDisplayMode = normalizeViewDisplayMode(state.settings.allDisplayMode);
+    state.settings.ungroupedDisplayMode = normalizeViewDisplayMode(state.settings.ungroupedDisplayMode);
+    state.settings.starDisplayMode = normalizeViewDisplayMode(state.settings.starDisplayMode);
+    return state;
+  }
   function normalizeGroupVis(g) {
     if (!g) return g;
-    g.showInFeed = g.showInFeed !== false;
-    g.showInPics = g.showInPics !== false;
-    return g;
+    if (normalizeDisplayModeValue(g.displayMode)) return syncGroupDisplayFlags(g);
+    return migrateGroupDisplayMode(g);
   }
   function groupVisible(g, mode) {
     if (!g) return true;
     normalizeGroupVis(g);
-    return mode === 'pics' ? g.showInPics : g.showInFeed;
+    return g.displayMode !== 'hidden';
+  }
+  function viewDisplayMode(state, view) {
+    view = view || { type: 'all', id: '' };
+    var settings = (state && state.settings) || {};
+    if (view.type === 'group') {
+      var g = (state.groups || []).find(function (x) { return x && x.id === view.id; });
+      if (!g) return 'feed';
+      normalizeGroupVis(g);
+      return g.displayMode === 'pics' ? 'pics' : 'feed';
+    }
+    if (view.type === 'ungrouped') return normalizeViewDisplayMode(settings.ungroupedDisplayMode);
+    if (view.type === 'star') return normalizeViewDisplayMode(settings.starDisplayMode);
+    return normalizeViewDisplayMode(settings.allDisplayMode);
+  }
+  function setViewDisplayMode(state, view, mode) {
+    if (!state) return 'feed';
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    mode = normalizeViewDisplayMode(mode);
+    view = view || { type: 'all', id: '' };
+    if (view.type === 'group') {
+      var g = (state.groups || []).find(function (x) { return x && x.id === view.id; });
+      if (!g) return mode;
+      g.displayMode = mode;
+      syncGroupDisplayFlags(g);
+      return mode;
+    }
+    if (view.type === 'ungrouped') state.settings.ungroupedDisplayMode = mode;
+    else if (view.type === 'star') state.settings.starDisplayMode = mode;
+    else state.settings.allDisplayMode = mode;
+    return mode;
+  }
+  function setGroupDisplayMode(state, groupId, mode) {
+    if (!state) return '';
+    var g = (state.groups || []).find(function (x) { return x && x.id === groupId; });
+    if (!g) return '';
+    mode = normalizeDisplayModeValue(mode) || 'feed';
+    g.displayMode = mode;
+    syncGroupDisplayFlags(g);
+    return mode;
   }
   var NAV_ALL = 'all';
   function isAllNavKey(k) { return k === 'all' || k === '__all__'; }
   function makeGroup(name) {
-    return normalizeGroupVis({ id: uid('g'), name: String(name || '') });
+    name = String(name || '');
+    return syncGroupDisplayFlags({ id: uid('g'), name: name, displayMode: defaultDisplayModeForName(name) });
   }
   function hasUngrouped(state) {
     return (state.feeds || []).some(function (f) { return !f.groupId; });
@@ -1376,6 +1489,7 @@ var RSSCore = (function () {
     applyOtherGroupMigration(state);
     applyIthomeMigration(state);
     applyRecommendSplit(state);
+    applyGroupDisplayMigration(state);
     var added = 0;
     GROUP_ORDER.forEach(function (name) { ensureGroup(state, name); });
     DEFAULT_FEEDS.forEach(function (pf) {
@@ -1398,7 +1512,10 @@ var RSSCore = (function () {
     applyNavOrder(state);
     return {
       app: 'rss-reader', schema: SCHEMA, exportedAt: new Date().toISOString(),
-      groups: (state.groups || []).map(function (g) { return { id: g.id, name: g.name, showInFeed: g.showInFeed !== false, showInPics: g.showInPics !== false }; }),
+      groups: (state.groups || []).map(function (g) {
+        normalizeGroupVis(g);
+        return { id: g.id, name: g.name, displayMode: g.displayMode, showInFeed: g.displayMode === 'feed', showInPics: g.displayMode === 'pics' };
+      }),
       navOrder: (state.navOrder || []).slice(),
       feeds: (state.feeds || []).map(function (f) { return { id: f.id, url: f.url, title: f.title || '', siteUrl: f.siteUrl || '', groupId: f.groupId || '', route: f.route || '' }; }),
       stars: (state.stars || []).slice(),
@@ -1411,7 +1528,7 @@ var RSSCore = (function () {
     if (!data || typeof data !== 'object') throw new Error('备份内容为空');
     if (data.app && data.app !== 'rss-reader') throw new Error('这不是 RSS 阅读器的备份');
     var groups = (Array.isArray(data.groups) ? data.groups : []).filter(function (g) { return g && (g.name || g.title); }).map(function (g) {
-      return normalizeGroupVis({ id: String(g.id || uid('g')), name: String(g.name || g.title), pinned: !!(g.pinned || g.priority), showInFeed: g.showInFeed !== false, showInPics: g.showInPics !== false });
+      return { id: String(g.id || uid('g')), name: String(g.name || g.title), pinned: !!(g.pinned || g.priority), displayMode: normalizeDisplayModeValue(g.displayMode), showInFeed: g.showInFeed, showInPics: g.showInPics };
     });
     var gids = {}; groups.forEach(function (g) { gids[g.id] = 1; });
     var feeds = (Array.isArray(data.feeds) ? data.feeds : []).filter(function (f) { return f && (f.url || f.xmlUrl); }).map(function (f) {
@@ -1443,6 +1560,7 @@ var RSSCore = (function () {
     var restored = { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0, navOrder: Array.isArray(data.navOrder) ? data.navOrder.slice() : [] };
     applyIthomeMigration(restored);
     applyRecommendSplit(restored);
+    applyGroupDisplayMigration(restored);
     applyNavOrder(restored, restored.navOrder);
     if (isLegacyDefaultNav(restored)) restored.navOrder = defaultNavOrder(restored);
     normalizeNavOrder(restored);
@@ -1465,7 +1583,7 @@ var RSSCore = (function () {
       if (view.type === 'group' && f.groupId !== view.id) return;
       if (view.type === 'ungrouped' && f.groupId) return;
       if (view.type === 'all') {
-        if (f.groupId && !groupVisible(groupMap[f.groupId], mode)) return;
+        if (f.groupId && !groupVisible(groupMap[f.groupId])) return;
       } else if (view.type !== 'feed' && view.type !== 'group' && view.type !== 'ungrouped') {
         return;
       }
@@ -1476,7 +1594,6 @@ var RSSCore = (function () {
   }
   /* 顶部筛选条：按 navOrder（含可排序的「全部」）→ 有源时才出现未分组 → 收藏。收藏和未分组固定在末尾。 */
   function chips(state, mode) {
-    mode = mode === 'pics' ? 'pics' : 'feed';
     applyNavOrder(state);
     var out = [], map = {};
     (state.groups || []).forEach(function (g) { map[g.id] = g; });
@@ -1484,7 +1601,7 @@ var RSSCore = (function () {
       if (k === NAV_ALL) out.push({ type: 'all', id: '', label: '全部' });
       else {
         var g = map[k];
-        if (g && groupVisible(g, mode)) out.push({ type: 'group', id: g.id, label: g.name });
+        if (g && groupVisible(g)) out.push({ type: 'group', id: g.id, label: g.name });
       }
     });
     if (hasUngrouped(state)) out.push({ type: 'ungrouped', id: '', label: '未分组' });
@@ -1492,7 +1609,7 @@ var RSSCore = (function () {
     return out;
   }
   function defaultView(state, mode) {
-    var list = chips(state, mode);
+    var list = chips(state);
     var i, c;
     for (i = 0; i < list.length; i++) {
       c = list[i];
@@ -1500,6 +1617,18 @@ var RSSCore = (function () {
       return { type: c.type, id: c.id || '' };
     }
     return { type: 'all', id: '' };
+  }
+  /* 当前分组被隐藏或已删除时，回到「全部」或第一个可见分组。 */
+  function fixView(state, view) {
+    view = view || { type: 'all', id: '' };
+    var list = chips(state);
+    var i, c, ok = false;
+    for (i = 0; i < list.length; i++) {
+      c = list[i];
+      if (c.type === view.type && (c.id || '') === (view.id || '')) { ok = true; break; }
+    }
+    if (ok) return { type: view.type, id: view.id || '' };
+    return defaultView(state);
   }
 
   /* ---------- 图流：抽图、预筛、去重、尺寸判定 ---------- */
@@ -1841,7 +1970,11 @@ var RSSCore = (function () {
     view = view || { type: 'all', id: '' };
     var feeds = (state && state.feeds) || [];
     if (view.type === 'star') return [];
-    if (view.type === 'all') return feeds.slice();
+    if (view.type === 'all') {
+      var gmap = {};
+      ((state && state.groups) || []).forEach(function (g) { if (g && g.id) gmap[g.id] = g; });
+      return feeds.filter(function (f) { return !f.groupId || groupVisible(gmap[f.groupId]); });
+    }
     if (view.type === 'group') return feeds.filter(function (f) { return f.groupId === view.id; });
     if (view.type === 'ungrouped') return feeds.filter(function (f) { return !f.groupId; });
     if (view.type === 'feed') return feeds.filter(function (f) { return f.id === view.id; });
@@ -1883,15 +2016,15 @@ var RSSCore = (function () {
   }
 
   return {
-    SCHEMA: SCHEMA, DEFAULT_PROXIES: DEFAULT_PROXIES, DEFAULT_SETTINGS: DEFAULT_SETTINGS, DEFAULT_CUSTOM_PROXY: DEFAULT_CUSTOM_PROXY,
+    SCHEMA: SCHEMA, APP_VERSION: APP_VERSION, APP_CHANGELOG: APP_CHANGELOG, DEFAULT_PROXIES: DEFAULT_PROXIES, DEFAULT_SETTINGS: DEFAULT_SETTINGS, DEFAULT_CUSTOM_PROXY: DEFAULT_CUSTOM_PROXY,
     DEFAULT_FEEDS: DEFAULT_FEEDS, GROUP_ORDER: GROUP_ORDER,
     hash: hash, uid: uid, absUrl: absUrl, escapeHtml: escapeHtml, stripTags: stripTags, parseDate: parseDate, decodeBytes: decodeBytes,
     parseXml: parseXml, parseFeed: parseFeed, fromRss2Json: fromRss2Json, sanitizeHtml: sanitizeHtml,
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
-    makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, defaultDisplayModeForName: defaultDisplayModeForName, migrateGroupDisplayMode: migrateGroupDisplayMode, applyGroupDisplayMigration: applyGroupDisplayMigration, viewDisplayMode: viewDisplayMode, setViewDisplayMode: setViewDisplayMode, setGroupDisplayMode: setGroupDisplayMode, normalizeViewDisplayMode: normalizeViewDisplayMode, normalizeDisplayModeValue: normalizeDisplayModeValue, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView, fixView: fixView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX,
     AUTO_REFRESH_MS: AUTO_REFRESH_MS, AUTO_REFRESH_THROTTLE_MS: AUTO_REFRESH_THROTTLE_MS, latestRefreshAt: latestRefreshAt, shouldAutoRefresh: shouldAutoRefresh, formatEndRefreshTime: formatEndRefreshTime, sentinelShouldFire: sentinelShouldFire, CHIP_REFRESH_MS: CHIP_REFRESH_MS, IMAGE_PROBE_TIMEOUT_MS: IMAGE_PROBE_TIMEOUT_MS, viewRefreshKey: viewRefreshKey, feedsForView: feedsForView, shouldChipRefresh: shouldChipRefresh, markChipRefresh: markChipRefresh, normalizeSettingsTab: normalizeSettingsTab, galleryProbeOutcome: galleryProbeOutcome
@@ -2085,7 +2218,28 @@ var RSSCore = (function () {
     var n = C.countNewItems(committedItems, live);
     if (n > 0) { pendingNew = n; showFresh(n); }
   }
-  function setView(v) { view = v; resetPaging(); renderChips(); renderMain(); scrollTop(); }
+  function syncModeFromView() {
+    mode = C.viewDisplayMode(state, view);
+    syncModeBtn();
+  }
+  function syncModeBtn() {
+    var btn = $('btnMode');
+    if (!btn) return;
+    var pics = mode === 'pics';
+    btn.textContent = pics ? '图流' : '信息流';
+    var tip = pics ? '当前为图流，点按切换到信息流' : '当前为信息流，点按切换到图流';
+    btn.title = tip;
+    btn.setAttribute('aria-label', tip);
+    btn.setAttribute('aria-pressed', pics ? 'true' : 'false');
+  }
+  function setView(v) {
+    view = C.fixView(state, v || view);
+    syncModeFromView();
+    resetPaging();
+    renderChips();
+    renderMain();
+    scrollTop();
+  }
 
   /* ---------- 信息流 ---------- */
   var current = [];
@@ -2263,15 +2417,21 @@ var RSSCore = (function () {
     fitThumbCards(el);
   }
   function setMode(next) {
-    mode = next === 'pics' ? 'pics' : 'feed';
-    $('modeFeed').setAttribute('aria-pressed', mode === 'feed');
-    $('modePics').setAttribute('aria-pressed', mode === 'pics');
+    next = next === 'pics' ? 'pics' : 'feed';
+    C.setViewDisplayMode(state, view, next);
+    mode = next;
+    save();
+    syncModeBtn();
     resetPaging();
+    renderChips();
     renderMain();
+    if ($('settings') && $('settings').classList.contains('open') && currentSettingsTab() === 'groups') renderGroupMan($('setBody'));
     scrollTop();
   }
-  $('modeFeed').onclick = function () { setMode('feed'); };
-  $('modePics').onclick = function () { setMode('pics'); };
+  function toggleViewMode() {
+    setMode(mode === 'pics' ? 'feed' : 'pics');
+  }
+  if ($('btnMode')) $('btnMode').onclick = toggleViewMode;
   if ($('fresh')) $('fresh').onclick = applyFresh;
   if ($('colMinus')) $('colMinus').onclick = function () {
     setGalleryCols(Math.max(1, galleryColCount() - 1));
@@ -2804,7 +2964,8 @@ var RSSCore = (function () {
     var before = state.feeds.length;
     var added = C.mergeOPML(state, parsed);
     save();
-    view = C.defaultView(state, mode);
+    view = C.fixView(state, C.defaultView(state));
+    syncModeFromView();
     renderChips(); renderMain();
     toast('导入 ' + added + ' 个源' + (parsed.feeds.length - added ? '，' + (parsed.feeds.length - added) + ' 个已存在' : ''));
     if (added) refreshAll(state.feeds.slice(before));
@@ -2826,16 +2987,19 @@ var RSSCore = (function () {
         state.feeds.forEach(function (f) { idbDel(f.id); });
         itemsByFeed = {};
         state.groups = r.groups; state.feeds = r.feeds; state.stars = r.stars; state.settings = r.settings;
-        save(); view = C.defaultView(state, mode); renderChips(); renderMain(); renderSettings();
+        save(); setView(C.defaultView(state)); renderSettings();
         toast('已恢复，开始抓取'); refreshAll();
       } catch (e) { toast('恢复失败：' + e.message, 3500); }
     });
   };
 
   function maybeFixView() {
-    if (view.type === 'group') {
-      var g = groupById(view.id);
-      if (!g || !C.groupVisible(g, mode)) view = C.defaultView(state, mode);
+    var next = C.fixView(state, view);
+    if (!sameView(next, view)) {
+      view = next;
+      syncModeFromView();
+    } else {
+      syncModeFromView();
     }
   }
   function renderGroupMan(mount) {
@@ -2844,14 +3008,19 @@ var RSSCore = (function () {
     var un = state.feeds.filter(function (f) { return !f.groupId; }).length;
     C.applyNavOrder(state);
     var html = '<div class="row"><button class="btn" id="gAdd" style="flex:1">新建分组</button></div>' +
-      '<p class="note">最左侧分组即打开时的默认页，可在这里调整顺序。「全部」也可以排序；「收藏」和「未分组」固定在筛选条末尾。删分组时里面的源会移到「未分组」，不会丢掉。每个分组可选择是否在信息流或图流里显示，默认都开。</p>';
+      '<p class="note">最左侧分组即打开时的默认页，可在这里调整顺序。「全部」也可以排序；「收藏」和「未分组」固定在筛选条末尾。删分组时里面的源会移到「未分组」，不会丢掉。每个分组选信息流、图流，或不显示（在分组栏隐藏）。主页面右上角也可切换当前分组并记住。</p>';
     var nav = state.navOrder || [];
     nav.forEach(function (k, i) {
       var updn = '<button class="mini" data-nup="' + esc(k) + '" ' + (i === 0 ? 'disabled' : '') + '>上移</button>' +
         '<button class="mini" data-ndn="' + esc(k) + '" ' + (i === nav.length - 1 ? 'disabled' : '') + '>下移</button>';
       if (k === C.NAV_ALL) {
+        var allMode = C.normalizeViewDisplayMode(state.settings.allDisplayMode);
         html += '<div class="gitem virtual" data-nav="all"><div class="gtitle"><span class="gn">全部</span>' + updn + '</div>' +
-          '<p class="note">筛选条里的「全部」。移到最左即为打开时的默认页。</p></div>';
+          '<p class="note">筛选条里的「全部」。移到最左即为打开时的默认页。显示方式可在这里或主页面右上角切换。</p>' +
+          '<div class="gmode" role="radiogroup" aria-label="全部的显示方式">' +
+          '<label><input type="radio" name="gm-all" value="feed"' + (allMode === 'feed' ? ' checked' : '') + '> 信息流</label>' +
+          '<label><input type="radio" name="gm-all" value="pics"' + (allMode === 'pics' ? ' checked' : '') + '> 图流</label>' +
+          '</div></div>';
         return;
       }
       var g = groupById(k);
@@ -2862,14 +3031,20 @@ var RSSCore = (function () {
         updn +
         '<button class="mini" data-gren="' + esc(g.id) + '">改名</button>' +
         '<button class="mini" data-gdel="' + esc(g.id) + '">删除</button></div>' +
-        '<div class="gsws">' +
-        '<label class="sw"><span>在信息流显示</span><input type="checkbox" data-vis="feed" data-gid="' + esc(g.id) + '"' + (g.showInFeed ? ' checked' : '') + '></label>' +
-        '<label class="sw"><span>在图流显示</span><input type="checkbox" data-vis="pics" data-gid="' + esc(g.id) + '"' + (g.showInPics ? ' checked' : '') + '></label>' +
+        '<div class="gmode" role="radiogroup" aria-label="' + esc(g.name) + '的显示方式">' +
+        '<label><input type="radio" name="gm-' + esc(g.id) + '" data-gid="' + esc(g.id) + '" value="feed"' + (g.displayMode === 'feed' ? ' checked' : '') + '> 信息流</label>' +
+        '<label><input type="radio" name="gm-' + esc(g.id) + '" data-gid="' + esc(g.id) + '" value="pics"' + (g.displayMode === 'pics' ? ' checked' : '') + '> 图流</label>' +
+        '<label><input type="radio" name="gm-' + esc(g.id) + '" data-gid="' + esc(g.id) + '" value="hidden"' + (g.displayMode === 'hidden' ? ' checked' : '') + '> 不显示</label>' +
         '</div></div>';
     });
     if (un) {
+      var unMode = C.normalizeViewDisplayMode(state.settings.ungroupedDisplayMode);
       html += '<div class="gitem virtual"><div class="gtitle"><span class="gn">未分组</span><span class="badge">' + un + '</span></div>' +
-        '<p class="note">有订阅时才出现。不能删除；可在「订阅与设置」里把源移到其他分组。</p></div>';
+        '<p class="note">有订阅时才出现。不能删除；可在「订阅与设置」里把源移到其他分组。</p>' +
+        '<div class="gmode" role="radiogroup" aria-label="未分组的显示方式">' +
+        '<label><input type="radio" name="gm-ungrouped" value="feed"' + (unMode === 'feed' ? ' checked' : '') + '> 信息流</label>' +
+        '<label><input type="radio" name="gm-ungrouped" value="pics"' + (unMode === 'pics' ? ' checked' : '') + '> 图流</label>' +
+        '</div></div>';
     }
     mount.innerHTML = html;
     var b = mount;
@@ -2898,10 +3073,21 @@ var RSSCore = (function () {
       maybeFixView();
       save(); renderGroupMan(mount); renderChips(); renderMain();
     }; });
-    b.querySelectorAll('input[data-vis]').forEach(function (x) { x.onchange = function () {
-      var g = groupById(x.dataset.gid); if (!g) return;
-      if (x.dataset.vis === 'pics') g.showInPics = x.checked;
-      else g.showInFeed = x.checked;
+    b.querySelectorAll('input[name="gm-all"]').forEach(function (x) { x.onchange = function () {
+      if (!x.checked) return;
+      C.setViewDisplayMode(state, { type: 'all', id: '' }, x.value);
+      maybeFixView();
+      save(); renderChips(); renderMain();
+    }; });
+    b.querySelectorAll('input[name="gm-ungrouped"]').forEach(function (x) { x.onchange = function () {
+      if (!x.checked) return;
+      C.setViewDisplayMode(state, { type: 'ungrouped', id: '' }, x.value);
+      maybeFixView();
+      save(); renderChips(); renderMain();
+    }; });
+    b.querySelectorAll('input[data-gid]').forEach(function (x) { x.onchange = function () {
+      if (!x.checked) return;
+      C.setGroupDisplayMode(state, x.dataset.gid, x.value);
       maybeFixView();
       save(); renderChips(); renderMain();
     }; });
@@ -2941,7 +3127,14 @@ var RSSCore = (function () {
       return;
     }
     if (tab === 'other') {
+      var verHtml = (C.APP_CHANGELOG || []).map(function (e) {
+        return '<li><strong>' + esc(e.version) + '</strong><span class="vd">' + esc(e.date) + '</span><div>' + esc(e.text) + '</div></li>';
+      }).join('');
       $('setBody').innerHTML =
+        '<h4>关于</h4><div class="box verbox">' +
+        '<p class="ver">当前版本 <strong id="appVer">' + esc(C.APP_VERSION || 'v1.11') + '</strong></p>' +
+        '<details id="verLog"><summary>更新记录</summary><ol>' + verHtml + '</ol></details>' +
+        '</div>' +
         '<h4>显示</h4><div class="box">' +
         '<label class="sw"><span>点文章时</span><select id="sOpen" style="width:auto"><option value="reader">在阅读页打开</option><option value="original">直接打开原文</option></select></label>' +
         '<div class="row"><label class="sw" style="flex:1"><span>每个源最多保留</span><span><input type="number" id="sMax" min="10" max="2000" value="' + s.maxItems + '" style="width:90px"> 篇</span></label></div>' +
@@ -3143,7 +3336,7 @@ var RSSCore = (function () {
       '<div class="row"><button class="btn danger" id="eDel">取消订阅</button><span style="flex:1"></span><button class="btn ghost" id="eNow">抓一次</button><button class="btn" id="eOk">保存</button></div></div>';
     $('eOk').onclick = function () { f.title = $('eT').value.trim(); var nu = $('eU').value.trim(); if (nu && nu !== f.url) { f.url = nu; f.route = ''; } f.groupId = pickGroup($('eG')); save(); renderSettings(); renderChips(); renderMain(); };
     $('eNow').onclick = function () { $('eNow').disabled = true; refreshAll([f]); };
-    $('eDel').onclick = function () { if (!confirm('取消订阅「' + feedName(f) + '」？收藏的文章会保留。')) return; state.feeds = state.feeds.filter(function (y) { return y !== f; }); delete itemsByFeed[f.id]; idbDel(f.id); if (view.type === 'feed' && view.id === f.id) view = C.defaultView(state, mode); save(); renderSettings(); renderChips(); renderMain(); };
+    $('eDel').onclick = function () { if (!confirm('取消订阅「' + feedName(f) + '」？收藏的文章会保留。')) return; state.feeds = state.feeds.filter(function (y) { return y !== f; }); delete itemsByFeed[f.id]; idbDel(f.id); if (view.type === 'feed' && view.id === f.id) { view = C.fixView(state, C.defaultView(state)); syncModeFromView(); } save(); renderSettings(); renderChips(); renderMain(); };
   }
   $('btnSettings').onclick = function () { exitBatchMode(false); renderSettings(); openSheet('settings'); };
   $('batchCancel').onclick = function () { exitBatchMode(true); };
@@ -3165,8 +3358,7 @@ var RSSCore = (function () {
     }
     db = await openDB();
     itemsByFeed = await idbAll();
-    view = C.defaultView(state, mode);
-    renderChips(); renderMain();
+    setView(C.defaultView(state));
     var stale = C.shouldAutoRefresh({
       now: Date.now(), feeds: state.feeds, lastRefreshAt: state.settings.lastRefreshAt,
       online: navigator.onLine, refreshing: refreshing, sheetOpen: false, lastAttemptAt: 0
@@ -3193,7 +3385,7 @@ var RSSCore = (function () {
   window.addEventListener('pageshow', function (e) {
     if (e.persisted) maybeResumeRefresh();
   });
-  window.RSSApp = { state: function () { return state; }, items: function () { return itemsByFeed; }, importOPMLText: importOPMLText, refreshAll: refreshAll, restoreDefaults: function () { var before = state.feeds.length; var added = C.mergeDefaults(state); if (added) { save(); renderChips(); renderMain(); } return added; }, setView: setView, setMode: setMode, setSettingsTab: setSettingsTab, clearChipCooldown: function () { chipRefreshAt = {}; }, openPic: openPic, openItem: function (i) { openItem(current[i]); }, ready: boot() };
+  window.RSSApp = { state: function () { return state; }, items: function () { return itemsByFeed; }, importOPMLText: importOPMLText, refreshAll: refreshAll, restoreDefaults: function () { var before = state.feeds.length; var added = C.mergeDefaults(state); if (added) { save(); renderChips(); renderMain(); } return added; }, setView: setView, setMode: setMode, toggleViewMode: toggleViewMode, setSettingsTab: setSettingsTab, clearChipCooldown: function () { chipRefreshAt = {}; }, openPic: openPic, openItem: function (i) { openItem(current[i]); }, ready: boot() };
 })();
 
 </script>
