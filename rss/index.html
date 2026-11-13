@@ -15,7 +15,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="app-version" content="v1.12">
+<meta name="app-version" content="v1.13">
 <title>信息流</title>
 <script>
 (function(){var t=localStorage.getItem('user-theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.setAttribute('data-theme','dark');})();
@@ -103,6 +103,7 @@ a{color:var(--accent)}
 .starb.on{color:var(--star)}
 .empty{text-align:center;color:var(--muted);padding:60px 20px}
 .empty .btns{display:flex;gap:8px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+.empty .btn{min-height:44px}
 .empty .msg{margin:0}
 .more{text-align:center;color:var(--muted);font-size:13px;padding:10px}
 .endline{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 12px;padding:18px 16px 10px;color:var(--muted);font-size:13px;line-height:1.45;text-align:center;font-family:inherit}
@@ -355,9 +356,10 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 var RSSCore = (function () {
   'use strict';
   var SCHEMA = 1;
-  var APP_VERSION = 'v1.12';
+  var APP_VERSION = 'v1.13';
   /* 对外版本一律 v1.x；旧版 v1–v10 对应 v1.1–v1.10（v6.1→v1.6.1）。设置页「更新记录」展示 v1.2 起。 */
   var APP_CHANGELOG = [
+    { version: 'v1.13', date: '2026-11-13', text: '筛选条里的「全部」默认隐藏；已经在用的本地配置也会一次性隐藏，不改订阅、收藏、自定义分组、其它显示方式和顺序。分组设置里改成信息流或图流即可重新打开，打开后会记住，之后启动不会再自动隐藏。当时正停在「全部」时，会改到第一个还能看见的分组；如果一个可见分组都没有，就显示空状态和分组设置入口，不会把「全部」强行加回来。' },
     { version: 'v1.12', date: '2026-11-13', text: '默认分组「图流」改名为「图集推荐」，「信息流」改名为「新闻推荐」。默认顺序改为新闻+、设计、杂志、科技、图集推荐、新闻推荐、全部；本地若两组都在，会一次性把「科技」挪到「图集推荐」前面，其它分组相对顺序不变。只改分组名，视图模式仍叫信息流/图流；已经改成别的名字的不动。' },
     { version: 'v1.11', date: '2026-11-13', text: '去掉顶部「信息流/图流」总开关。每个分组改为信息流、图流或不显示；右上角可切换当前分组并记住，加列按钮只在图流时出现。旧的双开关节一次性按规则迁移，不改订阅和收藏。' },
     { version: 'v1.10', date: '2026-11-12', text: '修图流分组刷新后整屏空白：图片探测 8 秒超时，并补上加载中与空状态。点分组即刷新该组，60 秒节流。设置页拆成订阅、分组、其他三个标签。' },
@@ -385,7 +387,7 @@ var RSSCore = (function () {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader',
     customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false, recommendRenameMigrated: false, techNavMigrated: false,
-    lastRefreshAt: 0, settingsTab: 'feeds', groupDisplayMigrated: false, allDisplayMode: 'feed', ungroupedDisplayMode: 'feed', starDisplayMode: 'feed'
+    lastRefreshAt: 0, settingsTab: 'feeds', groupDisplayMigrated: false, allDisplayMode: 'feed', ungroupedDisplayMode: 'feed', starDisplayMode: 'feed', allNavHidden: false, allNavHiddenMigrated: false
   };
   var GROUP_ALBUM = '图集推荐', GROUP_NEWS_REC = '新闻推荐';
   var GROUP_ALBUM_OLD = '图流', GROUP_NEWS_REC_OLD = '信息流';
@@ -1165,6 +1167,7 @@ var RSSCore = (function () {
   function viewDisplayMode(state, view) {
     view = view || { type: 'all', id: '' };
     var settings = (state && state.settings) || {};
+    if (view.type === 'none') return 'feed';
     if (view.type === 'group') {
       var g = (state.groups || []).find(function (x) { return x && x.id === view.id; });
       if (!g) return 'feed';
@@ -1180,6 +1183,7 @@ var RSSCore = (function () {
     if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
     mode = normalizeViewDisplayMode(mode);
     view = view || { type: 'all', id: '' };
+    if (view.type === 'none') return mode;
     if (view.type === 'group') {
       var g = (state.groups || []).find(function (x) { return x && x.id === view.id; });
       if (!g) return mode;
@@ -1200,6 +1204,27 @@ var RSSCore = (function () {
     g.displayMode = mode;
     syncGroupDisplayFlags(g);
     return mode;
+  }
+  function allNavIsHidden(state) {
+    var s = (state && state.settings) || {};
+    return !!s.allNavHidden;
+  }
+  function setAllNavHidden(state, hidden) {
+    if (!state) return false;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    state.settings.allNavHidden = !!hidden;
+    state.settings.allNavHiddenMigrated = true;
+    return state.settings.allNavHidden;
+  }
+  /* 一次性把筛选条里的「全部」隐藏。不改订阅、收藏、分组、显示模式和顺序。
+     allNavHiddenMigrated 记下已经做过；用户之后在分组设置里重新打开会把 allNavHidden 设回 false，之后启动不会再藏一次。 */
+  function applyAllNavHideMigration(state) {
+    if (!state) return state;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    if (state.settings.allNavHiddenMigrated) return state;
+    state.settings.allNavHidden = true;
+    state.settings.allNavHiddenMigrated = true;
+    return state;
   }
   var NAV_ALL = 'all';
   function isAllNavKey(k) { return k === 'all' || k === '__all__'; }
@@ -1563,6 +1588,7 @@ var RSSCore = (function () {
     applyNavOrder(state);
     applyTechNavMigration(state);
     applyNavOrder(state);
+    applyAllNavHideMigration(state);
     return added;
   }
   function seedIfNeeded(state, savedRaw) {
@@ -1629,6 +1655,7 @@ var RSSCore = (function () {
     if (isLegacyDefaultNav(restored)) restored.navOrder = defaultNavOrder(restored);
     applyTechNavMigration(restored);
     normalizeNavOrder(restored);
+    applyAllNavHideMigration(restored);
     return restored;
   }
 
@@ -1657,14 +1684,15 @@ var RSSCore = (function () {
     list.sort(function (a, b) { return b.date - a.date; });
     return list;
   }
-  /* 顶部筛选条：按 navOrder（含可排序的「全部」）→ 有源时才出现未分组 → 收藏。收藏和未分组固定在末尾。 */
+  /* 顶部筛选条：按 navOrder（含可排序的「全部」，默认隐藏）→ 有源时才出现未分组 → 收藏。收藏和未分组固定在末尾。隐藏只影响出现与否，不改 navOrder。 */
   function chips(state, mode) {
     applyNavOrder(state);
     var out = [], map = {};
     (state.groups || []).forEach(function (g) { map[g.id] = g; });
     (state.navOrder || []).forEach(function (k) {
-      if (k === NAV_ALL) out.push({ type: 'all', id: '', label: '全部' });
-      else {
+      if (k === NAV_ALL) {
+        if (!allNavIsHidden(state)) out.push({ type: 'all', id: '', label: '全部' });
+      } else {
         var g = map[k];
         if (g && groupVisible(g)) out.push({ type: 'group', id: g.id, label: g.name });
       }
@@ -1681,9 +1709,19 @@ var RSSCore = (function () {
       if (c.type === 'star' || c.type === 'ungrouped') continue;
       return { type: c.type, id: c.id || '' };
     }
-    return { type: 'all', id: '' };
+    if (!allNavIsHidden(state)) return { type: 'all', id: '' };
+    return { type: 'none', id: '' };
   }
-  /* 当前分组被隐藏或已删除时，回到「全部」或第一个可见分组。 */
+  function hasVisibleNormalNav(state) {
+    var list = chips(state), i, c;
+    for (i = 0; i < list.length; i++) {
+      c = list[i];
+      if (c.type !== 'star' && c.type !== 'ungrouped') return true;
+    }
+    return false;
+  }
+  /* 当前分组被隐藏或已删除时，回到第一个还能看见的分组。
+     「全部」被隐藏时不能再落到「全部」；一个可见分组都没有时停在空状态，避免把它强行加回来或来回跳。收藏和未分组不受影响。 */
   function fixView(state, view) {
     view = view || { type: 'all', id: '' };
     var list = chips(state);
@@ -1693,6 +1731,7 @@ var RSSCore = (function () {
       if (c.type === view.type && (c.id || '') === (view.id || '')) { ok = true; break; }
     }
     if (ok) return { type: view.type, id: view.id || '' };
+    if ((view.type === 'all' || view.type === 'none') && !hasVisibleNormalNav(state)) return { type: 'none', id: '' };
     return defaultView(state);
   }
 
@@ -2088,7 +2127,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, applyRecommendRenameMigration: applyRecommendRenameMigration, applyTechNavMigration: applyTechNavMigration, GROUP_ALBUM: GROUP_ALBUM, GROUP_NEWS_REC: GROUP_NEWS_REC, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, defaultDisplayModeForName: defaultDisplayModeForName, migrateGroupDisplayMode: migrateGroupDisplayMode, applyGroupDisplayMigration: applyGroupDisplayMigration, viewDisplayMode: viewDisplayMode, setViewDisplayMode: setViewDisplayMode, setGroupDisplayMode: setGroupDisplayMode, normalizeViewDisplayMode: normalizeViewDisplayMode, normalizeDisplayModeValue: normalizeDisplayModeValue, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, applyRecommendRenameMigration: applyRecommendRenameMigration, applyTechNavMigration: applyTechNavMigration, applyAllNavHideMigration: applyAllNavHideMigration, allNavIsHidden: allNavIsHidden, setAllNavHidden: setAllNavHidden, GROUP_ALBUM: GROUP_ALBUM, GROUP_NEWS_REC: GROUP_NEWS_REC, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, defaultDisplayModeForName: defaultDisplayModeForName, migrateGroupDisplayMode: migrateGroupDisplayMode, applyGroupDisplayMigration: applyGroupDisplayMigration, viewDisplayMode: viewDisplayMode, setViewDisplayMode: setViewDisplayMode, setGroupDisplayMode: setGroupDisplayMode, normalizeViewDisplayMode: normalizeViewDisplayMode, normalizeDisplayModeValue: normalizeDisplayModeValue, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView, fixView: fixView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX,
@@ -2460,11 +2499,18 @@ var RSSCore = (function () {
       listIO.observe(sent);
     }
   }
+  function renderNoneState(el) {
+    if (!el) return;
+    el.innerHTML = '<div class="empty" role="status"><div class="msg">没有可显示的分组</div><p class="note">可以在分组设置里打开「全部」，或把某个分组改为显示。</p><div class="btns"><button type="button" class="btn" data-open-groups="1">分组设置</button></div></div>';
+    var btn = el.querySelector('[data-open-groups]');
+    if (btn) btn.onclick = function () { setSettingsTab('groups'); openSheet('settings'); };
+  }
   function renderList() {
+    var el = $('list');
+    if (view.type === 'none') { renderNoneState(el); return; }
     var live = C.timeline(state, itemsByFeed, view, mode);
     current = (committedItems && committedItems.length) ? committedItems : live;
     if (!committedItems || !committedItems.length) committedItems = current.slice();
-    var el = $('list');
     listIO = disconnectIO(listIO);
     if (!state.feeds.length && view.type !== 'star') {
       el.innerHTML = '<div class="empty"><div>还没有订阅</div><div class="btns"><button class="btn" id="eAdd">添加订阅</button><button class="btn ghost" id="eOpml">导入 OPML</button></div></div>';
@@ -2482,6 +2528,7 @@ var RSSCore = (function () {
     fitThumbCards(el);
   }
   function setMode(next) {
+    if (view.type === 'none') return;
     next = next === 'pics' ? 'pics' : 'feed';
     C.setViewDisplayMode(state, view, next);
     mode = next;
@@ -2685,6 +2732,7 @@ var RSSCore = (function () {
     $('list').hidden = true;
     var el = $('gallery');
     el.hidden = false;
+    if (view.type === 'none') { galleryGen++; renderNoneState(el); return; }
     galleryGen++;
     placedTiles = [];
     galleryLoadFrom = 0;
@@ -3073,18 +3121,20 @@ var RSSCore = (function () {
     var un = state.feeds.filter(function (f) { return !f.groupId; }).length;
     C.applyNavOrder(state);
     var html = '<div class="row"><button class="btn" id="gAdd" style="flex:1">新建分组</button></div>' +
-      '<p class="note">最左侧分组即打开时的默认页，可在这里调整顺序。「全部」也可以排序；「收藏」和「未分组」固定在筛选条末尾。删分组时里面的源会移到「未分组」，不会丢掉。每个分组选信息流、图流，或不显示（在分组栏隐藏）。主页面右上角也可切换当前分组并记住。</p>';
+      '<p class="note">最左侧分组即打开时的默认页，可在这里调整顺序。「全部」默认不显示，聚合还在；选信息流或图流会按原来的位置重新出现，并记住，不会再被自动隐藏。「收藏」和「未分组」固定在筛选条末尾。删分组时里面的源会移到「未分组」，不会丢掉。每个分组选信息流、图流，或不显示（在分组栏隐藏）。主页面右上角也可切换当前分组并记住。</p>';
     var nav = state.navOrder || [];
     nav.forEach(function (k, i) {
       var updn = '<button class="mini" data-nup="' + esc(k) + '" ' + (i === 0 ? 'disabled' : '') + '>上移</button>' +
         '<button class="mini" data-ndn="' + esc(k) + '" ' + (i === nav.length - 1 ? 'disabled' : '') + '>下移</button>';
       if (k === C.NAV_ALL) {
         var allMode = C.normalizeViewDisplayMode(state.settings.allDisplayMode);
+        var allHidden = C.allNavIsHidden(state);
         html += '<div class="gitem virtual" data-nav="all"><div class="gtitle"><span class="gn">全部</span>' + updn + '</div>' +
-          '<p class="note">筛选条里的「全部」。移到最左即为打开时的默认页。显示方式可在这里或主页面右上角切换。</p>' +
+          '<p class="note">筛选条里的「全部」，默认不显示。选「不显示」从分组栏隐藏；选信息流或图流会按这里的顺序重新出现。移到最左即为打开时的默认页。</p>' +
           '<div class="gmode" role="radiogroup" aria-label="全部的显示方式">' +
-          '<label><input type="radio" name="gm-all" value="feed"' + (allMode === 'feed' ? ' checked' : '') + '> 信息流</label>' +
-          '<label><input type="radio" name="gm-all" value="pics"' + (allMode === 'pics' ? ' checked' : '') + '> 图流</label>' +
+          '<label><input type="radio" name="gm-all" value="feed"' + (!allHidden && allMode === 'feed' ? ' checked' : '') + '> 信息流</label>' +
+          '<label><input type="radio" name="gm-all" value="pics"' + (!allHidden && allMode === 'pics' ? ' checked' : '') + '> 图流</label>' +
+          '<label><input type="radio" name="gm-all" value="hidden"' + (allHidden ? ' checked' : '') + '> 不显示</label>' +
           '</div></div>';
         return;
       }
@@ -3140,7 +3190,11 @@ var RSSCore = (function () {
     }; });
     b.querySelectorAll('input[name="gm-all"]').forEach(function (x) { x.onchange = function () {
       if (!x.checked) return;
-      C.setViewDisplayMode(state, { type: 'all', id: '' }, x.value);
+      if (x.value === 'hidden') C.setAllNavHidden(state, true);
+      else {
+        C.setAllNavHidden(state, false);
+        C.setViewDisplayMode(state, { type: 'all', id: '' }, x.value);
+      }
       maybeFixView();
       save(); renderChips(); renderMain();
     }; });
@@ -3197,7 +3251,7 @@ var RSSCore = (function () {
       }).join('');
       $('setBody').innerHTML =
         '<h4>关于</h4><div class="box verbox">' +
-        '<p class="ver">当前版本 <strong id="appVer">' + esc(C.APP_VERSION || 'v1.12') + '</strong></p>' +
+        '<p class="ver">当前版本 <strong id="appVer">' + esc(C.APP_VERSION || 'v1.13') + '</strong></p>' +
         '<details id="verLog"><summary>更新记录</summary><ol>' + verHtml + '</ol></details>' +
         '</div>' +
         '<h4>显示</h4><div class="box">' +
