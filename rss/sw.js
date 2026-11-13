@@ -1,7 +1,8 @@
 'use strict';
 // 只缓存本工具自己的文件；订阅源、代理、图片等跨站请求直接放行，不进缓存。
 // 文章内容由页面存进 IndexedDB，断网时照样能读。
-const CACHE = 'rss-v16';
+// activate 只删本工具自己的 rss-v* 旧缓存，不动同域下其它 PWA 的缓存。
+const CACHE = 'rss-v17';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './sw.js', './icon.svg', './icon-192.png', './icon-512.png', './icon-maskable.png'];
 
 self.addEventListener('install', (event) => {
@@ -9,7 +10,7 @@ self.addEventListener('install', (event) => {
 });
 self.addEventListener('activate', (event) => {
   event.waitUntil(caches.keys()
-    .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+    .then((keys) => Promise.all(keys.filter((k) => k.startsWith('rss-v') && k !== CACHE).map((k) => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', (event) => {

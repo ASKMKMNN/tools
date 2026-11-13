@@ -24,14 +24,14 @@
 :root{
   color-scheme:light;
   --bg:#f6f4f1;--text:#1d1b18;--muted:#6b6862;--card:#fffdfa;--line:rgba(29,27,24,.09);
-  --chip:#ebe8e3;--chip-on:#1d1b18;--chip-on-text:#f6f4f1;--accent:#2f6fd6;--danger:#c4432f;--star:#d29a1c;
+  --chip:#ebe8e3;--chip-on:#1d1b18;--chip-on-text:#f6f4f1;--accent:#1c51a8;--danger:#c4432f;--star:#d29a1c;
   --shadow:0 8px 28px rgba(0,0,0,.08);
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
 }
 [data-theme="dark"]{
   color-scheme:dark;
   --bg:#1a1917;--text:#f0ece5;--muted:#a49f97;--card:#24221f;--line:rgba(240,236,229,.09);
-  --chip:#2c2a26;--chip-on:#f0ece5;--chip-on-text:#1a1917;--accent:#6ea8fe;--danger:#ef7a64;--star:#f0c050;
+  --chip:#2c2a26;--chip-on:#f0ece5;--chip-on-text:#1a1917;--accent:#9ac4ff;--danger:#ef7a64;--star:#f0c050;
   --shadow:0 8px 28px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -167,7 +167,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .seg{display:flex;flex-wrap:wrap;gap:2px;background:var(--chip);border-radius:12px;padding:2px}
 .seg button{flex:1 1 0;min-width:4.2em;border:0;background:transparent;color:var(--muted);border-radius:10px;padding:7px 8px;font:inherit;font-size:13px;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--card);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
-.colctl{display:none;margin:0 4px 0 0;align-items:center;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
+.colctl{display:none;margin:0;align-items:center;background:var(--chip);border-radius:12px;padding:2px;height:32px;flex:none}
 .colctl.on{display:inline-flex}
 .colctl button{border:0;background:transparent;color:var(--text);border-radius:10px;height:28px;min-width:28px;padding:0 7px;font:inherit;font-size:16px;line-height:1;cursor:pointer}
 .colctl button:disabled{opacity:.35}
@@ -250,16 +250,15 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
       <h1><img src="icon-192.png" alt=""><span class="title-text">信息流</span></h1>
       <button class="ib" id="btnMode" type="button" title="当前为信息流，点按切换到图流" aria-label="当前为信息流，点按切换到图流" aria-pressed="false">信息流</button>
       <button class="ib" id="btnRefresh" title="刷新" aria-label="刷新"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
-      <button class="ib" id="btnTheme" title="主题" aria-label="切换主题"><span id="themeIcon">🌓</span></button>
-      <button class="ib" id="btnSettings" title="订阅与设置" aria-label="订阅与设置"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
-    </div>
-    <div class="navrow">
-      <nav class="chips" id="chips" aria-label="筛选"></nav>
       <div class="colctl" id="colctl" hidden>
         <button type="button" id="colMinus" aria-label="减少列数">−</button>
         <button type="button" id="colAuto" aria-label="列数，点按恢复自动" title="点按恢复自动">自动</button>
         <button type="button" id="colPlus" aria-label="增加列数">+</button>
       </div>
+      <button class="ib" id="btnSettings" title="订阅与设置" aria-label="订阅与设置"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    </div>
+    <div class="navrow">
+      <nav class="chips" id="chips" aria-label="筛选"></nav>
     </div>
     <div class="status" id="status"></div>
     <button type="button" class="fresh" id="fresh" hidden>有 <span class="fresh-n">0</span> 条新内容</button>
@@ -336,7 +335,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
   <div class="pv-cap" id="pvTitle"></div>
   <div class="pv-stage" id="pvStage">
     <button class="pv-nav prev" id="pvPrev" aria-label="上一张">‹</button>
-    <img id="pvImg" alt="">
+    <img id="pvImg" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
     <button class="pv-nav next" id="pvNext" aria-label="下一张">›</button>
   </div>
 </section>
@@ -356,9 +355,10 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 var RSSCore = (function () {
   'use strict';
   var SCHEMA = 1;
-  var APP_VERSION = 'v1.13';
+  var APP_VERSION = 'v1.14';
   /* 对外版本一律 v1.x；旧版 v1–v10 对应 v1.1–v1.10（v6.1→v1.6.1）。设置页「更新记录」展示 v1.2 起。 */
   var APP_CHANGELOG = [
+    { version: 'v1.14', date: '2026-11-13', text: '图流的「− 自动 +」列数按钮从分组条上移到顶栏，不再挤占分组名；深浅色主题改为「订阅与设置 → 其他 → 外观」里的三选（跟随系统／浅色／深色），顶栏不再有月亮按钮。调整亮、暗两套强调色以保证文字对比度；Service Worker 只清理本工具自己的旧缓存。不动订阅、分组、收藏与任何本地存档。' },
     { version: 'v1.13', date: '2026-11-13', text: '筛选条里的「全部」默认隐藏；已经在用的本地配置也会一次性隐藏，不改订阅、收藏、自定义分组、其它显示方式和顺序。分组设置里改成信息流或图流即可重新打开，打开后会记住，之后启动不会再自动隐藏。当时正停在「全部」时，会改到第一个还能看见的分组；如果一个可见分组都没有，就显示空状态和分组设置入口，不会把「全部」强行加回来。' },
     { version: 'v1.12', date: '2026-11-13', text: '默认分组「图流」改名为「图集推荐」，「信息流」改名为「新闻推荐」。默认顺序改为新闻+、设计、杂志、科技、图集推荐、新闻推荐、全部；本地若两组都在，会一次性把「科技」挪到「图集推荐」前面，其它分组相对顺序不变。只改分组名，视图模式仍叫信息流/图流；已经改成别的名字的不动。' },
     { version: 'v1.11', date: '2026-11-13', text: '去掉顶部「信息流/图流」总开关。每个分组改为信息流、图流或不显示；右上角可切换当前分组并记住，加列按钮只在图流时出现。旧的双开关节一次性按规则迁移，不改订阅和收藏。' },
@@ -2230,19 +2230,29 @@ var RSSCore = (function () {
   }
   function stamp() { var d = new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
 
-  /* ---------- 主题 ---------- */
+  /* ---------- 主题（在「订阅与设置 → 其他」里切换） ---------- */
   var theme = localStorage.getItem('user-theme') || 'auto';
   var mq = window.matchMedia ? matchMedia('(prefers-color-scheme: dark)') : { matches: false };
+  var THEME_LABEL = { auto: '跟随系统', light: '浅色', dark: '深色' };
+  function syncThemeSeg() {
+    var box = $('sTheme');
+    if (!box) return;
+    Array.prototype.forEach.call(box.querySelectorAll('[data-theme]'), function (btn) {
+      btn.setAttribute('aria-pressed', btn.getAttribute('data-theme') === theme ? 'true' : 'false');
+    });
+  }
   function applyTheme() {
     var dark = theme === 'dark' || (theme === 'auto' && mq.matches);
     if (dark) document.documentElement.setAttribute('data-theme', 'dark'); else document.documentElement.removeAttribute('data-theme');
-    $('themeIcon').textContent = theme === 'auto' ? '🌓' : theme === 'dark' ? '🌙' : '☀️';
-    $('btnTheme').title = theme === 'auto' ? '跟随系统' : theme === 'dark' ? '深色' : '浅色';
+    syncThemeSeg();
   }
-  $('btnTheme').onclick = function () {
-    theme = theme === 'auto' ? 'light' : theme === 'light' ? 'dark' : 'auto';
-    localStorage.setItem('user-theme', theme); applyTheme(); toast($('btnTheme').title);
-  };
+  function setTheme(next) {
+    if (!(next in THEME_LABEL) || theme === next) return;
+    theme = next;
+    localStorage.setItem('user-theme', theme);
+    applyTheme();
+    toast(THEME_LABEL[theme]);
+  }
   if (mq.addEventListener) mq.addEventListener('change', function () { if (theme === 'auto') applyTheme(); });
 
   /* ---------- 筛选条 ---------- */
@@ -3254,6 +3264,14 @@ var RSSCore = (function () {
         '<p class="ver">当前版本 <strong id="appVer">' + esc(C.APP_VERSION || 'v1.13') + '</strong></p>' +
         '<details id="verLog"><summary>更新记录</summary><ol>' + verHtml + '</ol></details>' +
         '</div>' +
+        '<h4>外观</h4><div class="box">' +
+        '<div class="row"><label class="sw" style="flex:1"><span>主题</span></label></div>' +
+        '<div class="seg" id="sTheme" role="radiogroup" aria-label="主题">' +
+          [['auto','跟随系统'],['light','浅色'],['dark','深色']].map(function (it) {
+            return '<button type="button" role="radio" data-theme="' + it[0] + '" aria-pressed="' + (theme === it[0]) + '">' + it[1] + '</button>';
+          }).join('') +
+        '</div>' +
+        '<p class="note">跟随系统会随手机的深浅色设置自动切换；选浅色或深色则固定不变。</p></div>' +
         '<h4>显示</h4><div class="box">' +
         '<label class="sw"><span>点文章时</span><select id="sOpen" style="width:auto"><option value="reader">在阅读页打开</option><option value="original">直接打开原文</option></select></label>' +
         '<div class="row"><label class="sw" style="flex:1"><span>每个源最多保留</span><span><input type="number" id="sMax" min="10" max="2000" value="' + s.maxItems + '" style="width:90px"> 篇</span></label></div>' +
@@ -3285,6 +3303,9 @@ var RSSCore = (function () {
         '<p class="note" style="margin-top:22px">数据只存在这台设备的浏览器里。换手机前记得备份 JSON。</p>';
       $('sOpen').value = s.openMode;
       $('sImg').value = s.imageFilter === 'medium' ? 'medium' : 'strict';
+      Array.prototype.forEach.call(document.querySelectorAll('#sTheme [data-theme]'), function (btn) {
+        btn.onclick = function () { setTheme(btn.getAttribute('data-theme')); };
+      });
       Array.prototype.forEach.call(document.querySelectorAll('#sProxyMode [data-mode]'), function (btn) {
         btn.onclick = function () {
           var next = C.normalizeProxyMode(btn.getAttribute('data-mode'));
