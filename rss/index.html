@@ -15,7 +15,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="app-version" content="v1.11">
+<meta name="app-version" content="v1.12">
 <title>信息流</title>
 <script>
 (function(){var t=localStorage.getItem('user-theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.setAttribute('data-theme','dark');})();
@@ -355,9 +355,10 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 var RSSCore = (function () {
   'use strict';
   var SCHEMA = 1;
-  var APP_VERSION = 'v1.11';
-  /* 对外版本一律 v1.x；旧版 v1–v10 对应 v1.1–v1.10（v6.1→v1.6.1）。设置页「更新记录」展示 v1.2–v1.11。 */
+  var APP_VERSION = 'v1.12';
+  /* 对外版本一律 v1.x；旧版 v1–v10 对应 v1.1–v1.10（v6.1→v1.6.1）。设置页「更新记录」展示 v1.2 起。 */
   var APP_CHANGELOG = [
+    { version: 'v1.12', date: '2026-11-13', text: '默认分组「图流」改名为「图集推荐」，「信息流」改名为「新闻推荐」。默认顺序改为新闻+、设计、杂志、科技、图集推荐、新闻推荐、全部；本地若两组都在，会一次性把「科技」挪到「图集推荐」前面，其它分组相对顺序不变。只改分组名，视图模式仍叫信息流/图流；已经改成别的名字的不动。' },
     { version: 'v1.11', date: '2026-11-13', text: '去掉顶部「信息流/图流」总开关。每个分组改为信息流、图流或不显示；右上角可切换当前分组并记住，加列按钮只在图流时出现。旧的双开关节一次性按规则迁移，不改订阅和收藏。' },
     { version: 'v1.10', date: '2026-11-12', text: '修图流分组刷新后整屏空白：图片探测 8 秒超时，并补上加载中与空状态。点分组即刷新该组，60 秒节流。设置页拆成订阅、分组、其他三个标签。' },
     { version: 'v1.9', date: '2026-11-12', text: '回到前台超过 15 分钟会自动刷新；列表底部显示「已经到底了」和上次刷新时间。修了分批哨兵被滑过漏加载的问题。' },
@@ -383,10 +384,12 @@ var RSSCore = (function () {
   var DEFAULT_SETTINGS = {
     maxItems: 200, timeoutMs: 15000, concurrency: 4,
     proxies: DEFAULT_PROXIES.slice(), openMode: 'reader',
-    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false,
+    customProxy: DEFAULT_CUSTOM_PROXY, customProxyCleared: false, imageFilter: 'strict', galleryCols: 'auto', proxyMode: 'auto', showListThumb: true, otherGroupMigrated: false, ithomeMigrated: false, recommendSplitMigrated: false, recommendRenameMigrated: false, techNavMigrated: false,
     lastRefreshAt: 0, settingsTab: 'feeds', groupDisplayMigrated: false, allDisplayMode: 'feed', ungroupedDisplayMode: 'feed', starDisplayMode: 'feed'
   };
-  var GROUP_ORDER = ['新闻+', '设计', '杂志', '图流', '信息流', '科技'];
+  var GROUP_ALBUM = '图集推荐', GROUP_NEWS_REC = '新闻推荐';
+  var GROUP_ALBUM_OLD = '图流', GROUP_NEWS_REC_OLD = '信息流';
+  var GROUP_ORDER = ['新闻+', '设计', '杂志', '科技', GROUP_ALBUM, GROUP_NEWS_REC];
   var DEFAULT_FEEDS = [
     { title: 'NewsBot AI Reports', url: 'https://newsbot.justinyan.app/api/public/rss/reports.xml', group: '新闻+' },
     { title: '爱范儿', url: 'https://feedx.net/rss/ifanr.xml', group: '新闻+' },
@@ -422,29 +425,29 @@ var RSSCore = (function () {
     { title: 'Vogue', url: 'https://www.vogue.com/feed/rss', group: '杂志' },
     { title: 'ArchDaily | ArchDaily', url: 'https://www.archdaily.com/zh/cn.xml', group: '设计' },
     { title: 'but does it float', url: 'https://butdoesitfloat.com/rss', group: '设计' },
-    { title: 'TechCrunch', url: 'https://techcrunch.com/feed/', group: '信息流' },
-    { title: 'WIRED', url: 'https://www.wired.com/feed/rss', group: '信息流' },
-    { title: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', group: '信息流' },
-    { title: '量子位', url: 'https://www.qbitai.com/feed', group: '信息流' },
-    { title: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', group: '信息流' },
-    { title: 'Android Police', url: 'https://www.androidpolice.com/feed/', group: '信息流' },
-    { title: 'Engadget', url: 'https://www.engadget.com/rss.xml', group: '信息流' },
-    { title: 'Highsnobiety', url: 'https://www.highsnobiety.com/feed/', group: '图流' },
-    { title: 'Hypebeast', url: 'https://hypebeast.com/feed', group: '图流' },
-    { title: 'Business of Fashion', url: 'https://www.businessoffashion.com/feed', group: '图流' },
-    { title: 'GQ', url: 'https://www.gq.com/feed/rss', group: '图流' },
-    { title: 'Dezeen', url: 'https://www.dezeen.com/feed/', group: '图流' },
-    { title: 'designboom', url: 'https://www.designboom.com/feed/', group: '图流' },
-    { title: 'Architectural Digest', url: 'https://www.architecturaldigest.com/feed/rss', group: '图流' },
-    { title: 'Hyperallergic', url: 'https://hyperallergic.com/feed/', group: '图流' },
-    { title: '机核', url: 'https://www.gcores.com/rss', group: '信息流' },
-    { title: 'Polygon', url: 'https://www.polygon.com/rss/index.xml', group: '信息流' },
-    { title: 'IGN', url: 'https://feeds.ign.com/ign/all', group: '信息流' },
-    { title: 'Nintendo Life', url: 'https://www.nintendolife.com/feeds/latest', group: '信息流' },
-    { title: 'Hacker News', url: 'https://hnrss.org/frontpage', group: '信息流' },
-    { title: 'Solidot', url: 'https://www.solidot.org/index.rss', group: '信息流' },
-    { title: '开源中国', url: 'https://www.oschina.net/news/rss', group: '信息流' },
-    { title: 'LWN', url: 'https://lwn.net/headlines/rss', group: '信息流' },
+    { title: 'TechCrunch', url: 'https://techcrunch.com/feed/', group: GROUP_NEWS_REC },
+    { title: 'WIRED', url: 'https://www.wired.com/feed/rss', group: GROUP_NEWS_REC },
+    { title: 'MIT Technology Review', url: 'https://www.technologyreview.com/feed/', group: GROUP_NEWS_REC },
+    { title: '量子位', url: 'https://www.qbitai.com/feed', group: GROUP_NEWS_REC },
+    { title: 'MacRumors', url: 'https://feeds.macrumors.com/MacRumors-All', group: GROUP_NEWS_REC },
+    { title: 'Android Police', url: 'https://www.androidpolice.com/feed/', group: GROUP_NEWS_REC },
+    { title: 'Engadget', url: 'https://www.engadget.com/rss.xml', group: GROUP_NEWS_REC },
+    { title: 'Highsnobiety', url: 'https://www.highsnobiety.com/feed/', group: GROUP_ALBUM },
+    { title: 'Hypebeast', url: 'https://hypebeast.com/feed', group: GROUP_ALBUM },
+    { title: 'Business of Fashion', url: 'https://www.businessoffashion.com/feed', group: GROUP_ALBUM },
+    { title: 'GQ', url: 'https://www.gq.com/feed/rss', group: GROUP_ALBUM },
+    { title: 'Dezeen', url: 'https://www.dezeen.com/feed/', group: GROUP_ALBUM },
+    { title: 'designboom', url: 'https://www.designboom.com/feed/', group: GROUP_ALBUM },
+    { title: 'Architectural Digest', url: 'https://www.architecturaldigest.com/feed/rss', group: GROUP_ALBUM },
+    { title: 'Hyperallergic', url: 'https://hyperallergic.com/feed/', group: GROUP_ALBUM },
+    { title: '机核', url: 'https://www.gcores.com/rss', group: GROUP_NEWS_REC },
+    { title: 'Polygon', url: 'https://www.polygon.com/rss/index.xml', group: GROUP_NEWS_REC },
+    { title: 'IGN', url: 'https://feeds.ign.com/ign/all', group: GROUP_NEWS_REC },
+    { title: 'Nintendo Life', url: 'https://www.nintendolife.com/feeds/latest', group: GROUP_NEWS_REC },
+    { title: 'Hacker News', url: 'https://hnrss.org/frontpage', group: GROUP_NEWS_REC },
+    { title: 'Solidot', url: 'https://www.solidot.org/index.rss', group: GROUP_NEWS_REC },
+    { title: '开源中国', url: 'https://www.oschina.net/news/rss', group: GROUP_NEWS_REC },
+    { title: 'LWN', url: 'https://lwn.net/headlines/rss', group: GROUP_NEWS_REC },
   ];
 
   function hash(s) {
@@ -1107,7 +1110,7 @@ var RSSCore = (function () {
     }
     return state;
   }
-  var PICS_DEFAULT_GROUP_NAMES = { '杂志': 1, '设计': 1, '图流': 1 };
+  var PICS_DEFAULT_GROUP_NAMES = { '杂志': 1, '设计': 1, '图集推荐': 1, '图流': 1 };
   function defaultDisplayModeForName(name) {
     return PICS_DEFAULT_GROUP_NAMES[canonicalGroupName(name)] ? 'pics' : 'feed';
   }
@@ -1128,7 +1131,7 @@ var RSSCore = (function () {
     g.showInPics = m === 'pics';
     return g;
   }
-  /* 旧双开关 → 三态：只开信息流 / 只开图流 / 都关=隐藏 / 都开或缺字段=按分组名默认（杂志、设计、图流=图流，其余=信息流）。已有 displayMode 的不改。 */
+  /* 旧双开关 → 三态：只开信息流 / 只开图流 / 都关=隐藏 / 都开或缺字段=按分组名默认（杂志、设计、图集推荐=图流，其余=信息流）。已有 displayMode 的不改。旧名「图流」也按图流处理。 */
   function migrateGroupDisplayMode(g) {
     if (!g) return g;
     if (normalizeDisplayModeValue(g.displayMode)) return syncGroupDisplayFlags(g);
@@ -1382,8 +1385,8 @@ var RSSCore = (function () {
   ];
   function recSplitTarget(url) {
     var k = feedKey(url), i;
-    for (i = 0; i < REC_PICS_URLS.length; i++) if (feedKey(REC_PICS_URLS[i]) === k) return '图流';
-    for (i = 0; i < REC_FEED_URLS.length; i++) if (feedKey(REC_FEED_URLS[i]) === k) return '信息流';
+    for (i = 0; i < REC_PICS_URLS.length; i++) if (feedKey(REC_PICS_URLS[i]) === k) return GROUP_ALBUM;
+    for (i = 0; i < REC_FEED_URLS.length; i++) if (feedKey(REC_FEED_URLS[i]) === k) return GROUP_NEWS_REC;
     return '';
   }
   function navLabels(state) {
@@ -1397,9 +1400,9 @@ var RSSCore = (function () {
   function isLegacyDefaultNav(state) {
     var labels = navLabels(state).filter(function (x) { return x; });
     var a = labels.join('\t');
-    return a === '新闻+\t全部\t科技\t杂志\t设计\t推荐' || a === '新闻+\t全部\t科技\t杂志\t设计' || a === '新闻+\t全部\t设计\t杂志\t图流\t信息流\t科技';
+    return a === '新闻+\t全部\t科技\t杂志\t设计\t推荐' || a === '新闻+\t全部\t科技\t杂志\t设计' || a === '新闻+\t全部\t设计\t杂志\t图流\t信息流\t科技' || a === '新闻+\t全部\t设计\t杂志\t图集推荐\t新闻推荐\t科技' || a === '新闻+\t设计\t杂志\t图流\t信息流\t科技\t全部' || a === '新闻+\t设计\t杂志\t图集推荐\t新闻推荐\t科技\t全部';
   }
-  /* 默认筛选条：新闻+、设计、杂志、图流、信息流、科技、全部；其余分组跟在后面。 */
+  /* 默认筛选条：新闻+、设计、杂志、科技、图集推荐、新闻推荐、全部；其余分组跟在后面。 */
   function defaultNavOrder(state) {
     var byName = {}, out = [];
     (state.groups || []).forEach(function (g) { if (g && g.id && !byName[g.name]) byName[g.name] = g; });
@@ -1414,7 +1417,7 @@ var RSSCore = (function () {
     if (!g) { g = makeGroup(name); state.groups.push(g); }
     return g;
   }
-  /* 把默认「推荐」拆成「图流」「信息流」：默认源按网址改组；空的「推荐」删掉。若用户自己加进「推荐」的非默认源还在，保留「推荐」分组（不把它们打散到未分组，以免丢掉用户自己的归类）。已改过的 showInFeed/showInPics 不覆盖。自定义 navOrder 把「推荐」换成 图流+信息流（在原位置，若保留推荐则跟在后面）；未自定义过则用新默认顺序。settings.recommendSplitMigrated 避免再跑一遍（例如用户后来把源挪到别的组）。 */
+  /* 把默认「推荐」拆成「图集推荐」「新闻推荐」（旧名「图流」「信息流」）：默认源按网址改组；空的「推荐」删掉。若用户自己加进「推荐」的非默认源还在，保留「推荐」分组（不把它们打散到未分组，以免丢掉用户自己的归类）。已改过的 showInFeed/showInPics 不覆盖。自定义 navOrder 把「推荐」换成 图流+信息流（在原位置，若保留推荐则跟在后面）；未自定义过则用新默认顺序。settings.recommendSplitMigrated 避免再跑一遍（例如用户后来把源挪到别的组）。 */
   function applyRecommendSplit(state) {
     if (!state) return state;
     if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
@@ -1423,14 +1426,14 @@ var RSSCore = (function () {
     (state.groups || []).forEach(function (g) {
       if (g && g.name === '推荐') recIds[g.id] = g;
     });
-    var needPics = (state.feeds || []).some(function (f) { return recSplitTarget(f.url) === '图流'; });
-    var needFeed = (state.feeds || []).some(function (f) { return recSplitTarget(f.url) === '信息流'; });
-    var picsG = needPics ? findOrMakeGroup(state, '图流') : null;
-    var feedG = needFeed ? findOrMakeGroup(state, '信息流') : null;
+    var needPics = (state.feeds || []).some(function (f) { return recSplitTarget(f.url) === GROUP_ALBUM; });
+    var needFeed = (state.feeds || []).some(function (f) { return recSplitTarget(f.url) === GROUP_NEWS_REC; });
+    var picsG = needPics ? findOrMakeGroup(state, GROUP_ALBUM) : null;
+    var feedG = needFeed ? findOrMakeGroup(state, GROUP_NEWS_REC) : null;
     (state.feeds || []).forEach(function (f) {
       var t = recSplitTarget(f.url);
-      if (t === '图流' && picsG) f.groupId = picsG.id;
-      else if (t === '信息流' && feedG) f.groupId = feedG.id;
+      if (t === GROUP_ALBUM && picsG) f.groupId = picsG.id;
+      else if (t === GROUP_NEWS_REC && feedG) f.groupId = feedG.id;
     });
     Object.keys(recIds).forEach(function (id) {
       var has = (state.feeds || []).some(function (f) { return f.groupId === id; });
@@ -1482,14 +1485,72 @@ var RSSCore = (function () {
     if (state.navOrder && state.navOrder.length) normalizeNavOrder(state);
     return state;
   }
+  /* 一次性把仍叫「图流」「信息流」的分组改名为「图集推荐」「新闻推荐」。只改名字，id/订阅/顺序/显示模式都保留。
+     若用户已改成别的名字，或目标名字已被占用，则不动该组。settings.recommendRenameMigrated 避免再跑。 */
+  function renameGroupIfUnused(state, from, to) {
+    var groups = state.groups || [];
+    var src = null, i;
+    for (i = 0; i < groups.length; i++) if (groups[i] && groups[i].name === from) { src = groups[i]; break; }
+    if (!src) return false;
+    for (i = 0; i < groups.length; i++) {
+      if (groups[i] && groups[i].id !== src.id && groups[i].name === to) return false;
+    }
+    src.name = to;
+    return true;
+  }
+  function applyRecommendRenameMigration(state) {
+    if (!state) return state;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    if (state.settings.recommendRenameMigrated) return state;
+    renameGroupIfUnused(state, GROUP_ALBUM_OLD, GROUP_ALBUM);
+    renameGroupIfUnused(state, GROUP_NEWS_REC_OLD, GROUP_NEWS_REC);
+    state.settings.recommendRenameMigrated = true;
+    return state;
+  }
+  /* 一次性把「科技」挪到「图集推荐」紧前面。两者都在筛选条里才动；其它项相对顺序不变。
+     已紧挨在前面则不动。settings.techNavMigrated 避免再跑（用户之后自己调整顺序不会被改回去）。 */
+  function findGroupByName(state, name) {
+    var groups = state.groups || [], i;
+    for (i = 0; i < groups.length; i++) if (groups[i] && groups[i].name === name) return groups[i];
+    return null;
+  }
+  function moveTechBeforeAlbum(state) {
+    var tech = findGroupByName(state, '科技');
+    var album = findGroupByName(state, GROUP_ALBUM) || findGroupByName(state, GROUP_ALBUM_OLD);
+    if (!tech || !album || !Array.isArray(state.navOrder)) return false;
+    var nav = state.navOrder.slice();
+    var ti = -1, ai = -1, i;
+    for (i = 0; i < nav.length; i++) {
+      if (String(nav[i] || '') === tech.id) ti = i;
+      if (String(nav[i] || '') === album.id) ai = i;
+    }
+    if (ti < 0 || ai < 0) return false;
+    if (ti === ai - 1) return false;
+    nav.splice(ti, 1);
+    ai = -1;
+    for (i = 0; i < nav.length; i++) if (String(nav[i] || '') === album.id) { ai = i; break; }
+    nav.splice(ai, 0, tech.id);
+    state.navOrder = nav;
+    return true;
+  }
+  function applyTechNavMigration(state) {
+    if (!state) return state;
+    if (!state.settings) state.settings = Object.assign({}, DEFAULT_SETTINGS);
+    if (state.settings.techNavMigrated) return state;
+    moveTechBeforeAlbum(state);
+    state.settings.techNavMigrated = true;
+    return state;
+  }
   /* 把默认订阅并进现有状态（按网址/域名写法去重），不删除任何已有源，返回新增数量 */
   function mergeDefaults(state) {
     migrateGroups(state);
     migrateDroppedFeeds(state);
     applyOtherGroupMigration(state);
     applyIthomeMigration(state);
+    applyRecommendRenameMigration(state);
     applyRecommendSplit(state);
     applyGroupDisplayMigration(state);
+
     var added = 0;
     GROUP_ORDER.forEach(function (name) { ensureGroup(state, name); });
     DEFAULT_FEEDS.forEach(function (pf) {
@@ -1499,6 +1560,8 @@ var RSSCore = (function () {
       added++;
     });
     if (!Array.isArray(state.navOrder) || !state.navOrder.length) state.navOrder = defaultNavOrder(state);
+    applyNavOrder(state);
+    applyTechNavMigration(state);
     applyNavOrder(state);
     return added;
   }
@@ -1559,10 +1622,12 @@ var RSSCore = (function () {
     applyOtherGroupMigration({ groups: groups, feeds: feeds, settings: settings });
     var restored = { groups: groups, feeds: feeds, stars: stars, settings: settings, schema: +data.schema || 0, navOrder: Array.isArray(data.navOrder) ? data.navOrder.slice() : [] };
     applyIthomeMigration(restored);
+    applyRecommendRenameMigration(restored);
     applyRecommendSplit(restored);
     applyGroupDisplayMigration(restored);
     applyNavOrder(restored, restored.navOrder);
     if (isLegacyDefaultNav(restored)) restored.navOrder = defaultNavOrder(restored);
+    applyTechNavMigration(restored);
     normalizeNavOrder(restored);
     return restored;
   }
@@ -2023,7 +2088,7 @@ var RSSCore = (function () {
     discoverFeeds: discoverFeeds, looksLikeFeed: looksLikeFeed, parseProxy: parseProxy, buildProxyUrl: buildProxyUrl, routes: routes, routeLabel: routeLabel, withCustomProxy: withCustomProxy, normalizeCustomProxy: normalizeCustomProxy, normalizeProxyMode: normalizeProxyMode, proxyModeLabel: proxyModeLabel,
     fetchVia: fetchVia, fetchFeed: fetchFeed, resolveFeed: resolveFeed, pool: pool, mergeItems: mergeItems,
     parseOPML: parseOPML, buildOPML: buildOPML, mergeOPML: mergeOPML, normUrl: normUrl, feedKey: feedKey,
-    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, defaultDisplayModeForName: defaultDisplayModeForName, migrateGroupDisplayMode: migrateGroupDisplayMode, applyGroupDisplayMigration: applyGroupDisplayMigration, viewDisplayMode: viewDisplayMode, setViewDisplayMode: setViewDisplayMode, setGroupDisplayMode: setGroupDisplayMode, normalizeViewDisplayMode: normalizeViewDisplayMode, normalizeDisplayModeValue: normalizeDisplayModeValue, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
+    canonicalGroupName: canonicalGroupName, migrateGroups: migrateGroups, isDroppedFeedUrl: isDroppedFeedUrl, migrateDroppedFeeds: migrateDroppedFeeds, migrateOtherGroup: migrateOtherGroup, applyOtherGroupMigration: applyOtherGroupMigration, isIthomeUrl: isIthomeUrl, applyIthomeMigration: applyIthomeMigration, recSplitTarget: recSplitTarget, applyRecommendSplit: applyRecommendSplit, applyRecommendRenameMigration: applyRecommendRenameMigration, applyTechNavMigration: applyTechNavMigration, GROUP_ALBUM: GROUP_ALBUM, GROUP_NEWS_REC: GROUP_NEWS_REC, defaultNavOrder: defaultNavOrder, navLabels: navLabels, normalizeGroupVis: normalizeGroupVis, groupVisible: groupVisible, defaultDisplayModeForName: defaultDisplayModeForName, migrateGroupDisplayMode: migrateGroupDisplayMode, applyGroupDisplayMigration: applyGroupDisplayMigration, viewDisplayMode: viewDisplayMode, setViewDisplayMode: setViewDisplayMode, setGroupDisplayMode: setGroupDisplayMode, normalizeViewDisplayMode: normalizeViewDisplayMode, normalizeDisplayModeValue: normalizeDisplayModeValue, makeGroup: makeGroup, hasUngrouped: hasUngrouped, NAV_ALL: NAV_ALL, applyNavOrder: applyNavOrder, normalizeNavOrder: normalizeNavOrder, moveNav: moveNav, moveGroup: moveGroup, deleteGroup: deleteGroup, moveFeeds: moveFeeds, mergeDefaults: mergeDefaults, seedIfNeeded: seedIfNeeded,
     makeBackup: makeBackup, restoreBackup: restoreBackup, timeline: timeline, chips: chips, defaultView: defaultView, fixView: fixView,
     parseSrcset: parseSrcset, largestSrcsetUrl: largestSrcsetUrl, prefilterImage: prefilterImage,
     passesImageSize: passesImageSize, imageDedupeKey: imageDedupeKey, collectItemImages: collectItemImages, prefilterThumb: prefilterThumb, itemListThumb: itemListThumb, stripHnPrefix: stripHnPrefix, gallery: gallery, galleryColumnCount: galleryColumnCount, assignToShortestColumn: assignToShortestColumn, FEED_PAGE: FEED_PAGE, PICS_PAGE: PICS_PAGE, pageSize: pageSize, sentinelIndex: sentinelIndex, itemKey: itemKey, countNewItems: countNewItems, normalizeGalleryCols: normalizeGalleryCols, galleryMaxColumns: galleryMaxColumns, resolveGalleryColumns: resolveGalleryColumns, headerScrollStep: headerScrollStep, HEADER_NEAR_TOP: HEADER_NEAR_TOP, HEADER_TOGGLE_PX: HEADER_TOGGLE_PX,
@@ -3132,7 +3197,7 @@ var RSSCore = (function () {
       }).join('');
       $('setBody').innerHTML =
         '<h4>关于</h4><div class="box verbox">' +
-        '<p class="ver">当前版本 <strong id="appVer">' + esc(C.APP_VERSION || 'v1.11') + '</strong></p>' +
+        '<p class="ver">当前版本 <strong id="appVer">' + esc(C.APP_VERSION || 'v1.12') + '</strong></p>' +
         '<details id="verLog"><summary>更新记录</summary><ol>' + verHtml + '</ol></details>' +
         '</div>' +
         '<h4>显示</h4><div class="box">' +
