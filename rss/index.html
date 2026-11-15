@@ -15,7 +15,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="icon" href="icon-192.png" sizes="192x192" type="image/png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<meta name="app-version" content="v1.13">
+<meta name="app-version" content="v1.15">
 <title>信息流</title>
 <script>
 (function(){var t=localStorage.getItem('user-theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);if(d)document.documentElement.setAttribute('data-theme','dark');})();
@@ -35,7 +35,7 @@
   --shadow:0 8px 28px rgba(0,0,0,.45);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{overflow-x:clip}
+html,body{overflow-x:clip;overscroll-behavior:contain}
 body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);
   font-family:system-ui, sans-serif;
   font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums;
@@ -49,8 +49,11 @@ a{color:var(--accent)}
 .top{position:fixed;top:0;left:0;right:0;z-index:20;background:var(--bg);padding-top:var(--sat);padding-left:var(--sal);padding-right:var(--sar);border-bottom:1px solid var(--line);transform:translate3d(0,0,0);transition:transform .22s ease;will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
 .top.is-hidden{transform:translate3d(0,-100%,0);pointer-events:none}
 .top-spacer{height:0;flex:none;pointer-events:none}
+/* 点按状态栏回到顶部：常驻透明热区，不随顶栏收起；顶栏可见时点标题同样生效 */
+.statusbar-top{position:fixed;top:0;left:0;right:0;height:var(--sat);min-height:0;z-index:30;border:0;padding:0;margin:0;background:transparent;cursor:pointer;touch-action:manipulation}
+.statusbar-top:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .bar{display:flex;align-items:center;gap:6px;padding:10px 14px 4px}
-.bar h1{margin:0 auto 0 0;font-size:21px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.bar h1{margin:0 auto 0 0;font-size:21px;font-weight:700;letter-spacing:-.3px;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden;cursor:pointer}
 .bar h1 img{width:26px;height:26px;border-radius:6px;flex:none}
 .bar h1 .title-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #btnMode{min-width:auto;padding:0 8px;font-size:13px;font-weight:600;flex:none}
@@ -244,12 +247,12 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 </style>
 </head>
 <body>
+<button type="button" class="statusbar-top" id="statusTop" aria-label="点按回到顶部" title="点按回到顶部"></button>
 <header class="top" id="top">
   <div class="wrap">
     <div class="bar">
       <h1><img src="icon-192.png" alt=""><span class="title-text">信息流</span></h1>
       <button class="ib" id="btnMode" type="button" title="当前为信息流，点按切换到图流" aria-label="当前为信息流，点按切换到图流" aria-pressed="false">信息流</button>
-      <button class="ib" id="btnRefresh" title="刷新" aria-label="刷新"><svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
       <div class="colctl" id="colctl" hidden>
         <button type="button" id="colMinus" aria-label="减少列数">−</button>
         <button type="button" id="colAuto" aria-label="列数，点按恢复自动" title="点按恢复自动">自动</button>
@@ -266,7 +269,7 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
   <div class="prog" id="prog" hidden role="progressbar" aria-hidden="true" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0"><i id="progBar"></i></div>
 </header>
 <div class="top-spacer" id="topSpacer" aria-hidden="true"></div>
-<div class="ptr" id="ptr"><span id="ptrText">下拉刷新</span></div>
+<div class="ptr" id="ptr"><span id="ptrText">下拉刷新当前分组</span></div>
 <main class="wrap"><div class="list" id="list"></div><div class="masonry" id="gallery" hidden></div></main>
 
 <section class="sheet" id="reader" aria-label="阅读">
@@ -355,9 +358,10 @@ label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px}
 var RSSCore = (function () {
   'use strict';
   var SCHEMA = 1;
-  var APP_VERSION = 'v1.14';
+  var APP_VERSION = 'v1.15';
   /* 对外版本一律 v1.x；旧版 v1–v10 对应 v1.1–v1.10（v6.1→v1.6.1）。设置页「更新记录」展示 v1.2 起。 */
   var APP_CHANGELOG = [
+    { version: 'v1.15', date: '2026-11-15', text: '刷新改为只抓当前分组：禁用浏览器原生的整页下拉刷新，下拉 / 点分组 / 左右滑切分组都刷新当前分组、自动应用新内容并回到顶部；顶栏不再放刷新按钮。新增左右滑切换分组（滑到头不循环）与点按顶部状态栏 / 标题回到顶部。不动订阅、分组、收藏与任何本地存档。' },
     { version: 'v1.14', date: '2026-11-13', text: '图流的「− 自动 +」列数按钮从分组条上移到顶栏，不再挤占分组名；深浅色主题改为「订阅与设置 → 其他 → 外观」里的三选（跟随系统／浅色／深色），顶栏不再有月亮按钮。调整亮、暗两套强调色以保证文字对比度；Service Worker 只清理本工具自己的旧缓存。不动订阅、分组、收藏与任何本地存档。' },
     { version: 'v1.13', date: '2026-11-13', text: '筛选条里的「全部」默认隐藏；已经在用的本地配置也会一次性隐藏，不改订阅、收藏、自定义分组、其它显示方式和顺序。分组设置里改成信息流或图流即可重新打开，打开后会记住，之后启动不会再自动隐藏。当时正停在「全部」时，会改到第一个还能看见的分组；如果一个可见分组都没有，就显示空状态和分组设置入口，不会把「全部」强行加回来。' },
     { version: 'v1.12', date: '2026-11-13', text: '默认分组「图流」改名为「图集推荐」，「信息流」改名为「新闻推荐」。默认顺序改为新闻+、设计、杂志、科技、图集推荐、新闻推荐、全部；本地若两组都在，会一次性把「科技」挪到「图集推荐」前面，其它分组相对顺序不变。只改分组名，视图模式仍叫信息流/图流；已经改成别的名字的不动。' },
@@ -2260,6 +2264,10 @@ var RSSCore = (function () {
     window.scrollTo(0, 0);
     if (window.RSSHeader && RSSHeader.show) RSSHeader.show();
   }
+  function scrollTopSmooth() {
+    try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) { window.scrollTo(0, 0); }
+    if (window.RSSHeader && RSSHeader.show) RSSHeader.show();
+  }
   function sameView(a, b) { return a.type === b.type && (a.id || '') === (b.id || ''); }
   function renderChips() {
     var list = C.chips(state, mode);
@@ -2274,8 +2282,8 @@ var RSSCore = (function () {
         var c = list[+b.dataset.i];
         if (c.temp && sameView(c, view)) { setView(C.defaultView(state, mode)); return; }
         var next = { type: c.type, id: c.id };
-        if (!sameView(c, view)) setView(next);
-        refreshView(next);
+        if (!sameView(c, view)) setView(next); else scrollTop();
+        manualRefresh();
       };
     });
     var on = $('chips').querySelector('[aria-pressed="true"]');
@@ -2418,7 +2426,7 @@ var RSSCore = (function () {
     el.innerHTML = html;
     root.appendChild(el);
     var btn = el.querySelector('.endline-refresh');
-    if (btn) btn.onclick = function () { refreshAll(); };
+    if (btn) btn.onclick = function () { manualRefresh(); };
   }
   function pokeBatchSentinels() {
     ['more', 'morePics'].forEach(function (id) {
@@ -2459,7 +2467,7 @@ var RSSCore = (function () {
   function bindEmptyRefresh(root) {
     if (!root) return;
     var btn = root.querySelector('[data-empty-refresh]');
-    if (btn) btn.onclick = function () { refreshAll(); };
+    if (btn) btn.onclick = function () { manualRefresh(); };
   }
   function syncGalleryMessage() {
     var el = $('gallery');
@@ -2910,12 +2918,12 @@ var RSSCore = (function () {
   function cancelRefreshUI() {
     refreshGen++;
     refreshing = false;
-    if ($('btnRefresh')) $('btnRefresh').classList.remove('spin');
     setProgress(0, 0);
     setStatus('');
     syncEndHint();
     if (mode === 'pics') syncGalleryMessage();
   }
+  /* 节流刷新（保留给自动 / 未来的节流场景）；v1.15 起手动入口统一走 manualRefresh，不受 60 秒节流限制。 */
   function refreshView(v) {
     var key = C.viewRefreshKey(v);
     if (!key) { if (refreshing) cancelRefreshUI(); return; }
@@ -2941,11 +2949,13 @@ var RSSCore = (function () {
     var feeds = only || state.feeds;
     if (!feeds.length) return;
     if (refreshing && !opts.reason) return;
+    var topBefore = {};
+    feeds.forEach(function (f) { var a = itemsByFeed[f.id] || []; topBefore[f.id] = a.length ? a[0].id : ''; });
     var myGen = ++refreshGen;
     var now = Date.now();
     var key = opts.viewKey || (!only || only === state.feeds ? 'all' : '');
     if (key) C.markChipRefresh(chipRefreshAt, key, now, (state.groups || []).map(function (g) { return g.id; }));
-    refreshing = true; $('btnRefresh').classList.add('spin'); penalty = {};
+    refreshing = true; penalty = {};
     syncEndHint();
     if (mode === 'pics') syncGalleryMessage();
     else if (!current.length) renderList();
@@ -2964,34 +2974,90 @@ var RSSCore = (function () {
     });
     if (myGen !== refreshGen) return;
     if (ok) state.settings.lastRefreshAt = Date.now();
+    var changed = feeds.some(function (f) { var a = itemsByFeed[f.id] || []; return (a.length ? a[0].id : '') !== topBefore[f.id]; });
     save();
     if (hadContent) maybeParkNewContent();
     else { committedItems = null; committedTiles = null; shown = C.pageSize(mode); renderMain(); }
-    refreshing = false; $('btnRefresh').classList.remove('spin');
+    refreshing = false;
     setProgress(started, started);
+    if (opts.autoApply) applyFresh();
     setTimeout(function () { if (myGen === refreshGen) setProgress(0, 0); }, 280);
     syncEndHint();
     if (failed) setStatus('<span class="err">' + failed + ' 个源没抓到</span>（当前：' + C.proxyModeLabel(state.settings.proxyMode) + '），在「订阅与设置」里看原因');
-    else { setStatus(''); if (!pendingNew) toast('已刷新 ' + started + ' 个源'); }
+    else { setStatus(''); if (!pendingNew) toast('已刷新 ' + started + ' 个源' + (changed ? ' · 已更新' : ' · 无新内容')); }
     if ($('settings').classList.contains('open')) renderSettings();
   }
-  $('btnRefresh').onclick = function () { refreshAll(); };
+  /* 手动刷新：只抓当前分组、自动应用新内容、回到顶部；不再提供「刷新全部」的手动入口。 */
+  function manualRefresh() {
+    scrollTop();
+    var feeds = C.feedsForView(state, view);
+    if (!feeds.length) { if (view.type !== 'star') toast('当前分组没有订阅源'); return; }
+    return refreshAll(feeds, { reason: 'manual', autoApply: true });
+  }
+  /* 左右滑切分组：按筛选条顺序，滑到头不循环；切完与点分组一样置顶并刷新。 */
+  function swipeGroup(step) {
+    var arr = C.chips(state, mode).slice();
+    if (view.type === 'feed') { var f = feedById(view.id); if (f) arr.push({ type: 'feed', id: f.id }); }
+    var idx = -1;
+    for (var i = 0; i < arr.length; i++) {
+      if (arr[i].type === view.type && (arr[i].id || '') === (view.id || '')) { idx = i; break; }
+    }
+    if (idx < 0) return;
+    var j = idx + step;
+    if (j < 0 || j >= arr.length) return;
+    var c = arr[j];
+    setView({ type: c.type, id: c.id || '' });
+    manualRefresh();
+  }
 
-  // 下拉刷新
+  /* 手势：下拉刷新当前分组 / 左右滑切分组，按首次位移方向互斥。
+     弹层与顶部筛选条自身不接管；状态栏热区不排除，从最顶端下拉同样有效。 */
   (function () {
-    var y0 = null, dy = 0, ptr = $('ptr');
-    window.addEventListener('touchstart', function (e) { if (window.scrollY <= 0 && !document.querySelector('.sheet.open')) { y0 = e.touches[0].clientY; dy = 0; } else y0 = null; }, { passive: true });
-    window.addEventListener('touchmove', function (e) {
-      if (y0 == null) return;
-      dy = e.touches[0].clientY - y0;
-      if (dy > 0) { ptr.style.transition = 'none'; ptr.style.height = Math.min(70, dy / 2.2) + 'px'; $('ptrText').textContent = dy > 140 ? '松开刷新' : '下拉刷新'; }
+    var ptr = $('ptr'), g = null;
+    function blocked(t) {
+      if (document.querySelector('.sheet.open')) return true;
+      if (!t || !t.closest) return false;
+      return !!t.closest('#top, .mpick, .sheet');
+    }
+    function setPtr(h, text) {
+      ptr.style.transition = h ? 'none' : '';
+      ptr.style.height = h ? Math.min(70, h) + 'px' : '0';
+      $('ptrText').textContent = text;
+    }
+    window.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1 || blocked(e.target)) { g = null; return; }
+      g = { x: e.touches[0].clientX, y: e.touches[0].clientY, atTop: (window.scrollY || 0) <= 0, dx: 0, dy: 0, dir: '' };
     }, { passive: true });
+    /* 非 passive：顶部下拉时主动 preventDefault，兜住 overscroll-behavior 不生效的旧版 iOS/WebView，
+       避免浏览器把它当成整页下拉刷新；只在「已在顶部 + 向下拖」时拦，正常滚动不受影响。 */
+    window.addEventListener('touchmove', function (e) {
+      if (!g || e.touches.length !== 1) return;
+      g.dx = e.touches[0].clientX - g.x;
+      g.dy = e.touches[0].clientY - g.y;
+      if (!g.dir && (Math.abs(g.dx) > 12 || Math.abs(g.dy) > 12)) g.dir = Math.abs(g.dx) > Math.abs(g.dy) * 1.4 ? 'h' : 'v';
+      if (g.dir === 'v' && g.atTop && g.dy > 0) {
+        if (e.cancelable) e.preventDefault();
+        setPtr(g.dy / 2.2, g.dy > 140 ? '松开刷新当前分组' : '下拉刷新当前分组');
+      }
+    }, { passive: false });
     window.addEventListener('touchend', function () {
-      if (y0 == null) return;
-      ptr.style.transition = ''; ptr.style.height = '0';
-      if (dy > 140) refreshAll();
-      y0 = null;
-    });
+      if (!g) return;
+      var d = g; g = null;
+      if (d.dir === 'v') {
+        setPtr(0, '下拉刷新当前分组');
+        if (d.atTop && d.dy > 140) manualRefresh();
+      } else if (d.dir === 'h' && Math.abs(d.dx) > 60) {
+        swipeGroup(d.dx < 0 ? 1 : -1);
+      }
+    }, { passive: true });
+    window.addEventListener('touchcancel', function () { if (g) { g = null; setPtr(0, '下拉刷新当前分组'); } }, { passive: true });
+  })();
+  /* 点按顶部状态栏热区 / 顶栏标题：回到顶部 */
+  (function () {
+    function back() { if (!document.querySelector('.sheet.open')) scrollTopSmooth(); }
+    var hot = $('statusTop'); if (hot) hot.addEventListener('click', back);
+    var h1 = document.querySelector('.bar h1');
+    if (h1) { h1.title = '点按回到顶部'; h1.addEventListener('click', back); }
   })();
 
   /* 滚动收起顶部：rAF 节流、passive 监听；fixed + 占位，内容不跳动 */
